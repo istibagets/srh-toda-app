@@ -1,0 +1,628 @@
+<ion-header class="ion-no-border srh-admin-header">
+  <ion-toolbar class="header-toolbar">
+    <div class="header-content-wrapper">
+      <div class="header-title-group">
+        <h1 class="header-title">Admin</h1>
+      </div>
+
+      <!-- Quick Print Action in Header -->
+      <button
+        type="button"
+        class="header-print-btn"
+        (click)="goToReportGenerator()"
+        title="Official Report Generator"
+      >
+        <ion-icon name="print-outline"></ion-icon>
+        <span>Print</span>
+      </button>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="srh-admin-content" [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="loadAdminData($event)">
+    <ion-refresher-content pullingIcon="chevron-down-circle-outline"></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="admin-layout-container">
+    <!-- ── 1. SEGMENTED TOP-LEVEL NAVIGATION (2x2 GRID) ────── -->
+    <div class="admin-segmented-nav">
+      <button
+        type="button"
+        class="segment-tab"
+        [class.active]="activeTab() === 'drivers'"
+        (click)="setTab('drivers')"
+      >
+        <span class="tab-label">Drivers</span>
+        <span class="tab-badge">{{ drivers().length }}</span>
+      </button>
+      <button
+        type="button"
+        class="segment-tab"
+        [class.active]="activeTab() === 'queue'"
+        (click)="setTab('queue')"
+      >
+        <span class="tab-label">Queue</span>
+        <span class="tab-badge">{{ queue().length }}</span>
+      </button>
+      <button
+        type="button"
+        class="segment-tab"
+        [class.active]="activeTab() === 'reports'"
+        (click)="setTab('reports')"
+      >
+        <span class="tab-label">Reports</span>
+        @if (summary().open_reports > 0) {
+          <span class="tab-badge alert">{{ summary().open_reports }}</span>
+        }
+      </button>
+      <button
+        type="button"
+        class="segment-tab"
+        [class.active]="activeTab() === 'broadcast'"
+        (click)="setTab('broadcast')"
+      >
+        <span class="tab-label">Broadcast</span>
+      </button>
+    </div>
+
+    <!-- ── SKELETON SHIMMER LOADING STATE ─────────────────── -->
+    @if (isLoading()) {
+      <div class="skeleton-stream-container">
+        <div class="skeleton-card shimmer-card">
+          <div class="skeleton-line shimmer sm-width"></div>
+          <div class="skeleton-row shimmer"></div>
+          <div class="skeleton-row shimmer"></div>
+          <div class="skeleton-row shimmer"></div>
+        </div>
+      </div>
+    } @else {
+      <!-- ── 2. TAB 1: DRIVERS & COMPLIANCE ────────────────── -->
+      @if (activeTab() === 'drivers') {
+        <div class="tab-view-container animate-fade-in">
+          <!-- Contextual Driver Search Input -->
+          <div class="tab-search-box">
+            <ion-icon name="search-outline" class="search-icon"></ion-icon>
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Search driver by name, MTOP, or phone..."
+              [ngModel]="searchQuery()"
+              (input)="onSearchChange($event)"
+            />
+            @if (searchQuery()) {
+              <button type="button" class="clear-search-btn" (click)="clearSearch()">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            }
+          </div>
+
+          <!-- Compliance Status Filter Grid -->
+          <div class="driver-filter-chips">
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="statusFilter() === 'all'"
+              (click)="setStatusFilter('all')"
+            >
+              All ({{ drivers().length }})
+            </button>
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="statusFilter() === 'Pending'"
+              (click)="setStatusFilter('Pending')"
+            >
+              Pending ({{ summary().pending_applicants }})
+            </button>
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="statusFilter() === 'Approved'"
+              (click)="setStatusFilter('Approved')"
+            >
+              Approved
+            </button>
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="statusFilter() === 'Suspended'"
+              (click)="setStatusFilter('Suspended')"
+            >
+              Suspended ({{ summary().suspended_drivers }})
+            </button>
+          </div>
+
+          @if (filteredDrivers().length === 0) {
+            <div class="empty-tab-state">
+              <div class="empty-icon-wrap">
+                <ion-icon name="people-outline"></ion-icon>
+              </div>
+              <span class="empty-title">No Drivers Found</span>
+              <span class="empty-sub">No driver records matching current search or status filter.</span>
+            </div>
+          } @else {
+            <div class="drivers-stream">
+              @for (driver of filteredDrivers(); track driver.id) {
+                <div class="driver-ledger-card" (click)="openDriverModal(driver)">
+                  <div class="driver-card-main">
+                    <!-- Avatar -->
+                    <div class="driver-avatar-wrap">
+                      @if (driver.avatar_url) {
+                        <img [src]="driver.avatar_url" alt="Avatar" class="avatar-img" />
+                      } @else {
+                        <div class="avatar-letter">
+                          {{ driver.full_name.charAt(0).toUpperCase() }}
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Meta -->
+                    <div class="driver-meta">
+                      <div class="name-mtop-row">
+                        <h4 class="driver-name">{{ driver.full_name }}</h4>
+                        <span class="mtop-tag">MTOP #{{ driver.mtop_number }}</span>
+                      </div>
+                      <div class="driver-sub-details">
+                        <span class="contact-text">{{ driver.phone_number }}</span>
+                        <div class="rating-strip">
+                          <ion-icon name="star" class="star-icon"></ion-icon>
+                          <span>{{ driver.average_rating.toFixed(1) }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Status Pill & Chevron -->
+                    <div class="driver-card-right">
+                      <span
+                        class="compliance-status-pill"
+                        [class.approved]="driver.compliance_status === 'Approved'"
+                        [class.pending]="driver.compliance_status === 'Pending'"
+                        [class.suspended]="driver.compliance_status === 'Suspended'"
+                      >
+                        {{ driver.compliance_status }}
+                      </span>
+                      <ion-icon name="chevron-forward-outline" class="card-arrow"></ion-icon>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ── 3. TAB 2: LIVE TERMINAL QUEUE ─────────────────── -->
+      @if (activeTab() === 'queue') {
+        <div class="tab-view-container animate-fade-in">
+          <div class="queue-overview-bar">
+            <span class="queue-heading">Terminal Dispatch Line</span>
+            <span class="queue-count-badge">{{ queue().length }} Units On Duty</span>
+          </div>
+
+          @if (queue().length === 0) {
+            <div class="empty-tab-state">
+              <div class="empty-icon-wrap">
+                <ion-icon name="time-outline"></ion-icon>
+              </div>
+              <span class="empty-title">Queue Is Currently Empty</span>
+              <span class="empty-sub">No drivers are currently clocked on-duty in the terminal queue.</span>
+            </div>
+          } @else {
+            <div class="queue-stream">
+              @for (item of queue(); track item.id; let idx = $index) {
+                <div class="queue-item-card">
+                  <div class="queue-position-pill">
+                    #{{ item.position }}
+                  </div>
+
+                  <div class="queue-driver-info">
+                    <span class="queue-driver-name">{{ item.driver_name }}</span>
+                    <span class="queue-driver-mtop">MTOP #{{ item.mtop_number }} • Joined {{ item.time_joined }}</span>
+                  </div>
+
+                  <!-- Remove / Offline Button with Confirmation Prompt -->
+                  <button
+                    type="button"
+                    class="queue-remove-btn"
+                    (click)="confirmRemoveFromQueue(item)"
+                    title="Remove driver from queue and set offline"
+                  >
+                    <ion-icon name="log-out-outline"></ion-icon>
+                    <span>Offline</span>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ── 4. TAB 3: INCIDENT & DISPUTE REPORTS ──────────── -->
+      @if (activeTab() === 'reports') {
+        <div class="tab-view-container animate-fade-in">
+          @if (reports().length === 0) {
+            <div class="empty-tab-state">
+              <div class="empty-icon-wrap">
+                <ion-icon name="alert-circle-outline"></ion-icon>
+              </div>
+              <span class="empty-title">No Incident Reports</span>
+              <span class="empty-sub">Zero active passenger reports or fare disputes filed.</span>
+            </div>
+          } @else {
+            <div class="reports-stream">
+              @for (rpt of reports(); track rpt.id) {
+                <div class="report-card" (click)="openReportModal(rpt)">
+                  <div class="report-card-top">
+                    <div class="report-id-group">
+                      <span class="report-id">{{ rpt.report_id }}</span>
+                      <span class="report-category-tag">{{ rpt.category }}</span>
+                    </div>
+
+                    <span
+                      class="report-status-pill"
+                      [class.pending]="rpt.status === 'pending'"
+                      [class.investigating]="rpt.status === 'investigating'"
+                      [class.resolved]="rpt.status === 'resolved'"
+                      [class.dismissed]="rpt.status === 'dismissed'"
+                    >
+                      {{ rpt.status | uppercase }}
+                    </span>
+                  </div>
+
+                  <!-- Clean concise subject & chevron (description inside modal) -->
+                  <div class="report-middle-row">
+                    <h4 class="report-subject">{{ rpt.subject }}</h4>
+                    <ion-icon name="chevron-forward-outline" class="report-arrow"></ion-icon>
+                  </div>
+
+                  <div class="report-footer">
+                    <div class="report-parties">
+                      <span class="party-info">Passenger: <strong>{{ rpt.reporter_name }}</strong></span>
+                      <span class="party-info">Driver: <strong>{{ rpt.driver_name }}</strong> (MTOP #{{ rpt.driver_mtop }})</span>
+                    </div>
+                    <span class="report-date">{{ rpt.created_at }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ── 5. TAB 4: BROADCAST ANNOUNCEMENTS ─────────────── -->
+      @if (activeTab() === 'broadcast') {
+        <div class="tab-view-container animate-fade-in">
+          <div class="broadcast-action-bar">
+            <button type="button" class="create-broadcast-btn" (click)="openBroadcastModal()">
+              <ion-icon name="megaphone-outline"></ion-icon>
+              <span>Create Announcement</span>
+            </button>
+          </div>
+
+          <div class="announcements-stream">
+            @if (announcements().length === 0) {
+              <div class="empty-tab-state">
+                <div class="empty-icon-wrap">
+                  <ion-icon name="megaphone-outline"></ion-icon>
+                </div>
+                <span class="empty-title">No Announcements</span>
+                <span class="empty-sub">No broadcast messages have been sent yet.</span>
+              </div>
+            } @else {
+              @for (ann of announcements(); track ann.id) {
+                <div class="announcement-card">
+                  <div class="ann-top">
+                    <span class="ann-audience-pill">{{ ann.target_audience }}</span>
+                    <span class="ann-time">{{ ann.created_at }}</span>
+                  </div>
+                  <h4 class="ann-title">{{ ann.title }}</h4>
+                  <p class="ann-msg">{{ ann.message }}</p>
+                </div>
+              }
+            }
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- ── 6. DRIVER DOCUMENT REVIEW & COMPLIANCE MODAL ────────── -->
+  <ion-modal
+    [isOpen]="isDriverModalOpen()"
+    (didDismiss)="closeDriverModal()"
+    [initialBreakpoint]="1"
+    [breakpoints]="[0, 1]"
+    class="admin-sheet-modal"
+  >
+    <ng-template>
+      @if (selectedDriver(); as driver) {
+        <div class="modal-sheet-container">
+          <div class="modal-drag-handle"></div>
+
+          <div class="modal-sheet-header">
+            <div class="header-title-block">
+              <span class="kicker">DRIVER VERIFICATION</span>
+              <h2 class="driver-title">{{ driver.full_name }}</h2>
+              <span class="driver-sub-id">MTOP #{{ driver.mtop_number }} • Registered {{ driver.created_at }}</span>
+            </div>
+
+            <button type="button" class="modal-close-btn" (click)="closeDriverModal()">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </div>
+
+          <div class="modal-sheet-body">
+            <!-- Compliance Status Banner -->
+            <div class="compliance-state-card" [class.approved]="driver.compliance_status === 'Approved'" [class.pending]="driver.compliance_status === 'Pending'" [class.suspended]="driver.compliance_status === 'Suspended'">
+              <span class="state-label">CURRENT STATUS:</span>
+              <span class="state-value">{{ driver.compliance_status | uppercase }}</span>
+            </div>
+
+            <!-- Uploaded Documents Links -->
+            <div class="docs-section">
+              <span class="section-heading">UPLOADED VERIFICATION DOCUMENTS</span>
+              <div class="docs-links-grid">
+                @if (driver.mtop_certificate_url) {
+                  <a [href]="driver.mtop_certificate_url" target="_blank" class="doc-link-card">
+                    <ion-icon name="document-attach-outline"></ion-icon>
+                    <div class="doc-meta">
+                      <span class="doc-name">MTOP Franchise Permit</span>
+                      <span class="doc-action">Click to inspect official permit</span>
+                    </div>
+                    <ion-icon name="open-outline" class="open-icon"></ion-icon>
+                  </a>
+                } @else {
+                  <div class="doc-empty-pill">No MTOP permit document uploaded.</div>
+                }
+
+                @if (driver.drivers_license_url) {
+                  <a [href]="driver.drivers_license_url" target="_blank" class="doc-link-card">
+                    <ion-icon name="document-attach-outline"></ion-icon>
+                    <div class="doc-meta">
+                      <span class="doc-name">Driver's License (LTO)</span>
+                      <span class="doc-action">Click to inspect official license</span>
+                    </div>
+                    <ion-icon name="open-outline" class="open-icon"></ion-icon>
+                  </a>
+                } @else {
+                  <div class="doc-empty-pill">No Driver's License uploaded.</div>
+                }
+              </div>
+            </div>
+
+            <!-- Suspension Reason Input if Suspending -->
+            <div class="suspension-input-section">
+              <label class="section-heading">SUSPENSION REASON / ADMINISTRATIVE NOTE</label>
+              <textarea
+                class="styled-textarea"
+                rows="3"
+                placeholder="Specify violation or suspension reason..."
+                [ngModel]="suspensionReasonInput()"
+                (ngModelChange)="suspensionReasonInput.set($event)"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="modal-sheet-footer">
+            @if (driver.compliance_status === 'Pending') {
+              <button
+                type="button"
+                class="modal-btn approve"
+                [disabled]="isProcessing()"
+                (click)="updateCompliance('Approved')"
+              >
+                Approve &amp; Activate
+              </button>
+              <button
+                type="button"
+                class="modal-btn reject"
+                [disabled]="isProcessing()"
+                (click)="updateCompliance('Rejected')"
+              >
+                Reject
+              </button>
+            } @else if (driver.compliance_status === 'Approved') {
+              <button
+                type="button"
+                class="modal-btn suspend"
+                [disabled]="isProcessing()"
+                (click)="updateCompliance('Suspended', suspensionReasonInput())"
+              >
+                Suspend Unit
+              </button>
+            } @else if (driver.compliance_status === 'Suspended') {
+              <button
+                type="button"
+                class="modal-btn reinstate"
+                [disabled]="isProcessing()"
+                (click)="updateCompliance('Approved')"
+              >
+                Reinstate
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </ng-template>
+  </ion-modal>
+
+  <!-- ── 8. REPORT RESOLUTION MODAL ──────────────────────────── -->
+  <ion-modal
+    [isOpen]="isReportModalOpen()"
+    (didDismiss)="closeReportModal()"
+    [initialBreakpoint]="1"
+    [breakpoints]="[0, 1]"
+    class="admin-sheet-modal"
+  >
+    <ng-template>
+      @if (selectedReport(); as rpt) {
+        <div class="modal-sheet-container">
+          <div class="modal-drag-handle"></div>
+
+          <div class="modal-sheet-header">
+            <div class="header-title-block">
+              <span class="kicker">DISPUTE RESOLUTION</span>
+              <h2 class="driver-title">{{ rpt.report_id }}: {{ rpt.category }}</h2>
+              <span class="driver-sub-id">{{ rpt.created_at }}</span>
+            </div>
+
+            <button type="button" class="modal-close-btn" (click)="closeReportModal()">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </div>
+
+          <div class="modal-sheet-body">
+            <div class="report-detail-box">
+              <span class="box-label">REPORT DESCRIPTION:</span>
+              <p class="box-text">{{ rpt.description }}</p>
+            </div>
+
+            <div class="status-select-section">
+              <label class="section-heading">UPDATE REPORT STATUS</label>
+              <div class="status-radio-group">
+                <button
+                  type="button"
+                  class="radio-chip"
+                  [class.active]="reportStatusInput() === 'investigating'"
+                  (click)="reportStatusInput.set('investigating')"
+                >
+                  Investigating
+                </button>
+                <button
+                  type="button"
+                  class="radio-chip"
+                  [class.active]="reportStatusInput() === 'resolved'"
+                  (click)="reportStatusInput.set('resolved')"
+                >
+                  Resolved
+                </button>
+                <button
+                  type="button"
+                  class="radio-chip"
+                  [class.active]="reportStatusInput() === 'dismissed'"
+                  (click)="reportStatusInput.set('dismissed')"
+                >
+                  Dismissed
+                </button>
+              </div>
+            </div>
+
+            <div class="notes-input-section">
+              <label class="section-heading">ADMINISTRATIVE ACTION NOTES</label>
+              <textarea
+                class="styled-textarea"
+                rows="3"
+                placeholder="Enter investigation notes or resolution details..."
+                [ngModel]="reportNotesInput()"
+                (ngModelChange)="reportNotesInput.set($event)"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="modal-sheet-footer">
+            <button
+              type="button"
+              class="modal-btn approve"
+              [disabled]="isProcessing()"
+              (click)="submitReportResolution()"
+            >
+              Save Status
+            </button>
+          </div>
+        </div>
+      }
+    </ng-template>
+  </ion-modal>
+
+  <!-- ── 9. BROADCAST ANNOUNCEMENT MODAL ────────────────────── -->
+  <ion-modal
+    [isOpen]="isBroadcastModalOpen()"
+    (didDismiss)="closeBroadcastModal()"
+    [initialBreakpoint]="1"
+    [breakpoints]="[0, 1]"
+    class="admin-sheet-modal"
+  >
+    <ng-template>
+      <div class="modal-sheet-container">
+        <div class="modal-drag-handle"></div>
+
+        <div class="modal-sheet-header">
+          <div class="header-title-block">
+            <span class="kicker">DISPATCH BROADCAST</span>
+            <h2 class="driver-title">New Official Announcement</h2>
+          </div>
+
+          <button type="button" class="modal-close-btn" (click)="closeBroadcastModal()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        <div class="modal-sheet-body">
+          <div class="input-group">
+            <label class="section-heading">TARGET AUDIENCE</label>
+            <div class="status-radio-group">
+              <button
+                type="button"
+                class="radio-chip"
+                [class.active]="broadcastAudience() === 'ALL'"
+                (click)="broadcastAudience.set('ALL')"
+              >
+                All
+              </button>
+              <button
+                type="button"
+                class="radio-chip"
+                [class.active]="broadcastAudience() === 'DRIVERS'"
+                (click)="broadcastAudience.set('DRIVERS')"
+              >
+                Drivers
+              </button>
+              <button
+                type="button"
+                class="radio-chip"
+                [class.active]="broadcastAudience() === 'PASSENGERS'"
+                (click)="broadcastAudience.set('PASSENGERS')"
+              >
+                Passengers
+              </button>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label class="section-heading">ANNOUNCEMENT TITLE</label>
+            <input
+              type="text"
+              class="styled-input"
+              placeholder="e.g. TODA Meeting Notice"
+              [ngModel]="broadcastTitle()"
+              (ngModelChange)="broadcastTitle.set($event)"
+            />
+          </div>
+
+          <div class="input-group">
+            <label class="section-heading">MESSAGE CONTENT</label>
+            <textarea
+              class="styled-textarea"
+              rows="4"
+              placeholder="Write announcement message..."
+              [ngModel]="broadcastMessage()"
+              (ngModelChange)="broadcastMessage.set($event)"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="modal-sheet-footer">
+          <button
+            type="button"
+            class="modal-btn approve"
+            [disabled]="isProcessing() || !broadcastTitle() || !broadcastMessage()"
+            (click)="submitBroadcast()"
+          >
+            Publish Broadcast
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+</ion-content>

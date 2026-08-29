@@ -1,0 +1,271 @@
+<ion-header class="ion-no-border srh-earnings-header">
+  <ion-toolbar class="header-toolbar">
+    <div class="header-title-group">
+      <h1 class="header-title">{{ authService.isPassenger() ? 'Spending & Fares' : 'Driver Earnings' }}</h1>
+    </div>
+
+    <!-- ── TIME HORIZON FILTER TABS ───────────────────────── -->
+    <div class="period-tab-bar">
+      <button
+        type="button"
+        class="period-tab-btn"
+        [class.active]="activePeriod() === 'today'"
+        (click)="setPeriod('today')"
+      >
+        Today
+      </button>
+      <button
+        type="button"
+        class="period-tab-btn"
+        [class.active]="activePeriod() === 'week'"
+        (click)="setPeriod('week')"
+      >
+        This Week
+      </button>
+      <button
+        type="button"
+        class="period-tab-btn"
+        [class.active]="activePeriod() === 'month'"
+        (click)="setPeriod('month')"
+      >
+        This Month
+      </button>
+      <button
+        type="button"
+        class="period-tab-btn"
+        [class.active]="activePeriod() === 'all'"
+        (click)="setPeriod('all')"
+      >
+        All Time
+      </button>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="srh-earnings-content" [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="loadEarningsData($event)">
+    <ion-refresher-content pullingIcon="chevron-down-circle-outline"></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="earnings-layout-container">
+    <!-- ── SKELETON SHIMMER LOADING STATE ─────────────────── -->
+    @if (isLoading()) {
+      <div class="skeleton-stream-container">
+        <!-- Hero Shimmer -->
+        <div class="skeleton-card skeleton-hero">
+          <div class="skeleton-line shimmer sm-width"></div>
+          <div class="skeleton-line shimmer lg-title"></div>
+          <div class="skeleton-pill-row">
+            <div class="skeleton-pill shimmer"></div>
+            <div class="skeleton-pill shimmer"></div>
+            <div class="skeleton-pill shimmer"></div>
+          </div>
+        </div>
+
+        <!-- Graph Shimmer -->
+        <div class="skeleton-card skeleton-graph">
+          <div class="skeleton-header-row">
+            <div class="skeleton-line shimmer med-width"></div>
+            <div class="skeleton-line shimmer sm-width"></div>
+          </div>
+          <div class="skeleton-bars-grid">
+            <div class="skeleton-bar shimmer" style="height: 45%;"></div>
+            <div class="skeleton-bar shimmer" style="height: 70%;"></div>
+            <div class="skeleton-bar shimmer" style="height: 35%;"></div>
+            <div class="skeleton-bar shimmer" style="height: 85%;"></div>
+            <div class="skeleton-bar shimmer" style="height: 60%;"></div>
+            <div class="skeleton-bar shimmer" style="height: 95%;"></div>
+            <div class="skeleton-bar shimmer" style="height: 50%;"></div>
+          </div>
+        </div>
+
+        <!-- Sources Shimmer -->
+        <div class="skeleton-card skeleton-sources">
+          <div class="skeleton-line shimmer med-width"></div>
+          <div class="skeleton-track shimmer"></div>
+          <div class="skeleton-track shimmer"></div>
+        </div>
+
+        <!-- Transactions Shimmer -->
+        <div class="skeleton-card skeleton-ledger">
+          <div class="skeleton-line shimmer sm-width"></div>
+          <div class="skeleton-list-item shimmer"></div>
+          <div class="skeleton-list-item shimmer"></div>
+          <div class="skeleton-list-item shimmer"></div>
+        </div>
+      </div>
+    } @else {
+      <!-- ── 1. EXECUTIVE FINANCIAL HERO DECK ──────────────── -->
+      <div class="earnings-hero-card">
+        <div class="hero-top-row">
+          <div class="hero-label-group">
+            <span class="hero-eyebrow">{{ authService.isPassenger() ? 'TOTAL FARES PAID' : 'GROSS REVENUE' }}</span>
+            <div class="hero-amount-block">
+              <span class="currency-symbol">₱</span>
+              <span class="amount-number">{{ summary().total_earnings.toFixed(2) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3-Column Metrics Strip -->
+        <div class="hero-metrics-strip">
+          <div class="metric-cell">
+            <span class="cell-label">{{ authService.isPassenger() ? 'RIDES' : 'TRIPS' }}</span>
+            <span class="cell-value">{{ summary().total_trips }}</span>
+          </div>
+
+          <div class="metric-cell-divider"></div>
+
+          <div class="metric-cell">
+            <span class="cell-label">AVG FARE</span>
+            <span class="cell-value">₱{{ summary().avg_fare.toFixed(2) }}</span>
+          </div>
+
+          <div class="metric-cell-divider"></div>
+
+          <div class="metric-cell">
+            <span class="cell-label">TODAY</span>
+            <span class="cell-value text-emerald">₱{{ summary().today_earnings.toFixed(2) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 2. 7-DAY REVENUE GRAPH VISUALIZER ─────────────── -->
+      <div class="analytics-card graph-card">
+        <div class="card-header-row">
+          <div class="card-title-group">
+            <h3 class="card-title">Weekly Revenue Trends</h3>
+            <span class="card-subtitle">Daily dispatch performance breakdown</span>
+          </div>
+
+          <div class="peak-badge">
+            <ion-icon name="trending-up-outline"></ion-icon>
+            <span>Peak: {{ summary().peak_day_name }} (₱{{ summary().peak_day_earnings.toFixed(0) }})</span>
+          </div>
+        </div>
+
+        <!-- Interactive Tooltip Banner -->
+        @if (selectedBar(); as bar) {
+          <div class="graph-tooltip-banner">
+            <div class="tooltip-left">
+              <span class="tooltip-day">{{ bar.full_day }}</span>
+              <span class="tooltip-date">{{ bar.date }}</span>
+            </div>
+            <div class="tooltip-right">
+              <span class="tooltip-earnings">₱{{ bar.earnings.toFixed(2) }}</span>
+              <span class="tooltip-trips">{{ bar.trips_count }} {{ bar.trips_count === 1 ? 'trip' : 'trips' }}</span>
+            </div>
+          </div>
+        }
+
+        <!-- 7-Day Animated Pillar Chart -->
+        <div class="pillar-chart-container">
+          <div class="chart-pillars-row">
+            @for (bar of chartBars(); track bar.day_name) {
+              <div
+                class="pillar-column"
+                [class.selected]="selectedBar()?.day_name === bar.day_name"
+                [class.is-today]="bar.is_today"
+                (click)="selectBar(bar)"
+              >
+                <!-- Bar Column Stem Wrapper -->
+                <div class="bar-stem-wrapper">
+                  <div
+                    class="bar-stem"
+                    [class.animated]="isAnimating()"
+                    [style.height.%]="bar.height_pct"
+                  >
+                    @if (bar.earnings > 0) {
+                      <span class="bar-val-badge">₱{{ bar.earnings.toFixed(0) }}</span>
+                    }
+                  </div>
+                </div>
+
+                <!-- Day Label -->
+                <div class="bar-label-group">
+                  <span class="day-name" [class.today-text]="bar.is_today">{{ bar.day_name }}</span>
+                  <span class="date-sub">{{ bar.date.split(' ')[1] }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 3. REVENUE BY TRIP SOURCE ──────────────────────── -->
+      <div class="analytics-card sources-card">
+        <div class="card-header-row">
+          <div class="card-title-group">
+            <h3 class="card-title">Dispatch Channel Share</h3>
+            <span class="card-subtitle">Revenue distribution by ride category</span>
+          </div>
+        </div>
+
+        <div class="sources-list">
+          @for (source of sources(); track source.type) {
+            <div class="source-item">
+              <div class="source-item-top">
+                <div class="source-meta">
+                  <div class="source-color-dot" [style.background]="source.color"></div>
+                  <span class="source-title">{{ source.label }}</span>
+                  <span class="source-trips-tag">({{ source.trips_count }} trips)</span>
+                </div>
+                <div class="source-amounts">
+                  <span class="source-rev">₱{{ source.earnings.toFixed(2) }}</span>
+                  <span class="source-pct">{{ source.pct }}%</span>
+                </div>
+              </div>
+
+              <!-- Animated Progress Bar -->
+              <div class="source-track">
+                <div
+                  class="source-fill"
+                  [class.animated]="isAnimating()"
+                  [style.width.%]="source.pct"
+                  [style.background]="source.color"
+                ></div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- ── 4. RECENT TRANSACTIONS STREAM ──────────────────── -->
+      <div class="analytics-card ledger-card">
+        <div class="card-header-row">
+          <div class="card-title-group">
+            <h3 class="card-title">Recent Fare Activity</h3>
+            <span class="card-subtitle">Latest recorded dropoffs</span>
+          </div>
+        </div>
+
+        @if (recentLedger().length === 0) {
+          <div class="empty-ledger-state">
+            <span class="empty-text">No fare transactions recorded for this period.</span>
+          </div>
+        } @else {
+          <div class="ledger-items-stream">
+            @for (tx of recentLedger(); track tx.id) {
+              <div class="ledger-item-card">
+                <div class="ledger-icon-wrap">
+                  <ion-icon src="/assets/icon/srh-tricycle.svg" class="tx-icon"></ion-icon>
+                </div>
+
+                <div class="ledger-center-info">
+                  <div class="ledger-row-top">
+                    <span class="tx-route">{{ tx.destination }}</span>
+                    <span class="tx-fare">+₱{{ tx.fare.toFixed(2) }}</span>
+                  </div>
+                  <div class="ledger-row-bottom">
+                    <span class="tx-meta-text">{{ tx.trip_id }} • {{ tx.trip_type === 'terminal_walk_in' ? 'Walk-In' : (tx.trip_type === 'wayside_pickup' ? 'Wayside' : 'Dispatch') }} • {{ tx.time_only || tx.created_at }}</span>
+                    <span class="tx-payment-tag">Cash</span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</ion-content>

@@ -1,0 +1,21 @@
+{
+  "name": "srh-toda-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SRH TODA - Unified Frontend & Backend Runner",
+  "scripts": {
+    "start": "node start.js",
+    "dev": "node start.js",
+    "frontend": "npm --prefix ionic_frontend start",
+    "backend": "node -e \"const { resolvePhpPath } = require('./start.js'); process.exit(0);\" || cd laravel_backend && php artisan serve",
+    "reverb": "cd laravel_backend && php artisan reverb:start"
+  },
+  "keywords": [
+    "ionic",
+    "angular",
+    "laravel",
+    "reverb"
+  ],
+  "author": "",
+  "license": "ISC"
+}

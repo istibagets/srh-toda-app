@@ -1,0 +1,377 @@
+.driver-header-wrap {
+  position: absolute;
+  top: max(0.75rem, env(safe-area-inset-top, 0px));
+  left: 14px;
+  right: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.profile-avatar-btn {
+  pointer-events: auto;
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #ffffff;
+  padding: 2px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+
+  &:active {
+    transform: scale(0.92);
+  }
+
+  .avatar-ring {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #f1f5f9;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .avatar-icon-svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    .avatar-header-img,
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .avatar-header-initials {
+      font-size: 17px;
+      font-weight: 900;
+      color: #1d4ed8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  .status-indicator {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.online {
+      background: #10b981;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+      animation: pulseIndicator 1.8s infinite;
+    }
+
+    &.offline {
+      background: #94a3b8;
+      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.2);
+    }
+  }
+}
+
+@keyframes pulseIndicator {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.85; }
+}
+
+.right-action-group {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rating-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.1);
+  text-decoration: none;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+
+  &:active {
+    transform: scale(0.94);
+    background: #f8fafc;
+  }
+
+  .rating-num {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+    letter-spacing: -0.01em;
+  }
+
+  .star-icon {
+    font-size: 15px;
+    color: #f59e0b;
+  }
+}
+
+.notif-btn {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  outline: none;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+
+  &:active, &.active {
+    transform: scale(0.92);
+    background: #f1f5f9;
+  }
+
+  .bell-icon {
+    font-size: 21px;
+    color: #334155;
+  }
+
+  .notif-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ffffff;
+  }
+}
+
+// Notification Dropdown Drawer
+.notif-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 199;
+  pointer-events: auto;
+}
+
+.notif-dropdown {
+  position: fixed;
+  top: max(4.5rem, calc(env(safe-area-inset-top, 0px) + 3.8rem));
+  left: 12px;
+  right: 12px;
+  max-width: 420px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.35);
+  border: 1px solid #e2e8f0;
+  z-index: 200;
+  overflow: hidden;
+  pointer-events: auto;
+  animation: dropDownSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  .notif-dropdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    background: #f8fafc;
+    border-bottom: 1px solid #f1f5f9;
+
+    .title-with-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      h3 {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 900;
+        color: #0f172a;
+        letter-spacing: 0.03em;
+      }
+
+      .unread-pill {
+        font-size: 9px;
+        font-weight: 800;
+        padding: 2px 7px;
+        background: #fee2e2;
+        color: #b91c1c;
+        border-radius: 999px;
+      }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .mark-read-btn {
+        background: none;
+        border: none;
+        font-size: 11px;
+        font-weight: 700;
+        color: #2563eb;
+        cursor: pointer;
+        padding: 0;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      .close-btn {
+        background: none;
+        border: none;
+        font-size: 18px;
+        color: #64748b;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+      }
+    }
+  }
+
+  .notif-list {
+    max-height: 50vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    .empty-notif {
+      padding: 32px 16px;
+      text-align: center;
+      font-size: 12px;
+      color: #94a3b8;
+      font-style: italic;
+    }
+
+    .notif-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid #f1f5f9;
+      background: #f0fdf4;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+
+      &.read {
+        background: #ffffff;
+      }
+
+      &:active {
+        background: #f8fafc;
+      }
+
+      .item-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+
+        .audience-tag {
+          font-size: 9px;
+          font-weight: 900;
+          padding: 2px 6px;
+          border-radius: 4px;
+          text-transform: uppercase;
+          background: #dbeafe;
+          color: #1d4ed8;
+
+          &[data-tag='DRIVERS'] {
+            background: #ffedd5;
+            color: #c2410c;
+          }
+          &[data-tag='RATING'] {
+            background: #fef3c7;
+            color: #b45309;
+          }
+        }
+
+        .item-meta {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+
+          .timestamp {
+            font-size: 10px;
+            color: #94a3b8;
+            font-weight: 600;
+          }
+
+          .del-btn {
+            background: none;
+            border: none;
+            font-size: 13px;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 0;
+
+            &:hover {
+              color: #ef4444;
+            }
+          }
+        }
+      }
+
+      .notif-title {
+        margin: 0 0 2px 0;
+        font-size: 13px;
+        font-weight: 800;
+        color: #0f172a;
+      }
+
+      .notif-msg {
+        margin: 0;
+        font-size: 11.5px;
+        color: #475569;
+        line-height: 1.4;
+      }
+    }
+  }
+}
+
+@keyframes dropDownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

@@ -1,0 +1,332 @@
+.login-ion-content {
+  --background: #ffffff;
+  --color: #1e293b;
+}
+
+.page {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  background: #ffffff;
+}
+
+.shell {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+/* ── Left Branding Panel (Desktop Only) ── */
+.brand-panel {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 0 0 40%;
+  width: 40%;
+  max-width: 520px;
+  min-width: 360px;
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
+  padding: 4rem 3.5rem;
+  color: #ffffff;
+  box-sizing: border-box;
+}
+
+@media (min-width: 860px) {
+  .brand-panel {
+    display: flex;
+  }
+}
+
+.brand-top {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.brand-logo-wrap {
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.brand-logo-img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.brand-badge {
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.95);
+  text-transform: uppercase;
+}
+
+.brand-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 3rem 0 2rem;
+}
+
+.brand-name {
+  font-size: 2.1rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.75rem;
+  color: #ffffff;
+  line-height: 1.15;
+}
+
+.brand-tagline {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.6;
+  margin-bottom: 2.5rem;
+}
+
+.brand-feats {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.brand-feat {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.brand-feat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #60a5fa;
+  box-shadow: 0 0 8px rgba(96, 165, 250, 0.8);
+}
+
+.brand-footer {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  margin: 0;
+}
+
+/* ── Right Form Panel ── */
+.form-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.5rem;
+  background: #ffffff;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.form-inner {
+  width: 100%;
+  max-width: 420px;
+}
+
+/* ── Welcome Screen ── */
+.screen-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.welcome-logo-wrap {
+  width: 90px;
+  height: 90px;
+  border-radius: 26px;
+  background: #ffffff;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.2), 0 0 0 1px rgba(226, 232, 240, 0.8);
+  margin-bottom: 1.75rem;
+}
+
+.welcome-logo-img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+}
+
+.welcome-title {
+  font-size: 1.85rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+  margin: 0 0 0.5rem 0;
+}
+
+.welcome-sub {
+  font-size: 0.92rem;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 0 0 2rem 0;
+  max-width: 320px;
+}
+
+.welcome-actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  .btn-welcome-primary {
+    --border-radius: 14px;
+    height: 48px;
+    font-weight: 800;
+    font-size: 0.95rem;
+  }
+
+  .btn-welcome-secondary {
+    --border-radius: 14px;
+    height: 48px;
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+}
+
+/* ── Login Form Screen ── */
+.screen-login {
+  display: flex;
+  flex-direction: column;
+}
+
+.top-back-row {
+  margin-bottom: 1.25rem;
+  margin-left: -8px;
+
+  .back-btn {
+    --color: #475569;
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+}
+
+.form-title {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -0.025em;
+  margin: 0 0 0.35rem 0;
+}
+
+.form-sub {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0 0 1.75rem 0;
+}
+
+.err-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+
+  ion-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+}
+
+.native-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  .field-item-wrap {
+    ion-input {
+      --border-radius: 14px;
+      --border-color: #cbd5e1;
+      --border-color-focused: #2563eb;
+      --highlight-color-focused: #2563eb;
+      --padding-start: 14px;
+      --padding-end: 14px;
+      font-size: 0.95rem;
+      font-weight: 500;
+
+      ion-icon[slot="start"] {
+        margin-right: 10px;
+        font-size: 1.2rem;
+      }
+    }
+  }
+
+  .btn-eye-toggle {
+    --padding-start: 4px;
+    --padding-end: 4px;
+    margin: 0;
+    height: 36px;
+  }
+
+  .remember-row {
+    display: flex;
+    align-items: center;
+    margin: -0.25rem 0 0.5rem 0;
+
+    .native-checkbox {
+      --size: 18px;
+      --border-radius: 5px;
+      --checkbox-background-checked: #2563eb;
+      --border-color-checked: #2563eb;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #475569;
+    }
+  }
+
+  .submit-btn {
+    --border-radius: 14px;
+    height: 50px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    margin-top: 0.5rem;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+  }
+}
+
+.bottom-link {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 600;
+  margin-top: 2rem;
+
+  a {
+    color: #2563eb;
+    font-weight: 800;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

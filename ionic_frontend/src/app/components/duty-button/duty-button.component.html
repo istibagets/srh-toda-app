@@ -1,0 +1,21 @@
+<div class="duty-wrapper">
+  <!-- Tooltip Callout Speech Bubble -->
+  <div class="duty-callout" [class.online]="driverService.isOnline()">
+    <span class="callout-text">
+      {{ driverService.isOnline() ? 'Take a break?' : 'Go On Duty' }}
+    </span>
+  </div>
+
+  <!-- Big Floating Power Button -->
+  <div class="power-btn-container">
+    <button
+      type="button"
+      class="power-btn"
+      [class.online]="driverService.isOnline()"
+      (click)="handleToggle()"
+      [title]="driverService.isOnline() ? 'Go Off Duty' : 'Go On Duty'"
+    >
+      <ion-icon name="power" class="power-icon"></ion-icon>
+    </button>
+  </div>
+</div>

@@ -1,0 +1,100 @@
+<header class="driver-header-wrap">
+  <!-- Left: Standalone Profile Circle with Duty Dot -->
+  <a [routerLink]="['/tabs/profile']" class="profile-avatar-btn" title="View Profile">
+    <div class="avatar-ring">
+      @if (authService.currentUser()?.avatar_url) {
+        <img [src]="authService.currentUser()?.avatar_url" alt="Avatar" class="avatar-header-img" />
+      } @else if (authService.currentUser()?.name) {
+        <span class="avatar-header-initials">{{ authService.currentUser()?.name?.charAt(0)?.toUpperCase() }}</span>
+      } @else {
+        <svg xmlns="http://www.w3.org/2000/svg" class="avatar-icon-svg" viewBox="0 0 24 24" fill="currentColor">
+          <path fill-rule="evenodd" d="M18.685 19.097A9.723 9.723 0 0 0 21.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 0 0 3.065 7.097A9.716 9.716 0 0 0 12 21.75a9.716 9.716 0 0 0 6.685-2.653Zm-12.54-1.285A7.486 7.486 0 0 1 12 15a7.486 7.486 0 0 1 5.855 2.812A8.224 8.224 0 0 1 12 20.25a8.224 8.224 0 0 1-5.855-2.438ZM15.75 9a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" clip-rule="evenodd" />
+        </svg>
+      }
+    </div>
+    <span
+      class="status-indicator"
+      [class.online]="driverService.isOnline()"
+      [class.offline]="!driverService.isOnline()"
+    ></span>
+  </a>
+
+  <!-- Right Group: Rating Pill & Notification Bell -->
+  <div class="right-action-group">
+    <!-- Driver Rating Pill -->
+    <a [routerLink]="['/tabs/profile']" class="rating-pill" title="Driver Rating">
+      <span class="rating-num">{{ driverService.driver().rating | number:'1.1-1' }}</span>
+      <ion-icon name="star" class="star-icon"></ion-icon>
+    </a>
+
+    <!-- Notification Bell Button -->
+    <button
+      type="button"
+      class="notif-btn"
+      (click)="toggleNotifications()"
+      [class.active]="showNotifications"
+      title="Notifications"
+    >
+      <ion-icon name="notifications-outline" class="bell-icon"></ion-icon>
+      @if (notificationService.unreadCount() > 0) {
+        <span class="notif-badge">{{ notificationService.unreadCount() }}</span>
+      }
+    </button>
+  </div>
+
+  <!-- Animated Notification Dropdown Menu -->
+  @if (showNotifications) {
+    <div class="notif-backdrop" (click)="closeNotifications()"></div>
+    <div class="notif-dropdown">
+      <div class="notif-dropdown-header">
+        <div class="title-with-badge">
+          <h3>ANNOUNCEMENTS</h3>
+          @if (notificationService.unreadCount() > 0) {
+            <span class="unread-pill">{{ notificationService.unreadCount() }} NEW</span>
+          }
+        </div>
+        <div class="header-actions">
+          <button type="button" class="mark-read-btn" (click)="markAllRead()">
+            Mark read
+          </button>
+          <button type="button" class="close-btn" (click)="closeNotifications()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="notif-list">
+        @if (notificationService.announcements().length === 0) {
+          <div class="empty-notif">No new announcements at this time.</div>
+        } @else {
+          @for (item of notificationService.announcements(); track item.id) {
+            <div
+              class="notif-item"
+              [class.read]="item.isRead"
+              (click)="markSingleRead(item.id, $event)"
+            >
+              <div class="item-top">
+                <span class="audience-tag" [attr.data-tag]="item.targetAudience">
+                  {{ item.targetAudience }}
+                </span>
+                <div class="item-meta">
+                  <span class="timestamp">{{ item.createdAt }}</span>
+                  <button
+                    type="button"
+                    class="del-btn"
+                    (click)="deleteNotification(item.id, $event)"
+                    title="Delete"
+                  >
+                    <ion-icon name="trash-outline"></ion-icon>
+                  </button>
+                </div>
+              </div>
+              <h4 class="notif-title">{{ item.title }}</h4>
+              <p class="notif-msg">{{ item.message }}</p>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  }
+</header>

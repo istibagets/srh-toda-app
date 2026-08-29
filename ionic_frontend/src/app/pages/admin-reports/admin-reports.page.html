@@ -1,0 +1,726 @@
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- 1. OFFICIAL REPORT CONFIGURATOR VIEW                         -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+@if (viewMode() === 'config') {
+  <ion-header class="ion-no-border srh-config-header">
+    <ion-toolbar>
+      <div class="config-header-row">
+        <button type="button" class="header-back-btn" (click)="returnToAdmin()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+        </button>
+        <h1 class="config-header-title">Official Report Generator</h1>
+      </div>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content class="srh-config-content" [fullscreen]="true">
+    <div class="config-container">
+      <!-- ── SECTION 1: REPORT LAYOUT FORMAT ─────────────── -->
+      <div class="config-section">
+        <div class="section-top-row">
+          <label class="section-title">1. SELECT REPORT LAYOUT FORMAT<span class="required">*</span></label>
+          <span class="format-badge">4 Formats</span>
+        </div>
+
+        <div class="format-cards-deck">
+          <!-- FORMAT 1 -->
+          <div
+            class="format-card"
+            [class.active]="selectedFormat() === 1"
+            (click)="setFormat(1)"
+          >
+            <div class="format-card-header">
+              <span class="format-kicker">FORMAT 1 • CERTIFIED TABLE</span>
+              @if (selectedFormat() === 1) {
+                <ion-icon name="checkmark-circle" class="check-icon"></ion-icon>
+              }
+            </div>
+            <h3 class="format-title">Certified Incident Report</h3>
+            <p class="format-desc">
+              Full masterlist of passenger complaints, disputed fares, and driver conduct incidents with resolution status.
+            </p>
+          </div>
+
+          <!-- FORMAT 2 -->
+          <div
+            class="format-card"
+            [class.active]="selectedFormat() === 2"
+            (click)="setFormat(2)"
+          >
+            <div class="format-card-header">
+              <span class="format-kicker">FORMAT 2 • CHRONOLOGICAL</span>
+              @if (selectedFormat() === 2) {
+                <ion-icon name="checkmark-circle" class="check-icon"></ion-icon>
+              }
+            </div>
+            <h3 class="format-title">Incidents by Date Range</h3>
+            <p class="format-desc">
+              Chronologically grouped passenger reports with monthly period subtotals, ideal for monthly meetings.
+            </p>
+          </div>
+
+          <!-- FORMAT 3 -->
+          <div
+            class="format-card"
+            [class.active]="selectedFormat() === 3"
+            (click)="setFormat(3)"
+          >
+            <div class="format-card-header">
+              <span class="format-kicker">FORMAT 3 • GROUPED ROSTER</span>
+              @if (selectedFormat() === 3) {
+                <ion-icon name="checkmark-circle" class="check-icon"></ion-icon>
+              }
+            </div>
+            <h3 class="format-title">TODA Fleet Drivers Masterlist</h3>
+            <p class="format-desc">
+              Official certified list of all TODA drivers, MTOP numbers, and registration dates grouped by compliance status.
+            </p>
+          </div>
+
+          <!-- FORMAT 4 -->
+          <div
+            class="format-card"
+            [class.active]="selectedFormat() === 4"
+            (click)="setFormat(4)"
+          >
+            <div class="format-card-header">
+              <span class="format-kicker">FORMAT 4 • DASHBOARD</span>
+              @if (selectedFormat() === 4) {
+                <ion-icon name="checkmark-circle" class="check-icon"></ion-icon>
+              }
+            </div>
+            <h3 class="format-title">Operations &amp; Safety Dashboard</h3>
+            <p class="format-desc">
+              Visual statistics report with dispute volume chart, compliance donut visual, and official audit insights.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 2: TIMEFRAME & DATE PERIOD ───────────── -->
+      <div class="config-section">
+        <label class="section-title">2. TIMEFRAME &amp; DATE PERIOD</label>
+        <div class="timeframe-grid">
+          <button
+            type="button"
+            class="timeframe-pill"
+            [class.active]="selectedTimeframe() === 'all'"
+            (click)="setTimeframe('all')"
+          >
+            All Records
+          </button>
+          <button
+            type="button"
+            class="timeframe-pill"
+            [class.active]="selectedTimeframe() === 'today'"
+            (click)="setTimeframe('today')"
+          >
+            Today
+          </button>
+          <button
+            type="button"
+            class="timeframe-pill"
+            [class.active]="selectedTimeframe() === 'week'"
+            (click)="setTimeframe('week')"
+          >
+            This Week
+          </button>
+          <button
+            type="button"
+            class="timeframe-pill"
+            [class.active]="selectedTimeframe() === 'month'"
+            (click)="setTimeframe('month')"
+          >
+            This Month
+          </button>
+          <button
+            type="button"
+            class="timeframe-pill"
+            [class.active]="selectedTimeframe() === 'last_month'"
+            (click)="setTimeframe('last_month')"
+          >
+            Last Month
+          </button>
+          <button
+            type="button"
+            class="timeframe-pill"
+            [class.active]="selectedTimeframe() === 'quarter'"
+            (click)="setTimeframe('quarter')"
+          >
+            This Quarter
+          </button>
+          <button
+            type="button"
+            class="timeframe-pill"
+            [class.active]="selectedTimeframe() === 'custom'"
+            (click)="setTimeframe('custom')"
+          >
+            Custom Range...
+          </button>
+        </div>
+      </div>
+
+      <!-- ── SECTION 3: SIGNATORY DETAILS ─────────────────── -->
+      <div class="config-section">
+        <label class="section-title">3. SIGNATORY CERTIFICATION DETAILS</label>
+        <div class="signatory-card">
+          <div class="input-field-group">
+            <label class="field-label">Signatory Full Name</label>
+            <input
+              type="text"
+              class="styled-input"
+              [ngModel]="signatoryName()"
+              (ngModelChange)="signatoryName.set($event)"
+              placeholder="e.g. Steve Gates Roquero"
+            />
+          </div>
+
+          <div class="input-field-group">
+            <label class="field-label">Official Designation / Title</label>
+            <input
+              type="text"
+              class="styled-input"
+              [ngModel]="signatoryTitle()"
+              (ngModelChange)="signatoryTitle.set($event)"
+              placeholder="e.g. TODA Operations & Safety Administrator"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- ── BOTTOM ACTION BUTTONS ────────────────────────── -->
+      <div class="config-action-bottom">
+        <button type="button" class="generate-report-btn" (click)="generateOfficialReport()">
+          <ion-icon name="print-outline"></ion-icon>
+          <span>GENERATE OFFICIAL REPORT</span>
+        </button>
+
+        <button type="button" class="return-portal-btn" (click)="returnToAdmin()">
+          &larr; Return to Admin Portal
+        </button>
+      </div>
+    </div>
+  </ion-content>
+}
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- 2. OFFICIAL REPORT PRINT & PDF PREVIEW VIEW                  -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+@if (viewMode() === 'preview') {
+  <ion-header class="ion-no-border srh-preview-header no-print">
+    <ion-toolbar>
+      <div class="preview-header-row">
+        <button type="button" class="preview-back-btn" (click)="backToConfig()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          <span>BACK</span>
+        </button>
+
+        <button type="button" class="print-save-pdf-btn" (click)="triggerPrint()">
+          <ion-icon name="print-outline"></ion-icon>
+          <span>PRINT / SAVE PDF</span>
+        </button>
+      </div>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content class="srh-preview-content" [fullscreen]="true" [scrollY]="false">
+    <!-- Floating Zoom Controls Bar -->
+    <div class="zoom-controls-floating-bar no-print">
+      <span class="zoom-title">A4 Sheet Preview</span>
+      <div class="zoom-btn-group">
+        <button type="button" class="zoom-btn" (click)="zoomOut()">
+          <ion-icon name="remove-outline"></ion-icon>
+        </button>
+        <span class="zoom-val-badge">{{ zoomLevel() }}%</span>
+        <button type="button" class="zoom-btn" (click)="zoomIn()">
+          <ion-icon name="add-outline"></ion-icon>
+        </button>
+      </div>
+      <button type="button" class="fit-page-btn" [class.active]="isFitToPage()" (click)="fitToPage()">
+        <ion-icon name="scan-outline"></ion-icon>
+        <span>FIT TO PAGE</span>
+      </button>
+    </div>
+
+    <!-- ── REALISTIC A4 DOCUMENT SHEET ──────────────────── -->
+    <div
+      class="a4-document-viewport"
+      #viewportContainer
+      [class.is-panning]="isDragging()"
+      (mousedown)="onMouseDown($event)"
+      (mousemove)="onMouseMove($event)"
+      (mouseup)="onMouseUp()"
+      (mouseleave)="onMouseUp()"
+      (touchstart)="onTouchStart($event)"
+      (touchmove)="onTouchMove($event)"
+      (touchend)="onTouchEnd()"
+      (touchcancel)="onTouchEnd()"
+      (wheel)="onWheel($event)"
+    >
+      <div
+        class="a4-interactive-canvas"
+        [style.transform]="'translate(' + panX() + 'px, ' + panY() + 'px)'"
+        [class.is-dragging]="isDragging()"
+      >
+        <div
+          class="a4-paper-sheet"
+          id="official-print-document"
+          [style.zoom]="zoomLevel() / 100"
+        >
+          <!-- ── OFFICIAL PHILIPPINE TODA LETTERHEAD ──────────── -->
+          <div class="doc-letterhead">
+            <div class="side-logo-wrap">
+              <img src="/assets/images/srh-logo.png" alt="SRH Logo" class="side-logo" />
+            </div>
+
+            <div class="center-letterhead-info">
+              <span class="lh-country">REPUBLIC OF THE PHILIPPINES</span>
+              <span class="lh-province">PROVINCE OF NUEVA ECIJA • MUNICIPALITY OF SANTA ROSA</span>
+              <h2 class="lh-barangay">BARANGAY LOURDES</h2>
+              <h3 class="lh-assoc">SANTA ROSA HOMES TRICYCLE OPERATORS AND DRIVERS' ASSOCIATION (SRH-LINK-TODA)</h3>
+              <span class="lh-address">TODA Terminal Complex, Barangay Lourdes, Santa Rosa, Nueva Ecija, 3101, Philippines</span>
+              <span class="lh-contact">Contact: 0917 000 1234 • Email: srhlink.toda&#64;gmail.com</span>
+            </div>
+
+            <div class="side-logo-wrap">
+              <img src="/assets/images/srh-logo.png" alt="SRH Logo" class="side-logo" />
+            </div>
+          </div>
+
+        <!-- ── SUB-HEADER METADATA STRIP ────────────────────── -->
+        <div class="doc-meta-strip">
+          <div class="meta-row">
+            <div class="meta-item">
+              <span class="meta-label">Coverage Period:</span>
+              <span class="meta-val">{{ coveragePeriodLabel() }}</span>
+            </div>
+            <div class="meta-item text-right">
+              <span class="meta-label">Date Generated:</span>
+              <span class="meta-val">{{ currentDateTimeFormatted() }}</span>
+            </div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-item">
+              <span class="meta-label">Grouping / Scope:</span>
+              <span class="meta-val">
+                @if (selectedFormat() === 1 || selectedFormat() === 2) {
+                  All Incident &amp; Dispute Records
+                } @else if (selectedFormat() === 3) {
+                  Fleet Compliance Status (Approved, Pending, Removed)
+                } @else {
+                  Safety &amp; Operations Metrics
+                }
+              </span>
+            </div>
+            <div class="meta-item text-right">
+              <span class="meta-label">Document Status:</span>
+              <span class="meta-val status-certified">CERTIFIED OFFICIAL</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════ -->
+        <!-- FORMAT 1: CERTIFIED INCIDENT REPORT TABLE          -->
+        <!-- ══════════════════════════════════════════════════ -->
+        @if (selectedFormat() === 1) {
+          <div class="report-body-block">
+            <h3 class="doc-section-heading">CERTIFIED LIST OF PASSENGER INCIDENT &amp; SAFETY REPORTS</h3>
+
+            <table class="doc-official-table">
+              <thead>
+                <tr>
+                  <th style="width: 4%;">#</th>
+                  <th style="width: 14%;">DATE &amp; TIME</th>
+                  <th style="width: 15%;">COMPLAINANT</th>
+                  <th style="width: 18%;">DRIVER INVOLVED</th>
+                  <th style="width: 14%;">CATEGORY</th>
+                  <th style="width: 11%;">STATUS</th>
+                  <th style="width: 24%;">DESCRIPTION &amp; REMARKS</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (reports().length === 0) {
+                  <tr>
+                    <td colspan="7" class="text-center empty-cell">No incident reports recorded for this period.</td>
+                  </tr>
+                } @else {
+                  @for (r of reports(); track r.id; let idx = $index) {
+                    <tr>
+                      <td class="text-center font-bold">{{ idx + 1 }}</td>
+                      <td>{{ r.created_at }}</td>
+                      <td><span class="complainant-name">{{ r.reporter_name }}</span></td>
+                      <td>
+                        <span class="driver-involved-name">{{ r.driver_name }}</span>
+                        <div class="driver-mtop-sub">(MTOP {{ r.driver_mtop }})</div>
+                      </td>
+                      <td>{{ r.category }}</td>
+                      <td>
+                        <span
+                          class="status-chip"
+                          [class.dismissed]="r.status === 'dismissed'"
+                          [class.resolved]="r.status === 'resolved'"
+                          [class.investigating]="r.status === 'investigating'"
+                          [class.pending]="r.status === 'pending'"
+                        >
+                          {{ r.status | uppercase }}
+                        </span>
+                      </td>
+                      <td class="desc-cell">{{ r.description }}</td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+
+            <div class="total-row-right">
+              Total Incident reports: <strong>{{ reports().length }}</strong>
+            </div>
+          </div>
+        }
+
+        <!-- ══════════════════════════════════════════════════ -->
+        <!-- FORMAT 2: CHRONOLOGICAL INCIDENTS BY DATE RANGE    -->
+        <!-- ══════════════════════════════════════════════════ -->
+        @if (selectedFormat() === 2) {
+          <div class="report-body-block">
+            <h3 class="doc-section-heading">PASSENGER INCIDENT &amp; SAFETY REPORTS ({{ coveragePeriodLabel() | uppercase }})</h3>
+
+            <div class="roster-group">
+              <div class="roster-group-banner month-banner">
+                {{ coveragePeriodLabel() | uppercase }} ({{ reports().length }} INCIDENTS)
+              </div>
+              <table class="doc-official-table">
+                <thead>
+                  <tr>
+                    <th style="width: 4%;">#</th>
+                    <th style="width: 14%;">DATE &amp; TIME</th>
+                    <th style="width: 15%;">COMPLAINANT</th>
+                    <th style="width: 18%;">DRIVER INVOLVED</th>
+                    <th style="width: 14%;">CATEGORY</th>
+                    <th style="width: 11%;">STATUS</th>
+                    <th style="width: 24%;">DESCRIPTION &amp; REMARKS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @if (reports().length === 0) {
+                    <tr>
+                      <td colspan="7" class="text-center empty-cell">No incident reports recorded for this period.</td>
+                    </tr>
+                  } @else {
+                    @for (r of reports(); track r.id; let idx = $index) {
+                      <tr>
+                        <td class="text-center font-bold">{{ idx + 1 }}</td>
+                        <td>{{ r.created_at }}</td>
+                        <td><span class="complainant-name">{{ r.reporter_name }}</span></td>
+                        <td>
+                          <span class="driver-involved-name">{{ r.driver_name }}</span>
+                          <div class="driver-mtop-sub">(MTOP {{ r.driver_mtop }})</div>
+                        </td>
+                        <td>{{ r.category }}</td>
+                        <td>
+                          <span
+                            class="status-chip"
+                            [class.dismissed]="r.status === 'dismissed'"
+                            [class.resolved]="r.status === 'resolved'"
+                            [class.investigating]="r.status === 'investigating'"
+                            [class.pending]="r.status === 'pending'"
+                          >
+                            {{ r.status | uppercase }}
+                          </span>
+                        </td>
+                        <td class="desc-cell">{{ r.description }}</td>
+                      </tr>
+                    }
+                  }
+                </tbody>
+              </table>
+              <div class="group-subtotal-row">
+                Subtotal ({{ coveragePeriodLabel() | uppercase }}): <strong>{{ reports().length }}</strong>
+              </div>
+            </div>
+
+            <div class="total-row-right">
+              Total Incident reports: <strong>{{ reports().length }}</strong>
+            </div>
+          </div>
+        }
+
+        <!-- ══════════════════════════════════════════════════ -->
+        <!-- FORMAT 3: TODA FLEET DRIVERS MASTERLIST            -->
+        <!-- ══════════════════════════════════════════════════ -->
+        @if (selectedFormat() === 3) {
+          <div class="report-body-block">
+            <h3 class="doc-section-heading">CERTIFIED MASTER ROSTER OF TODA FLEET DRIVERS</h3>
+
+            <!-- 1. APPROVED DRIVERS -->
+            <div class="roster-group">
+              <div class="roster-group-banner approved-banner">
+                APPROVED DRIVERS (STATUS: APPROVED)
+              </div>
+              <table class="doc-official-table">
+                <thead>
+                  <tr>
+                    <th style="width: 4%;">#</th>
+                    <th style="width: 25%;">DRIVER NAME</th>
+                    <th style="width: 15%;">MTOP NUMBER</th>
+                    <th style="width: 18%;">REGISTERED DATE</th>
+                    <th style="width: 22%;">CONTACT / EMAIL</th>
+                    <th style="width: 16%;">NOTES / STATUS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @if (approvedDrivers().length === 0) {
+                    <tr>
+                      <td colspan="6" class="text-center empty-cell">No approved drivers recorded.</td>
+                    </tr>
+                  } @else {
+                    @for (d of approvedDrivers(); track d.id; let idx = $index) {
+                      <tr>
+                        <td class="text-center font-bold">{{ idx + 1 }}</td>
+                        <td><span class="driver-roster-name">{{ d.full_name }}</span></td>
+                        <td><strong>{{ d.mtop_number }}</strong></td>
+                        <td>{{ d.created_at }}</td>
+                        <td>{{ d.email }}</td>
+                        <td><span class="active-member-note">Active Toda member</span></td>
+                      </tr>
+                    }
+                  }
+                </tbody>
+              </table>
+              <div class="group-subtotal-row">
+                Subtotal (APPROVED): <strong>{{ approvedDrivers().length }}</strong>
+              </div>
+            </div>
+
+            <!-- 2. REMOVED / SUSPENDED DRIVERS -->
+            @if (removedDrivers().length > 0) {
+              <div class="roster-group">
+                <div class="roster-group-banner removed-banner">
+                  REMOVED DRIVERS (STATUS: REMOVED / SUSPENDED)
+                </div>
+                <table class="doc-official-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 4%;">#</th>
+                      <th style="width: 25%;">DRIVER NAME</th>
+                      <th style="width: 15%;">MTOP NUMBER</th>
+                      <th style="width: 18%;">REGISTERED DATE</th>
+                      <th style="width: 22%;">CONTACT / EMAIL</th>
+                      <th style="width: 16%;">NOTES / STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (d of removedDrivers(); track d.id; let idx = $index) {
+                      <tr>
+                        <td class="text-center font-bold">{{ idx + 1 }}</td>
+                        <td><span class="driver-roster-name">{{ d.full_name }}</span></td>
+                        <td><strong>{{ d.mtop_number }}</strong></td>
+                        <td>{{ d.created_at }}</td>
+                        <td>{{ d.email }}</td>
+                        <td><span class="suspension-note">{{ d.suspension_reason || 'Suspended / Removed' }}</span></td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+                <div class="group-subtotal-row">
+                  Subtotal (REMOVED): <strong>{{ removedDrivers().length }}</strong>
+                </div>
+              </div>
+            }
+
+            <!-- 3. PENDING DRIVERS -->
+            @if (pendingDrivers().length > 0) {
+              <div class="roster-group">
+                <div class="roster-group-banner pending-banner">
+                  PENDING DRIVERS (STATUS: PENDING)
+                </div>
+                <table class="doc-official-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 4%;">#</th>
+                      <th style="width: 25%;">DRIVER NAME</th>
+                      <th style="width: 15%;">MTOP NUMBER</th>
+                      <th style="width: 18%;">REGISTERED DATE</th>
+                      <th style="width: 22%;">CONTACT / EMAIL</th>
+                      <th style="width: 16%;">NOTES / STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (d of pendingDrivers(); track d.id; let idx = $index) {
+                      <tr>
+                        <td class="text-center font-bold">{{ idx + 1 }}</td>
+                        <td><span class="driver-roster-name">{{ d.full_name }}</span></td>
+                        <td><strong>{{ d.mtop_number }}</strong></td>
+                        <td>{{ d.created_at }}</td>
+                        <td>{{ d.email }}</td>
+                        <td><span class="pending-member-note">Awaiting MTOP Verification</span></td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+                <div class="group-subtotal-row">
+                  Subtotal (PENDING): <strong>{{ pendingDrivers().length }}</strong>
+                </div>
+              </div>
+            }
+
+            <div class="total-fleet-summary-row">
+              Total fleet rosters: <strong>{{ drivers().length }} (Approved: {{ approvedDrivers().length }} | Pending: {{ pendingDrivers().length }} | Suspended: {{ removedDrivers().length }})</strong>
+            </div>
+          </div>
+        }
+
+        <!-- ══════════════════════════════════════════════════ -->
+        <!-- FORMAT 4: OPERATIONS & SAFETY DASHBOARD            -->
+        <!-- ══════════════════════════════════════════════════ -->
+        @if (selectedFormat() === 4) {
+          <div class="report-body-block">
+            <h3 class="doc-section-heading">TODA SAFETY &amp; FLEET OPERATIONS DASHBOARD</h3>
+            <span class="doc-section-sub">TODA Operations, Dispute Resolution &amp; Compliance Summary</span>
+
+            <!-- Top Metric Strips -->
+            <div class="dashboard-kpi-summary-grid">
+              <div class="dash-kpi-box blue-border">
+                <span class="dash-kpi-label">TOTAL FLEET DRIVERS</span>
+                <span class="dash-kpi-val">{{ drivers().length }}</span>
+              </div>
+              <div class="dash-kpi-box blue-border">
+                <span class="dash-kpi-label">TOTAL REPORTS</span>
+                <span class="dash-kpi-val">{{ reports().length }}</span>
+              </div>
+              <div class="dash-kpi-box amber-border">
+                <span class="dash-kpi-label">PENDING REVIEW</span>
+                <span class="dash-kpi-val">{{ summary().open_reports }}</span>
+              </div>
+              <div class="dash-kpi-box red-border">
+                <span class="dash-kpi-label">RESOLUTION RATE</span>
+                <span class="dash-kpi-val">{{ resolutionRatePercent() }}</span>
+              </div>
+            </div>
+
+            <!-- Two-Column Charts Row -->
+            <div class="dashboard-charts-two-col">
+              <!-- Left Chart: Volume by Month -->
+              <div class="chart-panel">
+                <span class="panel-heading">INCIDENT REPORTS VOLUME BY MONTH</span>
+                <div class="mini-bar-chart">
+                  <div class="bar-col">
+                    <div class="bar-fill-stem" style="height: 65px;">
+                      <span class="bar-number">{{ reports().length }}</span>
+                    </div>
+                    <span class="bar-x-label">Aug</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Chart: Compliance Donut Visual -->
+              <div class="chart-panel">
+                <span class="panel-heading">DRIVER FLEET COMPLIANCE STATUS</span>
+                <div class="donut-visual-row">
+                  <div class="donut-ring-graphic">
+                    <div class="donut-center-text">
+                      <span class="donut-num">{{ drivers().length }}</span>
+                      <span class="donut-sub">DRIVERS</span>
+                    </div>
+                  </div>
+                  <div class="donut-legend-col">
+                    <div class="legend-item">
+                      <span class="legend-dot green"></span>
+                      <span class="legend-name">Approved :</span>
+                      <span class="legend-val">{{ approvedDrivers().length }} ({{ approvedPercentage() }}%)</span>
+                    </div>
+                    <div class="legend-item">
+                      <span class="legend-dot amber"></span>
+                      <span class="legend-name">Pending :</span>
+                      <span class="legend-val">{{ pendingDrivers().length }} ({{ pendingPercentage() }}%)</span>
+                    </div>
+                    <div class="legend-item">
+                      <span class="legend-dot red"></span>
+                      <span class="legend-name">Suspended :</span>
+                      <span class="legend-val">{{ removedDrivers().length }} ({{ suspendedPercentage() }}%)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Category Share Breakdown Table -->
+            <div class="category-breakdown-section">
+              <span class="panel-heading">TOP PASSENGER REPORT CATEGORIES</span>
+              <table class="doc-official-table">
+                <thead>
+                  <tr>
+                    <th style="width: 5%;">#</th>
+                    <th style="width: 55%;">CATEGORY NAME</th>
+                    <th style="width: 20%; text-align: center;">INCIDENT COUNT</th>
+                    <th style="width: 20%;">SHARE (%)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @if (categoryStats().length === 0) {
+                    <tr>
+                      <td colspan="4" class="text-center empty-cell">No categories filed.</td>
+                    </tr>
+                  } @else {
+                    @for (cat of categoryStats(); track cat.name) {
+                      <tr>
+                        <td class="text-center font-bold">{{ cat.index }}</td>
+                        <td><strong>{{ cat.name }}</strong></td>
+                        <td class="text-center font-bold">{{ cat.count }}</td>
+                        <td>
+                          <div class="progress-share-wrap">
+                            <div class="progress-share-fill" [style.width.%]="cat.sharePct"></div>
+                            <span class="progress-share-pct">{{ cat.sharePct }}.0%</span>
+                          </div>
+                        </td>
+                      </tr>
+                    }
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Compliance Insight Callout -->
+            <div class="compliance-insight-callout">
+              <h5 class="insight-title">TODA SAFETY OPERATIONS &amp; COMPLIANCE INSIGHT</h5>
+              <p class="insight-body">
+                During the reporting period <strong>({{ coveragePeriodLabel() }})</strong>, a total of {{ reports().length }} passenger complaints were recorded with an overall resolution rate of <strong>{{ resolutionRatePercent() }}</strong>. Active fleet compliance stands at <strong>{{ approvedDrivers().length }} verified drivers</strong> operating under Santa Rosa Homes TODA guidelines. All safety disputes, appeals, and suspension logs are documented in compliance with Barangay Ordinance and TODA safety protocols.
+              </p>
+            </div>
+
+            <div class="total-fleet-summary-row">
+              Total records analyzed: <strong>{{ reports().length }} Incident Reports • {{ drivers().length }} Fleet Drivers</strong>
+            </div>
+          </div>
+        }
+
+        <!-- ── FORMAL SIGNATORIES SECTION ───────────────────── -->
+        <div class="doc-signatories-section">
+          <div class="sig-column">
+            <span class="sig-caption">Prepared by:</span>
+            <div class="sig-name-box">
+              <span class="sig-name">{{ signatoryName() }}</span>
+              <span class="sig-title">{{ signatoryTitle() }}</span>
+              <div class="sig-underline"></div>
+              <span class="sig-subtext">Signature over printed name</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── OFFICIAL FOOTER ──────────────────────────────── -->
+        <div class="doc-footer-strip">
+          <div class="footer-left">
+            <span class="ft-barangay">Barangay Lourdes • SRH-LINK-TODA</span>
+            <span class="ft-sub">Santa Rosa, Nueva Ecija, Philippines</span>
+            <span class="ft-sub">Contact: 0917 000 1234 • Email: srhlink.toda&#64;gmail.com</span>
+          </div>
+          <div class="footer-right">
+            <span class="ft-date">Date Printed: {{ currentDateTimeFormatted() }}</span>
+            <span class="ft-gen">Generated by: SRH LINK TODA Information Management System</span>
+          </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ion-content>
+}

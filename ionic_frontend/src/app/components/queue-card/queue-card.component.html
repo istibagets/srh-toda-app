@@ -1,0 +1,209 @@
+<div #sheetElement id="driver-bottom-sheet" class="srh-edge-bottom-sheet">
+  <!-- TOP DRAG HANDLE BAR (Drag anywhere on handle / card) -->
+  <div id="sheet-drag-handle" class="sheet-drag-handle">
+    <div class="drag-handle-pill"></div>
+
+    <!-- CONCISE COLLAPSED STATUS HEADER ROW -->
+    <div class="sheet-status-row">
+      <div class="status-left">
+        @if (driverService.activeTrip()) {
+          <span class="status-dot online active-pulse"></span>
+          <span class="status-label active-trip-label">ON TRIP • IN TRANSIT</span>
+        } @else if (driverService.isReturning()) {
+          <span class="status-dot online active-pulse"></span>
+          <span class="status-label text-emerald-700 font-bold">RETURNING TO TERMINAL</span>
+        } @else {
+          <span class="status-dot" [class.online]="driverService.isOnline()"
+            [class.offline]="!driverService.isOnline()"></span>
+          <span class="status-label" [class.offline-text]="!driverService.isOnline()">
+            {{ driverService.isOnline() ? "YOU'RE ONLINE" : "YOU'RE OFFLINE" }}
+          </span>
+        }
+      </div>
+
+      <div class="status-right">
+        @if (driverService.isReturning()) {
+          <span class="compact-badge bg-emerald-600 text-white font-bold">
+            RETURNING
+          </span>
+        } @else if (!driverService.activeTrip()) {
+          <span class="compact-badge" [class.queue-gradient]="driverService.isOnline()"
+            [class.first-queue-badge]="driverService.isOnline() && driverService.getDisplayQueuePosition() === 1"
+            [class.off-duty]="!driverService.isOnline()">
+            {{ driverService.isOnline() ? ('#' + driverService.getDisplayQueuePosition() + ' IN QUEUE') : 'OFF DUTY' }}
+          </span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- COLLAPSIBLE DETAILS CONTENT -->
+  <div #scrollContentElement id="sheet-details-content" class="sheet-details-content" [class.is-dropoff-sheet]="driverService.activeTrip() || driverService.isReturning()">
+    @if (driverService.activeTrip()) {
+      <!-- DROP-OFF STATE: Modular Drop Off Component -->
+      <app-drop-off-card (dropOffClick)="onDropOff()"></app-drop-off-card>
+    } @else if (driverService.isReturning()) {
+      <!-- RETURNING TO TERMINAL STATE: Modular Returning Card (Image 2) -->
+      <app-returning-card (addWaysideClick)="onAddWayside()"></app-returning-card>
+    } @else {
+      <!-- 1. STICKY TOP QUEUE CARD (Smooth morphing background & content) -->
+      <div id="queue-card-container" class="queue-card-sticky-wrapper">
+        <div id="hero-queue-card" class="srh-queue-hero-card" [class.is-online]="driverService.isOnline()"
+          [class.is-offline]="!driverService.isOnline()"
+          [class.queue-pos-first]="driverService.isOnline() && driverService.getDisplayQueuePosition() === 1"
+          [class.queue-pos-other]="driverService.isOnline() && driverService.getDisplayQueuePosition() > 1">
+          <!-- Smooth Morphing Gradient Layers -->
+          <div class="card-bg-layer bg-offline"></div>
+          <div class="card-bg-layer bg-online-first"></div>
+          <div class="card-bg-layer bg-online-other"></div>
+
+          <div class="card-text-content">
+            <span class="card-eyebrow" [class.text-slate-300]="!driverService.isOnline()">
+              {{ driverService.isOnline() ? 'QUEUE POSITION' : 'DRIVER STATUS' }}
+            </span>
+            <h1 class="card-main-title">
+              {{ driverService.isOnline() ? ('#' + driverService.getDisplayQueuePosition() + ' IN QUEUE') : "YOU'RE OFFLINE" }}
+            </h1>
+
+            <p class="card-caption" [class.text-slate-400]="!driverService.isOnline()">
+              {{ driverService.isOnline() ? queueOrdinalText() : 'Go on duty for TODA terminal & app passenger dispatch' }}
+            </p>
+
+            <button
+              type="button"
+              id="start-walkin-btn"
+              class="start-walkin-btn"
+              [class.is-offline-pill]="!driverService.isOnline()"
+              [disabled]="!driverService.isOnline()"
+              (click)="onStartWalkIn()"
+            >
+              <span>{{ driverService.isOnline() ? 'Start Terminal Walk-In Ride' : 'Toggle the power button to go on duty' }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. SCROLLABLE LIVE QUEUE & ON-TRIP CONTENT (Passes underneath card) -->
+      <div id="live-queue-clip-container" class="live-queue-clip-container">
+        <!-- Active Terminal Queue Section -->
+        <div class="queue-section-block">
+          <div class="section-head-row">
+            <h3 class="section-title">
+              <span>Active Terminal Queue</span>
+              <span class="count-pill blue">{{ driverService.queue().length }}</span>
+            </h3>
+          </div>
+
+          <div #sortableQueueContainer id="queue-items-container" class="queue-items-container">
+            @if (driverService.queue().length === 0) {
+            <div class="empty-list-notice">
+              <p>No drivers currently waiting in the terminal queue.</p>
+            </div>
+            }
+            @for (item of driverService.queue(); track item.id; let idx = $index) {
+            <div class="draggable-queue-item" [class.current-driver]="item.isCurrentDriver" [attr.data-id]="item.id"
+              [attr.data-driver-id]="item.driverId">
+              <!-- Left Side: Drag Handle (Admin only) + Queue Badge + Driver Name -->
+              <div class="item-left-row">
+                @if (authService.isAdmin()) {
+                  <div class="drag-handle-icon drag-handle" data-no-sheet-drag title="Drag to reorder queue position">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="handle-svg" viewBox="0 0 24 24">
+                      <circle cx="9" cy="6" r="1.75" />
+                      <circle cx="15" cy="12" r="1.75" />
+                      <circle cx="9" cy="12" r="1.75" />
+                      <circle cx="15" cy="6" r="1.75" />
+                      <circle cx="9" cy="18" r="1.75" />
+                      <circle cx="15" cy="18" r="1.75" />
+                    </svg>
+                  </div>
+                }
+
+                <span class="queue-number-badge" [class.first]="item.position === 1 || idx === 0">
+                  #{{ item.position || (idx + 1) }}
+                </span>
+
+                <div class="driver-info-col">
+                  <div class="name-line">
+                    <span class="driver-name">{{ item.driverName }}</span>
+                    @if (item.isCurrentDriver) {
+                    <span class="you-badge">YOU</span>
+                    }
+                  </div>
+                  <span class="mtop-sub">MTOP {{ item.mtopNumber || 'N/A' }}</span>
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+
+          <!-- Unsaved Queue Order Changes Fixed Action Bar (Admin only) -->
+          @if (authService.isAdmin() && (hasPendingChanges() || driverService.hasUnsavedQueueOrder())) {
+          <div class="fixed-unsaved-order-bar">
+            <div class="bar-info">
+              <p class="bar-title">Unsaved Changes</p>
+              <p class="bar-sub">Save to apply new order</p>
+            </div>
+            <div class="bar-actions">
+              <button type="button" class="btn-cancel" (click)="cancelAdminQueue()">Cancel</button>
+              <button type="button" class="btn-save" (click)="saveAdminQueue()">Save</button>
+            </div>
+          </div>
+          }
+        </div>
+
+        <div class="section-separator"></div>
+
+        <!-- 2. Drivers Currently On Trip Section (PHP Parity) -->
+        <div class="on-trip-section-block">
+          <div class="section-head-row">
+            <h3 class="section-title emerald">
+              <span class="title-text">Drivers Currently On Trip</span>
+              <span class="count-pill emerald">{{ driverService.driversOnTrip().length }}</span>
+            </h3>
+          </div>
+
+          <div id="on-trip-items-container" class="on-trip-items-container">
+            @if (driverService.driversOnTrip().length === 0) {
+            <div class="empty-list-notice emerald-notice">
+              <p>No drivers currently active on a trip.</p>
+            </div>
+            }
+            @for (trip of driverService.driversOnTrip(); track trip.id) {
+            <div class="on-trip-item-card">
+              <!-- Top Row: Driver Name + Status Badge -->
+              <div class="trip-head-row">
+                <div class="d-meta">
+                  <div class="name-line">
+                    <span class="d-fullname">{{ trip.driverName }}</span>
+                    @if (trip.driverName === driverService.driver().name) {
+                    <span class="you-badge-emerald">YOU</span>
+                    }
+                  </div>
+                  <span class="d-mtop">MTOP: {{ trip.mtopNumber || '500106' }}</span>
+                </div>
+
+                <span class="trip-status-pill"
+                  [class.in-transit]="trip.status === 'In Transit' || trip.status === 'Returning'"
+                  [class.en-route]="trip.status === 'En Route'" [class.at-pickup]="trip.status === 'At Pickup'">
+                  {{ trip.status }}
+                </span>
+              </div>
+
+              <!-- Bottom Row: Route Box + Price -->
+              <div class="trip-route-box">
+                <div class="route-info">
+                  <span class="route-label">Route</span>
+                  <span class="route-text">{{ trip.pickupLocation }} ➔ {{ trip.destination }}</span>
+                </div>
+                <div class="fare-info">
+                  <span class="fare-val">₱{{ (+trip.fare || 0).toFixed(2) }}</span>
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

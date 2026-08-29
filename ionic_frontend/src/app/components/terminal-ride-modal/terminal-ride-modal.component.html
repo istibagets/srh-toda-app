@@ -1,0 +1,108 @@
+<div
+  class="fresh-modal-container"
+  [class.is-open]="isOpen()"
+  aria-modal="true"
+  role="dialog"
+>
+  <!-- Dark GPU Composited Backdrop -->
+  <div class="fresh-modal-backdrop" (click)="onClose()"></div>
+
+  <!-- Slide-Up Sheet Container -->
+  <div class="fresh-modal-sheet">
+    <!-- Header -->
+    <div class="modal-header-row">
+      <div class="modal-title-wrap">
+        <span class="modal-eyebrow">{{ isWayside() ? 'WAYSIDE DISPATCH' : 'TERMINAL DISPATCH' }}</span>
+        <h2 class="modal-title">{{ isWayside() ? 'Start Wayside Ride' : 'Start Walk-In Ride' }}</h2>
+      </div>
+      <button
+        type="button"
+        class="btn-close-circle"
+        (click)="onClose()"
+        aria-label="Close modal"
+      >
+        <svg class="close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Modal Content Body -->
+    <div class="modal-content-body">
+      <!-- 1. Route Points Card -->
+      <div class="route-details-card">
+        <!-- Pickup Row -->
+        <div class="route-point-row">
+          <div class="point-pin-col">
+            <span class="pin-dot green"></span>
+            <span class="pin-connector-line"></span>
+          </div>
+          <div class="point-text-col">
+            <span class="point-eyebrow">PICKUP LOCATION</span>
+            <span class="point-name">{{ isWayside() ? 'Current Wayside Location (En Route)' : 'TODA Central Station Terminal' }}</span>
+          </div>
+        </div>
+
+        <!-- Destination Selection Grid -->
+        <div class="route-point-row dest-row">
+          <div class="point-pin-col">
+            <span class="pin-dot red"></span>
+          </div>
+          <div class="point-text-col">
+            <span class="point-eyebrow">DESTINATION BARANGAY</span>
+            <div class="dest-chips-container">
+              @for (dest of destinations; track dest.name) {
+                <button
+                  type="button"
+                  class="dest-chip-item"
+                  [class.selected]="selectedDestination() === dest.name"
+                  (click)="onDestinationChange(dest.name)"
+                >
+                  <span class="dest-name">{{ dest.shortName }}</span>
+                  <span class="dest-badge">{{ dest.distance }}</span>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Passenger Count Picker -->
+      <div class="passenger-count-section">
+        <span class="section-label">PASSENGER COUNT</span>
+        <div class="passenger-pills-grid">
+          @for (count of [1, 2, 3, 4]; track count) {
+            <button
+              type="button"
+              class="passenger-pill-btn"
+              [class.active]="passengerCount() === count"
+              (click)="setPassengerCount(count)"
+            >
+              {{ count }} Pax
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- 3. Official TODA Tariff Rate Banner -->
+      <div class="tariff-fare-card">
+        <div class="tariff-meta">
+          <span class="tariff-label">OFFICIAL TODA FARE</span>
+          <span class="tariff-sub">Santa Rosa Municipal Tariff Matrix</span>
+        </div>
+        <div class="tariff-price-wrap">
+          <span class="tariff-price-val">₱{{ calculatedFare() | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <!-- 4. Primary Confirmation Button -->
+      <button
+        type="button"
+        class="btn-primary-fresh"
+        (click)="onConfirm()"
+      >
+        <span>{{ isWayside() ? 'Depart & Start Trip' : 'Depart Terminal & Start Trip' }}</span>
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,420 @@
+/* Core CSS required for Ionic components to work properly */
+@import "@ionic/angular/css/core.css";
+
+/* Basic CSS for apps built with Ionic */
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+
+/* Optional CSS utils */
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+/* Global Font and Body Defaults */
+html, body, ion-app, ion-content, * {
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeLegibility !important;
+  box-sizing: border-box;
+}
+
+html, body, ion-app {
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
+  touch-action: pan-y pinch-zoom;
+}
+
+/* MapLibre Canvas Hardware Touch Control */
+.maplibregl-canvas-container,
+.maplibregl-canvas,
+.maplibregl-map {
+  touch-action: none !important;
+  overscroll-behavior: none !important;
+}
+
+/* Remove Ionic MD Active Tab Indicator Bubble / Glow */
+ion-tab-button {
+  --ripple-color: transparent !important;
+  --indicator-color: transparent !important;
+  --indicator-box-shadow: none !important;
+  --indicator-height: 0px !important;
+  --indicator-width: 0px !important;
+  --background-focused: transparent !important;
+  --background-focused-opacity: 0 !important;
+  --background-hover: transparent !important;
+  --background-hover-opacity: 0 !important;
+
+  &::part(indicator) {
+    display: none !important;
+  }
+  &::part(indicator-background) {
+    display: none !important;
+  }
+}
+
+/* Hide Scrollbar Globally */
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Animations */
+.animate-fade-in {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Global SortableJS Drag Fallback (Rendered on <body> during touch drag) */
+body > .sortable-fallback,
+.sortable-fallback {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  background: #ffffff !important;
+  border: 1.5px solid #3b82f6 !important;
+  border-radius: 16px !important;
+  padding: 12px 14px !important;
+  box-shadow: 0 16px 32px -4px rgba(15, 23, 42, 0.25), 0 8px 16px -4px rgba(15, 23, 42, 0.15) !important;
+  opacity: 0.98 !important;
+  z-index: 9999999 !important;
+  box-sizing: border-box !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+
+  .item-left-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .drag-handle-icon,
+  .drag-handle {
+    width: 22px !important;
+    height: 22px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    color: #2563eb !important;
+  }
+
+  .handle-svg {
+    width: 16px !important;
+    height: 16px !important;
+    max-width: 16px !important;
+    max-height: 16px !important;
+    fill: currentColor !important;
+    display: block !important;
+  }
+
+  .queue-number-badge {
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    padding: 4px 8.5px !important;
+    border-radius: 10px !important;
+    background: #f3f4f6 !important;
+    color: #4b5563 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+
+    &.first {
+      background: #2563eb !important;
+      color: #ffffff !important;
+    }
+  }
+
+  .driver-info-col {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.5px !important;
+    min-width: 0 !important;
+
+    .name-line {
+      display: flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+
+      .driver-name {
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        color: #1f2937 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+
+      .you-badge {
+        font-size: 10px !important;
+        font-weight: 800 !important;
+        padding: 1px 6px !important;
+        border-radius: 6px !important;
+        background: #dcfce7 !important;
+        color: #16a34a !important;
+      }
+    }
+
+    .mtop-sub {
+      font-size: 11.5px !important;
+      font-weight: 500 !important;
+      color: #6b7280 !important;
+    }
+  }
+
+  .item-right-status {
+    display: flex !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+
+    .status-pill {
+      font-size: 11px !important;
+      font-weight: 700 !important;
+      padding: 4px 9px !important;
+      border-radius: 8px !important;
+
+      &.ready {
+        background: #dcfce7 !important;
+        color: #15803d !important;
+      }
+
+      &.waiting {
+        background: #f3f4f6 !important;
+        color: #6b7280 !important;
+      }
+    }
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Modern Minimal Subtab Header (Clean, Borderless, Professional) ── */
+.modern-subtab-header,
+.srh-page-header {
+  --background: #ffffff;
+  background: #ffffff;
+  border-bottom: none !important;
+  box-shadow: none !important;
+
+  ion-toolbar {
+    --background: #ffffff;
+    --color: #0f172a;
+    --border-width: 0;
+    --padding-start: 1.25rem;
+    --padding-end: 1.25rem;
+    --padding-top: 0.5rem;
+    --padding-bottom: 0.25rem;
+    --min-height: 56px;
+    border-bottom: none !important;
+  }
+
+  ion-title {
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    color: #0f172a;
+    padding-inline: 0;
+    text-align: left;
+  }
+}
+
+/* ── MODERN MAP PINS & ANIMATED LOCATION MARKERS (Grab / Uber / Google Maps Style) ── */
+.srh-terminal-marker-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: auto;
+  cursor: pointer;
+  user-select: none;
+
+  .terminal-pill-badge {
+    background: #0f172a;
+    color: #ffffff;
+    font-size: 11.5px;
+    font-weight: 800;
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+    letter-spacing: -0.01em;
+    transition: transform 0.15s ease;
+
+    &:active {
+      transform: scale(0.95);
+    }
+
+    .pin-icon {
+      width: 14px;
+      height: 14px;
+      fill: #3b82f6;
+      flex-shrink: 0;
+    }
+
+    span {
+      font-weight: 800;
+      font-size: 11.5px;
+      letter-spacing: -0.2px;
+    }
+  }
+
+}
+
+.srh-terminal-ground-dot {
+  width: 10px;
+  height: 10px;
+  background: #2563eb;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* DRIVER BLUE LOCATION PUCK (Google Maps / Apple Maps / Uber Style) */
+.driver-live-map-marker-container {
+  width: 70px;
+  height: 70px;
+  position: relative;
+  pointer-events: none;
+
+  .driver-marker-ping {
+    position: absolute;
+    top: 13px;
+    left: 13px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(37, 99, 235, 0.2);
+    border: 1.5px solid rgba(59, 130, 246, 0.55);
+    animation: gpsPing 2.2s cubic-bezier(0.1, 0.4, 0.2, 1) infinite;
+    pointer-events: none;
+  }
+
+  .driver-cone-beam {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 70px;
+    height: 70px;
+    pointer-events: none;
+    transform: rotate(0deg);
+    transform-origin: 35px 35px;
+    will-change: transform;
+    transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+    z-index: 5;
+
+    svg {
+      width: 70px;
+      height: 70px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      overflow: visible;
+      pointer-events: none;
+    }
+  }
+
+  .driver-center-dot {
+    position: absolute;
+    top: 26px;
+    left: 26px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border: 2.5px solid #ffffff;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3), 0 0 12px rgba(37, 99, 235, 0.6);
+    pointer-events: none;
+    z-index: 10;
+  }
+}
+
+@keyframes gpsPing {
+  0% { transform: scale(0.5); opacity: 0.95; }
+  100% { transform: scale(1.65); opacity: 0; }
+}
+
+/* ══════════════════════════════════════════════════════════════ */
+/* GLOBAL BROWSER PRINT STYLES                                   */
+/* ══════════════════════════════════════════════════════════════ */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  html,
+  body,
+  ion-app,
+  ion-router-outlet,
+  ion-tabs,
+  ion-content,
+  app-root {
+    background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+    width: 100% !important;
+  }
+
+  ion-tab-bar,
+  ion-header,
+  .no-print,
+  .zoom-controls-floating-bar,
+  .duty-pill-container,
+  .srh-tabs-bottom {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
+
+

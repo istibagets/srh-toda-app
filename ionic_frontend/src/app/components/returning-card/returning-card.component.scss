@@ -1,0 +1,110 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.returning-card-wrapper {
+  padding: 6px 14px 14px;
+  width: 100%;
+  box-sizing: border-box;
+  animation: returningFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes returningFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.returning-card-inner {
+  background: #064e3b;
+  border-radius: 20px;
+  padding: 16px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  box-shadow: 0 8px 24px -4px rgba(6, 78, 59, 0.4);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+
+  .card-header-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+
+    .eyebrow-text {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #6ee7b7;
+    }
+
+    .main-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: #ffffff;
+      margin: 0;
+      letter-spacing: -0.015em;
+      line-height: 1.25;
+    }
+  }
+
+  .btn-add-wayside {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: #10b981;
+    color: #ffffff;
+    padding: 13px 18px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    transition: transform 0.15s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+
+    &:hover {
+      background: #059669;
+      box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+    }
+
+    &:active {
+      transform: scale(0.98);
+      background: #047857;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+    }
+
+    .person-icon {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    .btn-plus {
+      font-size: 15px;
+      font-weight: 900;
+      line-height: 1;
+      margin-left: 2px;
+      margin-right: -2px;
+    }
+
+    .btn-label {
+      font-size: 12.5px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+  }
+}

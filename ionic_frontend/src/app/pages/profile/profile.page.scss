@@ -1,0 +1,830 @@
+.srh-profile-header {
+  .header-toolbar {
+    --background: #ffffff;
+    --border-color: rgba(226, 232, 240, 0.8);
+    --border-width: 0 0 1px 0;
+    --border-style: solid;
+    padding: 4px 8px;
+  }
+
+  .header-title {
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    text-align: center;
+  }
+}
+
+.srh-profile-content {
+  --background: #f8fafc;
+}
+
+.profile-layout-container {
+  max-width: 580px;
+  margin: 0 auto;
+  padding: 16px 14px 48px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── 1. EXECUTIVE HERO CARD ── */
+.executive-hero-card {
+  position: relative;
+  background: #ffffff;
+  border-radius: 24px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 30px -8px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
+  padding: 20px;
+  overflow: hidden;
+
+  .hero-bg-glow {
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.12) 0%, rgba(37, 99, 235, 0) 70%);
+    pointer-events: none;
+  }
+
+  .hero-main-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .avatar-holder {
+    position: relative;
+    width: 74px;
+    height: 74px;
+    flex-shrink: 0;
+  }
+
+  .avatar-frame {
+    width: 74px;
+    height: 74px;
+    border-radius: 22px;
+    border: 2px solid #ffffff;
+    box-shadow: 0 8px 20px -4px rgba(37, 99, 235, 0.25);
+    overflow: hidden;
+    background: #eff6ff;
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .avatar-fallback {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1e40af, #3b82f6);
+      color: #ffffff;
+      font-size: 2rem;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  .avatar-status-dot {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    border: 2.5px solid #ffffff;
+    background: #94a3b8;
+
+    &.online {
+      background: #10b981;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+    }
+  }
+
+  .avatar-camera-btn {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 28px;
+    height: 28px;
+    border-radius: 10px;
+    background: #0f172a;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ffffff;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    font-size: 15px;
+    transition: transform 0.15s ease, background-color 0.2s ease;
+
+    &:active {
+      transform: scale(0.9);
+      background: #1e293b;
+    }
+
+    .file-input-hidden {
+      display: none;
+    }
+
+    .spinner-small {
+      width: 14px;
+      height: 14px;
+      --color: #ffffff;
+    }
+  }
+
+  .driver-id-meta {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .name-with-verified {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+
+    .driver-name {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .verified-icon {
+      font-size: 1.15rem;
+      color: #2563eb;
+      flex-shrink: 0;
+    }
+  }
+
+  .meta-badges-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+
+    .role-pill {
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      padding: 3px 8px;
+      border-radius: 99px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+
+      &.driver {
+        background: #fef3c7;
+        color: #b45309;
+        border-color: #fde68a;
+      }
+
+      &.admin {
+        background: #f3e8ff;
+        color: #7e22ce;
+        border-color: #e9d5ff;
+      }
+    }
+
+    .mtop-franchise-pill {
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      padding: 3px 8px;
+      border-radius: 99px;
+      background: #f8fafc;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+    }
+  }
+
+  .contact-subline {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .contact-item {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #64748b;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      ion-icon {
+        font-size: 0.85rem;
+        color: #94a3b8;
+      }
+    }
+  }
+
+  /* Quick Metrics Strip */
+  .hero-stats-strip {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid #f1f5f9;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    align-items: center;
+    text-align: center;
+
+    .stat-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .stat-divider {
+      width: 1px;
+      height: 28px;
+      background: #e2e8f0;
+    }
+
+    .stat-label {
+      font-size: 0.62rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      color: #94a3b8;
+    }
+
+    .stat-value {
+      font-size: 0.95rem;
+      font-weight: 900;
+      color: #0f172a;
+
+      &.text-emerald {
+        color: #059669;
+      }
+
+      &.status-tag {
+        font-size: 0.72rem;
+        padding: 2px 8px;
+        border-radius: 6px;
+        background: #fef3c7;
+        color: #b45309;
+
+        &.approved {
+          background: #ecfdf5;
+          color: #047857;
+        }
+      }
+    }
+  }
+}
+
+/* ── 2. SEGMENT PILL NAVIGATION ── */
+.tab-pill-bar {
+  .custom-pill-segment {
+    --background: #f1f5f9;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 4px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+
+    ion-segment-button {
+      --indicator-color: #2563eb !important;
+      --indicator-box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
+      --color: #64748b !important;
+      --color-checked: #ffffff !important;
+      --color-hover: #0f172a !important;
+      border-radius: 12px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+
+      ion-icon {
+        font-size: 1.35rem;
+        margin: 0;
+        color: inherit !important;
+      }
+
+      &.segment-button-checked,
+      &.ion-checked {
+        --indicator-color: #2563eb !important;
+        --color-checked: #ffffff !important;
+        color: #ffffff !important;
+
+        ion-icon {
+          color: #ffffff !important;
+        }
+      }
+    }
+  }
+}
+
+/* ── 3. CONTENT PANELS ── */
+.panel-section-card {
+  background: #ffffff;
+  border-radius: 24px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 6px 20px -4px rgba(15, 23, 42, 0.05);
+  padding: 20px;
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #f1f5f9;
+
+    .header-icon-wrap {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+
+      &.blue {
+        background: #eff6ff;
+        color: #2563eb;
+      }
+
+      &.emerald {
+        background: #ecfdf5;
+        color: #059669;
+      }
+
+      &.amber {
+        background: #fffbeb;
+        color: #d97706;
+      }
+
+      &.slate {
+        background: #f1f5f9;
+        color: #475569;
+      }
+    }
+
+    .header-text {
+      flex: 1;
+      min-width: 0;
+
+      .panel-title {
+        font-size: 1.05rem;
+        font-weight: 900;
+        color: #0f172a;
+        margin: 0 0 2px 0;
+        letter-spacing: -0.02em;
+      }
+
+      .panel-subtitle {
+        font-size: 0.76rem;
+        color: #64748b;
+        font-weight: 600;
+        margin: 0;
+      }
+    }
+  }
+}
+
+/* ── FORM ELEMENTS ── */
+.custom-profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .input-group-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    .field-label {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: #334155;
+      letter-spacing: -0.01em;
+    }
+
+    .custom-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 0 14px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+
+      &:focus-within {
+        background: #ffffff;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+      }
+
+      &.is-locked {
+        background: #f1f5f9;
+        border-color: #e2e8f0;
+        opacity: 0.85;
+      }
+
+      .input-prefix-icon {
+        font-size: 18px;
+        color: #94a3b8;
+        margin-right: 10px;
+        flex-shrink: 0;
+      }
+
+      .styled-native-input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        height: 46px;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: #0f172a;
+        outline: none;
+
+        &::placeholder {
+          color: #94a3b8;
+          font-weight: 500;
+        }
+
+        &.locked-input {
+          cursor: not-allowed;
+          color: #475569;
+        }
+      }
+
+      .input-lock-icon {
+        font-size: 16px;
+        color: #94a3b8;
+      }
+    }
+
+    .field-hint {
+      font-size: 0.72rem;
+      color: #64748b;
+      font-weight: 500;
+      padding-left: 2px;
+    }
+
+    .field-error {
+      font-size: 0.74rem;
+      color: #ef4444;
+      font-weight: 700;
+      padding-left: 2px;
+    }
+  }
+
+  .form-action-row {
+    margin-top: 8px;
+  }
+}
+
+.primary-save-btn {
+  width: 100%;
+  height: 48px;
+  border-radius: 14px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 800;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 8px 20px -4px rgba(37, 99, 235, 0.4);
+  transition: transform 0.15s ease, background-color 0.2s ease;
+
+  &:active:not([disabled]) {
+    transform: scale(0.98);
+    background: #1d4ed8;
+  }
+
+  &[disabled] {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+
+  .btn-spinner {
+    width: 18px;
+    height: 18px;
+    --color: #ffffff;
+  }
+
+  ion-icon {
+    font-size: 20px;
+  }
+}
+
+/* ── 4. CREDENTIALS & DOCUMENTS ── */
+.credentials-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .credential-item-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    &.highlighted {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
+
+    .cred-left {
+      flex: 1;
+
+      .cred-eyebrow {
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        color: #64748b;
+        display: block;
+        margin-bottom: 2px;
+      }
+
+      .cred-title {
+        font-size: 0.98rem;
+        font-weight: 900;
+        color: #0f172a;
+        margin: 0 0 2px 0;
+      }
+
+      .cred-desc {
+        font-size: 0.74rem;
+        color: #64748b;
+        font-weight: 600;
+        margin: 0;
+      }
+    }
+
+    .mtop-hero-badge {
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #1d4ed8;
+      background: #ffffff;
+      padding: 6px 14px;
+      border-radius: 12px;
+      border: 1.5px solid #93c5fd;
+      box-shadow: 0 4px 10px -2px rgba(37, 99, 235, 0.15);
+      letter-spacing: 0.02em;
+    }
+
+    .compliance-status-pill {
+      font-size: 0.78rem;
+      font-weight: 800;
+      padding: 6px 12px;
+      border-radius: 99px;
+      background: #fef3c7;
+      color: #b45309;
+      border: 1px solid #fde68a;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+
+      &.approved {
+        background: #ecfdf5;
+        color: #047857;
+        border-color: #a7f3d0;
+      }
+
+      ion-icon {
+        font-size: 16px;
+      }
+    }
+  }
+
+  .document-action-link {
+    text-decoration: none;
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: transform 0.15s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:active {
+      transform: scale(0.98);
+      border-color: #2563eb;
+      background: #f8fafc;
+    }
+
+    .doc-link-icon-wrap {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: #eff6ff;
+      color: #2563eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .doc-link-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+
+      .doc-name {
+        font-size: 0.88rem;
+        font-weight: 800;
+        color: #0f172a;
+      }
+
+      .doc-sub {
+        font-size: 0.72rem;
+        color: #64748b;
+        font-weight: 600;
+      }
+    }
+
+    .doc-external-icon {
+      font-size: 18px;
+      color: #94a3b8;
+    }
+  }
+}
+
+/* ── 5. SETTINGS TOGGLES ── */
+.settings-toggle-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .setting-toggle-row {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .setting-icon-box {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: #ffffff;
+      color: #2563eb;
+      border: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .setting-info {
+      flex: 1;
+
+      .setting-title {
+        font-size: 0.86rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0 0 2px 0;
+      }
+
+      .setting-desc {
+        font-size: 0.72rem;
+        color: #64748b;
+        font-weight: 500;
+        margin: 0;
+      }
+    }
+
+    .permission-pill {
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 99px;
+      background: #f1f5f9;
+      color: #64748b;
+
+      &.granted {
+        background: #ecfdf5;
+        color: #047857;
+        border: 1px solid #a7f3d0;
+      }
+    }
+  }
+}
+
+.diag-feedback-banner {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1d4ed8;
+
+  .diag-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+}
+
+.secondary-diag-btn {
+  width: 100%;
+  height: 46px;
+  border-radius: 14px;
+  background: #f8fafc;
+  color: #1e293b;
+  font-size: 0.86rem;
+  font-weight: 800;
+  border: 1.5px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+    background: #e2e8f0;
+  }
+
+  ion-icon {
+    font-size: 18px;
+    color: #2563eb;
+  }
+}
+
+/* ── 6. SIGN OUT BUTTON ── */
+.signout-section-container {
+  margin-top: 8px;
+
+  .executive-signout-btn {
+    width: 100%;
+    height: 48px;
+    border-radius: 16px;
+    background: #fff1f2;
+    color: #e11d48;
+    border: 1.5px solid #fecdd3;
+    font-size: 0.88rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: transform 0.15s ease, background-color 0.2s ease, border-color 0.2s ease;
+
+    &:active {
+      transform: scale(0.98);
+      background: #ffe4e6;
+      border-color: #fda4af;
+    }
+
+    ion-icon {
+      font-size: 20px;
+    }
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

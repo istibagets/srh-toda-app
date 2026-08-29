@@ -1,0 +1,163 @@
+<ion-content [fullscreen]="true" class="login-ion-content">
+  <div class="page">
+    <div class="shell">
+
+      <!-- Left Branding Panel (Desktop Only) -->
+      <div class="brand-panel">
+        <div class="brand-top">
+          <div class="brand-logo-wrap">
+            <img src="assets/images/srh-logo.png" alt="SRH LINK-TODA Logo" class="brand-logo-img" />
+          </div>
+          <span class="brand-badge">SRH LINK-TODA</span>
+        </div>
+
+        <div class="brand-main">
+          <h2 class="brand-name">SRH LINK-TODA</h2>
+          <p class="brand-tagline">Connecting commuters and verified tricycle drivers seamlessly across Santa Rosa Homes, Nueva Ecija.</p>
+
+          <div class="brand-feats">
+            <div class="brand-feat">
+              <span class="brand-feat-dot"></span>
+              <span>Instant TODA Queueing</span>
+            </div>
+            <div class="brand-feat">
+              <span class="brand-feat-dot"></span>
+              <span>Live Trip Tracking</span>
+            </div>
+            <div class="brand-feat">
+              <span class="brand-feat-dot"></span>
+              <span>Verified TODA Operators</span>
+            </div>
+            <div class="brand-feat">
+              <span class="brand-feat-dot"></span>
+              <span>Standardized Fair Fare</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="brand-footer">&copy; 2026 SRH LINK-TODA. All rights reserved.</p>
+      </div>
+
+      <!-- Right Form Panel -->
+      <div class="form-panel">
+        <div class="form-inner">
+
+          <!-- 1. Welcome Screen Mode -->
+          @if (screenMode() === 'welcome') {
+            <div class="screen-welcome animate-fade-in">
+              <div class="welcome-logo-wrap">
+                <img src="assets/images/srh-logo.png" alt="SRH LINK-TODA Logo" class="welcome-logo-img" />
+              </div>
+
+              <h1 class="welcome-title">SRH LINK-TODA</h1>
+              <p class="welcome-sub">
+                Connect with verified TODA drivers and commute reliably in Santa Rosa Homes.
+              </p>
+
+              <div class="welcome-actions">
+                <ion-button expand="block" shape="round" color="primary" [routerLink]="['/register']" class="btn-welcome-primary">
+                  <span>Get Started</span>
+                  <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+                </ion-button>
+
+                <ion-button expand="block" shape="round" color="primary" fill="outline" (click)="showLogin()" class="btn-welcome-secondary">
+                  I Already Have an Account
+                </ion-button>
+              </div>
+            </div>
+          }
+
+          <!-- 2. Sign In Form Screen Mode -->
+          @if (screenMode() === 'login') {
+            <div class="screen-login animate-fade-in">
+              <div class="top-back-row">
+                <ion-button fill="clear" size="small" class="back-btn" (click)="showWelcome()">
+                  <ion-icon slot="start" name="chevron-back-outline"></ion-icon>
+                  Back
+                </ion-button>
+              </div>
+
+              <h2 class="form-title">Welcome back</h2>
+              <p class="form-sub">Sign in to your account to continue.</p>
+
+              <!-- Error Alert Banner -->
+              @if (errorMessage()) {
+                <div class="err-banner animate-fade-in">
+                  <ion-icon name="alert-circle-outline"></ion-icon>
+                  <span>{{ errorMessage() }}</span>
+                </div>
+              }
+
+              <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="native-login-form">
+                <!-- Email Field -->
+                <div class="field-item-wrap">
+                  <ion-input
+                    fill="outline"
+                    label="Email Address"
+                    labelPlacement="floating"
+                    type="email"
+                    formControlName="email"
+                    [clearInput]="true"
+                    placeholder="name@example.com"
+                    errorText="Please enter a valid email address"
+                  >
+                    <ion-icon slot="start" name="mail-outline" color="primary" aria-hidden="true"></ion-icon>
+                  </ion-input>
+                </div>
+
+                <!-- Password Field -->
+                <div class="field-item-wrap">
+                  <ion-input
+                    fill="outline"
+                    label="Password"
+                    labelPlacement="floating"
+                    [type]="showPassword() ? 'text' : 'password'"
+                    formControlName="password"
+                    placeholder="Password"
+                  >
+                    <ion-icon slot="start" name="lock-closed-outline" color="primary" aria-hidden="true"></ion-icon>
+                    <ion-button slot="end" fill="clear" color="medium" class="btn-eye-toggle" (click)="togglePassword()" aria-label="Toggle password visibility">
+                      <ion-icon slot="icon-only" [name]="showPassword() ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+                    </ion-button>
+                  </ion-input>
+                </div>
+
+                <!-- Remember Me Checkbox -->
+                <div class="remember-row">
+                  <ion-checkbox formControlName="remember" justify="start" labelPlacement="end" class="native-checkbox">
+                    Keep me signed in
+                  </ion-checkbox>
+                </div>
+
+                <!-- Submit Button -->
+                <ion-button
+                  type="submit"
+                  expand="block"
+                  shape="round"
+                  color="primary"
+                  class="submit-btn"
+                  [disabled]="isLoading()"
+                >
+                  @if (isLoading()) {
+                    <ion-spinner slot="start" name="crescent"></ion-spinner>
+                    Signing in...
+                  } @else {
+                    <span>Sign In</span>
+                    <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+                  }
+                </ion-button>
+              </form>
+
+              <p class="bottom-link">
+                Don't have an account?
+                <a [routerLink]="['/register']">Create one</a>
+              </p>
+            </div>
+          }
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</ion-content>

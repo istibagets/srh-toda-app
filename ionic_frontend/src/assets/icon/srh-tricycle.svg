@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="ionicon">
+  <!-- Top Canopy Roof -->
+  <rect x="26" y="96" width="348" height="36" rx="18" fill="currentColor"/>
+
+  <!-- Cabin Body with Window Cutout (evenodd fill) -->
+  <path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M44 136h208v204H180c-15-28-44-48-78-48s-63 20-78 48H44V136zm26 24h156c8.8 0 16 7.2 16 16v68c0 8.8-7.2 16-16 16H70c-8.8 0-16-7.2-16-16v-68c0-8.8 7.2-16 16-16z"/>
+
+  <!-- Rear Wheel (Donut cutout with solid hub) -->
+  <path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M126 294c34.2 0 62 27.8 62 62s-27.8 62-62 62-62-27.8-62-62 27.8-62 62-62zm0 18c24.3 0 44 19.7 44 44s-19.7 44-44 44-44-19.7-44-44 19.7-44 44-44zm0 24c11 0 20 9 20 20s-9 20-20 20-20-9-20-20 9-20 20-20z"/>
+
+  <!-- Driver Seat -->
+  <path fill="currentColor" d="M258 214c0-4.4 3.6-8 8-8h2c4.4 0 8 3.6 8 8v80h64c4.4 0 8 3.6 8 8v4c0 4.4-3.6 8-8 8h-74c-4.4 0-8-3.6-8-8v-92z"/>
+
+  <!-- Chassis Floor & Footwell -->
+  <path fill="currentColor" d="M252 322h78v18h-78z"/>
+
+  <!-- Handlebar, Fork & Connecting Frame -->
+  <path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M358 178c-20 0-36 16-36 36 0 8.8 7.2 16 16 16s16-7.2 16-16c0-2.2 1.8-4 4-4h42l48 108H354c-12 0-22 10-22 22v20h-80v-18h78c4.4 0 8-3.6 8-8v-6c0-4.4-3.6-8-8-8H252v-18h80c2.2 0 4-1.8 4-4v-16h88l-40-90h-26z"/>
+
+  <!-- Front Wheel (Donut cutout with solid hub) -->
+  <path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M428 298c32 0 58 26 58 58s-26 58-58 58-58-26-58-58 26-58 58-58zm0 18c22.1 0 40 17.9 40 40s-17.9 40-40 40-40-17.9-40-40 17.9-40 40-40zm0 22c9.9 0 18 8.1 18 18s-8.1 18-18 18-18-8.1-18-18 8.1-18 18-18z"/>
+
+  <!-- Front Fork Leg to Axle -->
+  <path fill="currentColor" d="M420 286l22 52-16 7-22-52 16-7z"/>
+</svg>

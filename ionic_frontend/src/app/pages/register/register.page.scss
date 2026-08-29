@@ -1,0 +1,558 @@
+.register-ion-content {
+  --background: #ffffff;
+  --color: #1e293b;
+}
+
+.page {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  background: #ffffff;
+}
+
+.shell {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+/* ── Left Information Panel (Desktop Only) ── */
+.info-panel {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 0 0 38%;
+  width: 38%;
+  max-width: 480px;
+  min-width: 340px;
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
+  padding: 3.5rem 3rem;
+  color: #ffffff;
+  box-sizing: border-box;
+}
+
+@media (min-width: 860px) {
+  .info-panel {
+    display: flex;
+  }
+}
+
+.info-top {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.info-logo-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.info-logo-img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
+.info-brand-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.95);
+  text-transform: uppercase;
+}
+
+.info-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2.5rem 0 1.5rem;
+}
+
+.info-step-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #93c5fd;
+  margin-bottom: 0.5rem;
+}
+
+.info-step-title {
+  font-size: 1.85rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.5rem;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.info-step-desc {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.55;
+  margin-bottom: 2rem;
+}
+
+.info-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.info-step-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  opacity: 0.45;
+  transition: opacity 0.2s ease;
+
+  &.active,
+  &.done {
+    opacity: 1;
+  }
+}
+
+.info-step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+  flex-shrink: 0;
+
+  .active & {
+    background: #ffffff;
+    color: #2563eb;
+    border-color: #ffffff;
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+  }
+
+  .done & {
+    background: #22c55e;
+    color: #ffffff;
+    border-color: #22c55e;
+    font-size: 1rem;
+  }
+}
+
+.info-step-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-step-name {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.info-step-sub {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.info-footer {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  margin: 0;
+}
+
+/* ── Right Form Area ── */
+.form-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.25rem;
+  background: #ffffff;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.form-inner {
+  width: 100%;
+  max-width: 440px;
+}
+
+/* ── Topbar & Step Progress ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  margin-left: -8px;
+
+  .back-btn {
+    --color: #475569;
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+
+  .step-counter {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #64748b;
+    letter-spacing: 0.04em;
+  }
+}
+
+.progress-wrap {
+  margin-bottom: 1.25rem;
+
+  .progress-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #64748b;
+    margin-bottom: 0.4rem;
+  }
+
+  .native-progress-bar {
+    --buffer-background: #f1f5f9;
+    --progress-background: #2563eb;
+    border-radius: 6px;
+    height: 6px;
+  }
+
+  .step-dots {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.75rem;
+  }
+
+  .step-dot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    opacity: 0.4;
+    transition: opacity 0.2s ease;
+
+    &.active,
+    &.done {
+      opacity: 1;
+    }
+
+    .dot-circle {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 800;
+
+      .active & {
+        background: #2563eb;
+        color: #ffffff;
+        box-shadow: 0 0 8px rgba(37, 99, 235, 0.4);
+      }
+
+      .done & {
+        background: #22c55e;
+        color: #ffffff;
+        font-size: 0.85rem;
+      }
+    }
+
+    .dot-lbl {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #475569;
+    }
+  }
+}
+
+.step-motivate {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #2563eb;
+  margin: 0 0 1.25rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.err-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+
+  ion-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+}
+
+.step-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.step-title {
+  font-size: 1.65rem;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -0.025em;
+  margin: 0 0 0.35rem 0;
+}
+
+.step-sub {
+  font-size: 0.88rem;
+  color: #64748b;
+  margin: 0 0 1.5rem 0;
+}
+
+/* ── Native Register Form ── */
+.native-register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+
+  .field-item-wrap {
+    ion-input {
+      --border-radius: 14px;
+      --border-color: #cbd5e1;
+      --border-color-focused: #2563eb;
+      --highlight-color-focused: #2563eb;
+      --padding-start: 14px;
+      --padding-end: 14px;
+      font-size: 0.95rem;
+      font-weight: 500;
+
+      ion-icon[slot="start"] {
+        margin-right: 10px;
+        font-size: 1.2rem;
+      }
+    }
+  }
+
+  .status-badge {
+    font-size: 0.68rem;
+    font-weight: 800;
+    margin-right: 4px;
+  }
+
+  .status-spinner {
+    width: 20px;
+    height: 20px;
+    margin-right: 4px;
+  }
+
+  .btn-step-cta {
+    --border-radius: 14px;
+    height: 50px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    margin-top: 0.5rem;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+  }
+}
+
+/* ── Step 1: Role Grid ── */
+.role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.role-card {
+  margin: 0;
+  border-radius: 18px;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  background: #ffffff;
+  transition: all 0.2s ease;
+  position: relative;
+
+  &.selected {
+    border-color: #2563eb;
+    background: #f0f7ff;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.15);
+  }
+
+  .role-card-inner {
+    padding: 1.25rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .role-badge-check {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 0.8rem;
+    padding: 2px;
+    border-radius: 50%;
+  }
+
+  .role-icon-wrap {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    background: #eff6ff;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+
+    .selected & {
+      background: #2563eb;
+      color: #ffffff;
+    }
+  }
+
+  .role-name {
+    font-size: 1rem;
+    font-weight: 900;
+    color: #0f172a;
+    margin: 0 0 0.25rem 0;
+  }
+
+  .role-desc {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.3;
+  }
+}
+
+.signin-row {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 600;
+  margin-top: 1.5rem;
+
+  a {
+    color: #2563eb;
+    font-weight: 800;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+/* ── Step 4: Notice & Uploads ── */
+.notice-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  margin-bottom: 1.25rem;
+
+  ion-icon {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}
+
+.upload-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+  margin: 0.5rem 0 1.25rem 0;
+}
+
+.upload-zone-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.25rem 0.75rem;
+  border-radius: 16px;
+  border: 2px dashed #cbd5e1;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #2563eb;
+    background: #f0f7ff;
+  }
+
+  &.uploaded {
+    border-style: solid;
+    border-color: #22c55e;
+    background: #f0fdf4;
+  }
+
+  .hidden-file-input {
+    display: none;
+  }
+
+  .uz-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    margin-bottom: 0.5rem;
+
+    .uploaded & {
+      color: #22c55e;
+    }
+  }
+
+  .uz-title {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 0.2rem;
+  }
+
+  .uz-sub {
+    font-size: 0.7rem;
+    color: #64748b;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

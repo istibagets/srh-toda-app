@@ -1,0 +1,418 @@
+<ion-header class="ion-no-border srh-profile-header">
+  <ion-toolbar class="header-toolbar">
+    <ion-title class="header-title">Driver Profile &amp; Settings</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="srh-profile-content">
+  <div class="profile-layout-container">
+
+    <!-- ── 1. EXECUTIVE HERO PROFILE CARD ──────────────────────── -->
+    <div class="executive-hero-card">
+      <div class="hero-bg-glow"></div>
+
+      <!-- Top Row: Avatar + Info + Role Pill -->
+      <div class="hero-main-row">
+        <!-- Avatar with Camera Button -->
+        <div class="avatar-holder">
+          <div class="avatar-frame">
+            @if (authService.currentUser()?.avatar_url) {
+              <img [src]="authService.currentUser()?.avatar_url" alt="Avatar" class="avatar-img" />
+            } @else {
+              <div class="avatar-fallback">
+                <span>{{ (authService.currentUser()?.name || 'U').charAt(0).toUpperCase() }}</span>
+              </div>
+            }
+          </div>
+
+          <!-- Camera Upload Action Fab -->
+          <label class="avatar-camera-btn" title="Upload new photo">
+            <input type="file" accept="image/*" (change)="onAvatarSelect($event)" class="file-input-hidden" />
+            @if (isUploadingAvatar()) {
+              <ion-spinner name="crescent" class="spinner-small"></ion-spinner>
+            } @else {
+              <ion-icon name="camera-outline"></ion-icon>
+            }
+          </label>
+        </div>
+
+        <!-- Name, Role & Identifiers -->
+        <div class="driver-id-meta">
+          <div class="name-with-verified">
+            <h1 class="driver-name">{{ authService.currentUser()?.name }}</h1>
+          </div>
+
+          <div class="meta-badges-row">
+            <span class="role-pill" [class.driver]="authService.isDriver()" [class.admin]="authService.isAdmin()">
+              {{ authService.userRole() | uppercase }}
+            </span>
+            <span class="mtop-franchise-pill">
+              MTOP #{{ getDisplayMtop() }}
+            </span>
+          </div>
+
+          <div class="contact-subline">
+            <span class="contact-item">
+              <ion-icon name="mail-outline"></ion-icon>
+              {{ authService.currentUser()?.email }}
+            </span>
+            <span class="contact-item">
+              <ion-icon name="call-outline"></ion-icon>
+              {{ authService.currentUser()?.phone_number || 'No phone set' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Strip -->
+      <div class="hero-stats-strip">
+        <div class="stat-box">
+          <span class="stat-label">TODAY'S TRIPS</span>
+          <span class="stat-value">{{ driverService.driver().tripsTodayCount || 0 }}</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-box">
+          <span class="stat-label">TODAY'S EARNINGS</span>
+          <span class="stat-value text-emerald">₱{{ (driverService.driver().todayEarnings || 0).toFixed(2) }}</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-box">
+          <span class="stat-label">COMPLIANCE</span>
+          <span class="stat-value status-tag" [class.approved]="(driverService.driver().complianceStatus || authService.currentUser()?.driver_profile?.compliance_status || 'Approved') === 'Approved'">
+            {{ driverService.driver().complianceStatus || authService.currentUser()?.driver_profile?.compliance_status || 'Approved' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 2. SEGMENT TAB NAVIGATION (Icons Centered) ────────── -->
+    <div class="tab-pill-bar">
+      <ion-segment [value]="activeTab()" (ionChange)="onTabChange($event)" mode="ios" class="custom-pill-segment">
+        <ion-segment-button value="account" title="Account Details">
+          <ion-icon name="person-outline"></ion-icon>
+        </ion-segment-button>
+
+        <ion-segment-button value="credentials" title="TODA MTOP Credentials">
+          <ion-icon src="/assets/icon/srh-tricycle.svg"></ion-icon>
+        </ion-segment-button>
+
+        <ion-segment-button value="security" title="Security & Password">
+          <ion-icon name="shield-checkmark-outline"></ion-icon>
+        </ion-segment-button>
+
+        <ion-segment-button value="permissions" title="Hardware Permissions">
+          <ion-icon name="hardware-chip-outline"></ion-icon>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    <!-- ── 3. TAB 1: ACCOUNT DETAILS ────────────────────────── -->
+    @if (activeTab() === 'account') {
+      <div class="panel-section-card animate-fade-in">
+        <div class="panel-header">
+          <div class="header-text">
+            <h2 class="panel-title">Personal Profile Details</h2>
+            <p class="panel-subtitle">Manage your registered name and primary contact number</p>
+          </div>
+        </div>
+
+        <form [formGroup]="accountForm" (ngSubmit)="saveAccount()" class="custom-profile-form">
+          <div class="input-group-row">
+            <label class="field-label">Full Name</label>
+            <div class="custom-input-wrapper">
+              <ion-icon name="person-outline" class="input-prefix-icon"></ion-icon>
+              <input
+                type="text"
+                formControlName="name"
+                class="styled-native-input"
+                placeholder="Enter your full name"
+              />
+            </div>
+            @if (accountForm.get('name')?.touched && accountForm.get('name')?.invalid) {
+              <span class="field-error">Please enter a valid full name (min 2 chars).</span>
+            }
+          </div>
+
+          <div class="input-group-row">
+            <label class="field-label">Email Address (System Locked)</label>
+            <div class="custom-input-wrapper is-locked">
+              <ion-icon name="mail-outline" class="input-prefix-icon"></ion-icon>
+              <input
+                type="email"
+                [value]="authService.currentUser()?.email"
+                readonly
+                class="styled-native-input locked-input"
+              />
+              <ion-icon name="lock-closed-outline" class="input-lock-icon"></ion-icon>
+            </div>
+            <span class="field-hint">Your email is verified with Santa Rosa TODA registry and cannot be modified.</span>
+          </div>
+
+          <div class="input-group-row">
+            <label class="field-label">Mobile Phone Number</label>
+            <div class="custom-input-wrapper">
+              <ion-icon name="call-outline" class="input-prefix-icon"></ion-icon>
+              <input
+                type="tel"
+                formControlName="phone_number"
+                maxlength="11"
+                class="styled-native-input"
+                placeholder="09123456789"
+              />
+            </div>
+            @if (accountForm.get('phone_number')?.touched && accountForm.get('phone_number')?.invalid) {
+              <span class="field-error">Please enter a valid 11-digit mobile number starting with 09.</span>
+            }
+          </div>
+
+          <div class="form-action-row">
+            <button type="submit" class="primary-save-btn" [disabled]="isSavingAccount()">
+              @if (isSavingAccount()) {
+                <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
+                <span>Saving Changes...</span>
+              } @else {
+                <ion-icon name="checkmark-circle-outline"></ion-icon>
+                <span>Save Profile Details</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- ── 4. TAB 2: DRIVER MTOP & CREDENTIALS ──────────────── -->
+    @if (activeTab() === 'credentials') {
+      <div class="panel-section-card animate-fade-in">
+        <div class="panel-header">
+          <div class="header-text">
+            <h2 class="panel-title">TODA Franchise &amp; Vehicle Registry</h2>
+            <p class="panel-subtitle">Official Santa Rosa Homes MTOP Operator Verification</p>
+          </div>
+        </div>
+
+        <div class="credentials-stack">
+          <!-- MTOP Body Number Banner -->
+          <div class="credential-item-card highlighted">
+            <div class="cred-left">
+              <span class="cred-eyebrow">TODA FRANCHISE REGISTRATION</span>
+              <h3 class="cred-title">MTOP Body Number</h3>
+              <p class="cred-desc">Assigned motorized tricycle operator permit number</p>
+            </div>
+            <div class="cred-right">
+              <span class="mtop-hero-badge">
+                #{{ getDisplayMtop() }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Compliance Status Banner -->
+          <div class="credential-item-card">
+            <div class="cred-left">
+              <span class="cred-eyebrow">REGULATORY STATUS</span>
+              <h3 class="cred-title">Compliance State</h3>
+              <p class="cred-desc">Verified by Santa Rosa TODA Administration</p>
+            </div>
+            <div class="cred-right">
+              <span class="compliance-status-pill" [class.approved]="(driverService.driver().complianceStatus || authService.currentUser()?.driver_profile?.compliance_status || 'Approved') === 'Approved'">
+                <ion-icon [name]="(driverService.driver().complianceStatus || authService.currentUser()?.driver_profile?.compliance_status || 'Approved') === 'Approved' ? 'checkmark-circle-outline' : 'alert-circle-outline'"></ion-icon>
+                {{ authService.currentUser()?.driver_profile?.compliance_status || driverService.driver().complianceStatus || 'Approved' }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Uploaded Documents Links -->
+          @if (authService.currentUser()?.driver_profile?.mtop_certificate_url) {
+            <a [href]="authService.currentUser()?.driver_profile?.mtop_certificate_url" target="_blank" class="document-action-link">
+              <div class="doc-link-icon-wrap">
+                <ion-icon name="document-attach-outline"></ion-icon>
+              </div>
+              <div class="doc-link-info">
+                <span class="doc-name">MTOP Franchise Certificate</span>
+                <span class="doc-sub">Official uploaded TODA permit document</span>
+              </div>
+              <ion-icon name="open-outline" class="doc-external-icon"></ion-icon>
+            </a>
+          }
+
+          @if (authService.currentUser()?.driver_profile?.drivers_license_url) {
+            <a [href]="authService.currentUser()?.driver_profile?.drivers_license_url" target="_blank" class="document-action-link">
+              <div class="doc-link-icon-wrap">
+                <ion-icon name="card-outline"></ion-icon>
+              </div>
+              <div class="doc-link-info">
+                <span class="doc-name">Driver's License Document</span>
+                <span class="doc-sub">Official LTO professional license copy</span>
+              </div>
+              <ion-icon name="open-outline" class="doc-external-icon"></ion-icon>
+            </a>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ── 5. TAB 3: SECURITY & PASSWORD ───────────────────── -->
+    @if (activeTab() === 'security') {
+      <div class="panel-section-card animate-fade-in">
+        <div class="panel-header">
+          <div class="header-text">
+            <h2 class="panel-title">Account Security</h2>
+            <p class="panel-subtitle">Update and reinforce your portal authentication credentials</p>
+          </div>
+        </div>
+
+        <form [formGroup]="passwordForm" (ngSubmit)="savePassword()" class="custom-profile-form">
+          <div class="input-group-row">
+            <label class="field-label">Current Password</label>
+            <div class="custom-input-wrapper">
+              <ion-icon name="lock-closed-outline" class="input-prefix-icon"></ion-icon>
+              <input
+                type="password"
+                formControlName="current_password"
+                class="styled-native-input"
+                placeholder="Enter current password"
+              />
+            </div>
+          </div>
+
+          <div class="input-group-row">
+            <label class="field-label">New Password</label>
+            <div class="custom-input-wrapper">
+              <ion-icon name="lock-closed-outline" class="input-prefix-icon"></ion-icon>
+              <input
+                type="password"
+                formControlName="password"
+                class="styled-native-input"
+                placeholder="Minimum 8 characters"
+              />
+            </div>
+          </div>
+
+          <div class="input-group-row">
+            <label class="field-label">Confirm New Password</label>
+            <div class="custom-input-wrapper">
+              <ion-icon name="lock-closed-outline" class="input-prefix-icon"></ion-icon>
+              <input
+                type="password"
+                formControlName="password_confirmation"
+                class="styled-native-input"
+                placeholder="Repeat new password"
+              />
+            </div>
+          </div>
+
+          <div class="form-action-row">
+            <button type="submit" class="primary-save-btn" [disabled]="isSavingPassword()">
+              @if (isSavingPassword()) {
+                <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
+                <span>Updating Password...</span>
+              } @else {
+                <ion-icon name="lock-closed-outline"></ion-icon>
+                <span>Update Password</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- ── 6. TAB 4: HARDWARE & SENSORS ────────────────────── -->
+    @if (activeTab() === 'permissions') {
+      <div class="panel-section-card animate-fade-in">
+        <div class="panel-header">
+          <div class="header-text">
+            <h2 class="panel-title">Device Sensors &amp; Preferences</h2>
+            <p class="panel-subtitle">Manage device sensors, audio alerts, and tactile feedback</p>
+          </div>
+        </div>
+
+        @if (diagResult()) {
+          <div class="diag-feedback-banner">
+            <ion-icon name="pulse-outline" class="diag-icon"></ion-icon>
+            <span class="diag-text">{{ diagResult() }}</span>
+          </div>
+        }
+
+        <div class="settings-toggle-list">
+          <!-- GPS Location -->
+          <div class="setting-toggle-row">
+            <div class="setting-icon-box">
+              <ion-icon name="location-outline"></ion-icon>
+            </div>
+            <div class="setting-info">
+              <h4 class="setting-title">GPS High-Accuracy Location</h4>
+              <p class="setting-desc">Required for live terminal geofence &amp; dispatch</p>
+            </div>
+            <div class="setting-action">
+              <span class="permission-pill" [class.granted]="gpsStatus() === 'granted'">
+                {{ gpsStatus() === 'granted' ? 'Active' : 'Prompt' }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Push Notifications -->
+          <div class="setting-toggle-row">
+            <div class="setting-icon-box">
+              <ion-icon name="notifications-outline"></ion-icon>
+            </div>
+            <div class="setting-info">
+              <h4 class="setting-title">Push Notifications</h4>
+              <p class="setting-desc">Live dispatch alerts and passenger bookings</p>
+            </div>
+            <div class="setting-action">
+              <ion-toggle [checked]="notifEnabled()" (ionChange)="toggleNotif($event)"></ion-toggle>
+            </div>
+          </div>
+
+          <!-- Alert Sound -->
+          <div class="setting-toggle-row">
+            <div class="setting-icon-box">
+              <ion-icon name="volume-high-outline"></ion-icon>
+            </div>
+            <div class="setting-info">
+              <h4 class="setting-title">In-App Chime Audio</h4>
+              <p class="setting-desc">Audible tones on incoming booking notifications</p>
+            </div>
+            <div class="setting-action">
+              <ion-toggle [checked]="soundEnabled()" (ionChange)="toggleSound($event)"></ion-toggle>
+            </div>
+          </div>
+
+          <!-- Haptics -->
+          <div class="setting-toggle-row">
+            <div class="setting-icon-box">
+              <ion-icon name="phone-portrait-outline"></ion-icon>
+            </div>
+            <div class="setting-info">
+              <h4 class="setting-title">Haptic Vibration</h4>
+              <p class="setting-desc">Tactile physical vibration on dispatch updates</p>
+            </div>
+            <div class="setting-action">
+              <ion-toggle [checked]="vibrationEnabled()" (ionChange)="toggleVibration($event)"></ion-toggle>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-action-row">
+          <button type="button" class="secondary-diag-btn" [disabled]="diagRunning()" (click)="runDiagnostics()">
+            @if (diagRunning()) {
+              <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
+              <span>Running Sensor Checks...</span>
+            } @else {
+              <ion-icon name="pulse-outline"></ion-icon>
+              <span>Run Diagnostics Test</span>
+            }
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- ── 7. SIGN OUT ACTION SECTION ──────────────────────── -->
+    <div class="signout-section-container">
+      <button type="button" class="executive-signout-btn" (click)="onLogout()">
+        <ion-icon name="log-out-outline"></ion-icon>
+        <span>Sign Out of Account</span>
+      </button>
+    </div>
+
+  </div>
+</ion-content>

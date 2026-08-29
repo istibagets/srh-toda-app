@@ -1,0 +1,390 @@
+<ion-content [fullscreen]="true" class="register-ion-content">
+  <div class="page">
+    <div class="shell">
+
+      <!-- Left Info Panel (Desktop Only) -->
+      <div class="info-panel">
+        <div class="info-top">
+          <div class="info-logo-wrap">
+            <img src="assets/images/srh-logo.png" alt="SRH LINK-TODA Logo" class="info-logo-img" />
+          </div>
+          <span class="info-brand-title">SRH LINK-TODA</span>
+        </div>
+
+        <div class="info-main">
+          <span class="info-step-label">Step {{ currentStep() }} of {{ totalSteps() }}</span>
+          <h2 class="info-step-title">{{ stepMotivations()[currentStep() - 1]?.title }}</h2>
+          <p class="info-step-desc">{{ stepMotivations()[currentStep() - 1]?.desc }}</p>
+
+          <div class="info-steps-list">
+            @for (step of stepMotivations(); track $index) {
+              <div
+                class="info-step-item"
+                [class.active]="currentStep() === $index + 1"
+                [class.done]="currentStep() > $index + 1"
+              >
+                <div class="info-step-num">
+                  @if (currentStep() > $index + 1) {
+                    <ion-icon name="checkmark-circle-outline"></ion-icon>
+                  } @else {
+                    <span>{{ $index + 1 }}</span>
+                  }
+                </div>
+                <div class="info-step-text">
+                  <span class="info-step-name">{{ step.label }}</span>
+                  <span class="info-step-sub">{{ step.motivate }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <p class="info-footer">&copy; 2026 SRH LINK-TODA Registration</p>
+      </div>
+
+      <!-- Right Form Area -->
+      <div class="form-area">
+        <div class="form-inner">
+
+          <!-- Topbar -->
+          <div class="topbar">
+            <ion-button fill="clear" size="small" class="back-btn" (click)="goBack()">
+              <ion-icon slot="start" name="chevron-back-outline"></ion-icon>
+              Back
+            </ion-button>
+            <span class="step-counter">Step {{ currentStep() }} of {{ totalSteps() }}</span>
+          </div>
+
+          <!-- Native Progress Bar -->
+          <div class="progress-wrap">
+            <div class="progress-row">
+              <span class="progress-lbl">Registration Progress</span>
+              <span class="progress-pct">{{ progressPct() }}%</span>
+            </div>
+            <ion-progress-bar [value]="progressRatio()" color="primary" class="native-progress-bar"></ion-progress-bar>
+            
+            <div class="step-dots">
+              @for (step of stepMotivations(); track $index) {
+                <div
+                  class="step-dot"
+                  [class.active]="currentStep() === $index + 1"
+                  [class.done]="currentStep() > $index + 1"
+                >
+                  <div class="dot-circle">
+                    @if (currentStep() > $index + 1) {
+                      <ion-icon name="checkmark-circle-outline"></ion-icon>
+                    } @else {
+                      <span>{{ $index + 1 }}</span>
+                    }
+                  </div>
+                  <span class="dot-lbl">{{ step.label }}</span>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Motivation Subtitle -->
+          <p class="step-motivate">{{ stepMotivations()[currentStep() - 1]?.motivate }}</p>
+
+          <!-- Error Alert Banner -->
+          @if (errorMessage()) {
+            <div class="err-banner animate-fade-in">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              <span>{{ errorMessage() }}</span>
+            </div>
+          }
+
+          <form [formGroup]="regForm" class="native-register-form">
+
+            <!-- ── STEP 1: Role Selection ────────────────── -->
+            @if (currentStep() === 1) {
+              <div class="step-panel animate-fade-in">
+                <h2 class="step-title">Who are you?</h2>
+                <p class="step-sub">Choose your account type in the SRH TODA community.</p>
+
+                <div class="role-grid">
+                  <!-- Passenger Card -->
+                  <ion-card
+                    button
+                    class="role-card"
+                    [class.selected]="selectedRole() === 'passenger'"
+                    (click)="selectRole('passenger')"
+                  >
+                    <div class="role-card-inner">
+                      @if (selectedRole() === 'passenger') {
+                        <ion-badge color="primary" class="role-badge-check">
+                          <ion-icon name="checkmark-circle-outline"></ion-icon>
+                        </ion-badge>
+                      }
+                      <div class="role-icon-wrap">
+                        <ion-icon name="person-outline"></ion-icon>
+                      </div>
+                      <h3 class="role-name">Passenger</h3>
+                      <p class="role-desc">Book fast and verified rides</p>
+                    </div>
+                  </ion-card>
+
+                  <!-- Driver Card -->
+                  <ion-card
+                    button
+                    class="role-card"
+                    [class.selected]="selectedRole() === 'driver'"
+                    (click)="selectRole('driver')"
+                  >
+                    <div class="role-card-inner">
+                      @if (selectedRole() === 'driver') {
+                        <ion-badge color="primary" class="role-badge-check">
+                          <ion-icon name="checkmark-circle-outline"></ion-icon>
+                        </ion-badge>
+                      }
+                      <div class="role-icon-wrap">
+                        <ion-icon name="car-outline"></ion-icon>
+                      </div>
+                      <h3 class="role-name">TODA Driver</h3>
+                      <p class="role-desc">Join the queue and earn</p>
+                    </div>
+                  </ion-card>
+                </div>
+
+                <ion-button expand="block" shape="round" color="primary" class="btn-step-cta" (click)="goNext()">
+                  <span>Continue</span>
+                  <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+                </ion-button>
+
+                <p class="signin-row">
+                  Already have an account? <a [routerLink]="['/login']">Sign in</a>
+                </p>
+              </div>
+            }
+
+            <!-- ── STEP 2: Basic Contact Details ────────── -->
+            @if (currentStep() === 2) {
+              <div class="step-panel animate-fade-in">
+                <h2 class="step-title">Personal Details</h2>
+                <p class="step-sub">Please provide your valid name and contact info.</p>
+
+                <div class="field-item-wrap">
+                  <ion-input
+                    fill="outline"
+                    label="Full Name"
+                    labelPlacement="floating"
+                    formControlName="name"
+                    [clearInput]="true"
+                    placeholder="e.g. Juan Dela Cruz"
+                    errorText="Full name is required"
+                  >
+                    <ion-icon slot="start" name="person-outline" color="primary" aria-hidden="true"></ion-icon>
+                  </ion-input>
+                </div>
+
+                <!-- Email Address with live uniqueness -->
+                <div class="field-item-wrap">
+                  <ion-input
+                    fill="outline"
+                    label="Email Address"
+                    labelPlacement="floating"
+                    type="email"
+                    formControlName="email"
+                    [clearInput]="true"
+                    placeholder="name@example.com"
+                    (ionBlur)="checkEmailAvailability()"
+                  >
+                    <ion-icon slot="start" name="mail-outline" color="primary" aria-hidden="true"></ion-icon>
+                    @if (emailStatus() === 'checking') {
+                      <ion-spinner slot="end" name="dots" class="status-spinner"></ion-spinner>
+                    }
+                    @if (emailStatus() === 'available') {
+                      <ion-badge slot="end" color="success" class="status-badge">Available</ion-badge>
+                    }
+                    @if (emailStatus() === 'taken') {
+                      <ion-badge slot="end" color="danger" class="status-badge">Taken</ion-badge>
+                    }
+                  </ion-input>
+                </div>
+
+                <!-- Mobile Phone Number with live uniqueness -->
+                <div class="field-item-wrap">
+                  <ion-input
+                    fill="outline"
+                    label="Mobile Phone (11 digits)"
+                    labelPlacement="floating"
+                    type="tel"
+                    formControlName="phone_number"
+                    maxlength="11"
+                    [clearInput]="true"
+                    placeholder="09171234567"
+                    (ionBlur)="checkPhoneAvailability()"
+                  >
+                    <ion-icon slot="start" name="call-outline" color="primary" aria-hidden="true"></ion-icon>
+                    @if (phoneStatus() === 'checking') {
+                      <ion-spinner slot="end" name="dots" class="status-spinner"></ion-spinner>
+                    }
+                    @if (phoneStatus() === 'available') {
+                      <ion-badge slot="end" color="success" class="status-badge">Available</ion-badge>
+                    }
+                    @if (phoneStatus() === 'taken') {
+                      <ion-badge slot="end" color="danger" class="status-badge">Taken</ion-badge>
+                    }
+                  </ion-input>
+                </div>
+
+                <ion-button expand="block" shape="round" color="primary" class="btn-step-cta" (click)="goNext()">
+                  <span>Continue</span>
+                  <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+                </ion-button>
+              </div>
+            }
+
+            <!-- ── STEP 3: Password Setup ────────────────── -->
+            @if (currentStep() === 3) {
+              <div class="step-panel animate-fade-in">
+                <h2 class="step-title">Set a password</h2>
+                <p class="step-sub">Choose a strong password to protect your account.</p>
+
+                <!-- Password -->
+                <div class="field-item-wrap">
+                  <ion-input
+                    fill="outline"
+                    label="Password (Min 8 Characters)"
+                    labelPlacement="floating"
+                    type="password"
+                    formControlName="password"
+                    [clearInput]="true"
+                    placeholder="Minimum 8 characters"
+                  >
+                    <ion-icon slot="start" name="lock-closed-outline" color="primary" aria-hidden="true"></ion-icon>
+                  </ion-input>
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="field-item-wrap">
+                  <ion-input
+                    fill="outline"
+                    label="Confirm Password"
+                    labelPlacement="floating"
+                    type="password"
+                    formControlName="password_confirmation"
+                    [clearInput]="true"
+                    placeholder="Repeat new password"
+                  >
+                    <ion-icon slot="start" name="shield-checkmark-outline" color="primary" aria-hidden="true"></ion-icon>
+                  </ion-input>
+                </div>
+
+                <ion-button
+                  expand="block"
+                  shape="round"
+                  color="primary"
+                  class="btn-step-cta"
+                  [disabled]="isLoading()"
+                  (click)="goNext()"
+                >
+                  @if (isLoading()) {
+                    <ion-spinner slot="start" name="crescent"></ion-spinner>
+                    <span>Creating Account...</span>
+                  } @else {
+                    <span>{{ selectedRole() === 'driver' ? 'Continue to Documents' : 'Complete Registration' }}</span>
+                    <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+                  }
+                </ion-button>
+              </div>
+            }
+
+            <!-- ── STEP 4: Driver Documents (Driver Only) ─ -->
+            @if (currentStep() === 4 && selectedRole() === 'driver') {
+              <div class="step-panel animate-fade-in">
+                <h2 class="step-title">Upload Credentials</h2>
+                <p class="step-sub">Admin review required before your driver account is activated.</p>
+
+                <div class="notice-box">
+                  <ion-icon name="document-text-outline" color="primary"></ion-icon>
+                  <span>Required: <strong>MTOP Certificate</strong> and <strong>Driver's License</strong>. Formats: JPG, PNG, WEBP, PDF (max 20MB).</span>
+                </div>
+
+                <!-- Full Name as on License -->
+                <div class="field-item-wrap">
+                  <ion-input
+                    fill="outline"
+                    label="Full Name (as on License)"
+                    labelPlacement="floating"
+                    formControlName="full_name"
+                    placeholder="Name on Driver's License"
+                  >
+                    <ion-icon slot="start" name="person-outline" color="primary" aria-hidden="true"></ion-icon>
+                  </ion-input>
+                </div>
+
+                <!-- MTOP Body Number -->
+                <div class="field-item-wrap">
+                  <ion-input
+                    fill="outline"
+                    label="MTOP Body Number"
+                    labelPlacement="floating"
+                    formControlName="mtop_number"
+                    maxlength="6"
+                    placeholder="e.g. 045"
+                  >
+                    <ion-icon slot="start" name="card-outline" color="primary" aria-hidden="true"></ion-icon>
+                  </ion-input>
+                </div>
+
+                <!-- File Upload Zones -->
+                <div class="upload-grid">
+                  <!-- MTOP Upload -->
+                  <label class="upload-zone-card" [class.uploaded]="mtopFileName()">
+                    <input
+                      type="file"
+                      accept=".jpg,.jpeg,.png,.webp,.pdf,.heic"
+                      (change)="onFileSelect($event, 'mtop')"
+                      class="hidden-file-input"
+                    />
+                    <div class="uz-icon">
+                      <ion-icon name="document-attach-outline"></ion-icon>
+                    </div>
+                    <span class="uz-title">MTOP Certificate</span>
+                    <span class="uz-sub">{{ mtopFileName() || 'Tap to upload file' }}</span>
+                  </label>
+
+                  <!-- License Upload -->
+                  <label class="upload-zone-card" [class.uploaded]="licenseFileName()">
+                    <input
+                      type="file"
+                      accept=".jpg,.jpeg,.png,.webp,.pdf,.heic"
+                      (change)="onFileSelect($event, 'license')"
+                      class="hidden-file-input"
+                    />
+                    <div class="uz-icon">
+                      <ion-icon name="card-outline"></ion-icon>
+                    </div>
+                    <span class="uz-title">Driver's License</span>
+                    <span class="uz-sub">{{ licenseFileName() || 'Tap to upload file' }}</span>
+                  </label>
+                </div>
+
+                <ion-button
+                  expand="block"
+                  shape="round"
+                  color="primary"
+                  class="btn-step-cta"
+                  [disabled]="isLoading()"
+                  (click)="submitRegistration()"
+                >
+                  @if (isLoading()) {
+                    <ion-spinner slot="start" name="crescent"></ion-spinner>
+                    <span>Submitting Application...</span>
+                  } @else {
+                    <span>Submit Driver Application</span>
+                    <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+                  }
+                </ion-button>
+              </div>
+            }
+
+          </form>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</ion-content>

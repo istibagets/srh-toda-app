@@ -1,0 +1,1131 @@
+// ========================================================
+// OFFICIAL REPORT GENERATOR & A4 PRINT PREVIEW SYSTEM
+// Full-fidelity styling for Configurator & 4 A4 Layouts
+// ========================================================
+
+// ── 1. CONFIGURATOR HEADER & CONTENT ───────────────────
+.srh-config-header {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+
+  ion-toolbar {
+    --background: transparent;
+    --border-width: 0;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .config-header-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    .header-back-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.15rem;
+
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+
+    .config-header-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+  }
+}
+
+.srh-config-content {
+  --background: #f8fafc;
+
+  .config-container {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 1.25rem 1rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .config-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    .section-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .section-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: #0f172a;
+
+      .required {
+        color: #ef4444;
+        margin-left: 2px;
+      }
+    }
+
+    .format-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      background: #f1f5f9;
+      color: #64748b;
+      padding: 0.2rem 0.55rem;
+      border-radius: 20px;
+      border: 1px solid #e2e8f0;
+    }
+  }
+
+  // 4 Format Cards Deck
+  .format-cards-deck {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+
+    .format-card {
+      background: #ffffff;
+      border-radius: 16px;
+      border: 1.5px solid #e2e8f0;
+      padding: 1rem 1.15rem;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 1px 4px rgba(15, 23, 42, 0.02);
+
+      &:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+      }
+
+      &.active {
+        border-color: #2563eb;
+        background: #ffffff;
+        box-shadow: 0 0 0 1.5px #2563eb, 0 4px 14px rgba(37, 99, 235, 0.08);
+      }
+
+      .format-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.3rem;
+
+        .format-kicker {
+          font-size: 0.65rem;
+          font-weight: 800;
+          letter-spacing: 0.06em;
+          color: #2563eb;
+        }
+
+        .check-icon {
+          font-size: 1.25rem;
+          color: #2563eb;
+        }
+      }
+
+      .format-title {
+        font-size: 0.98rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0;
+      }
+
+      .format-desc {
+        font-size: 0.78rem;
+        color: #64748b;
+        margin: 0.25rem 0 0;
+        line-height: 1.45;
+      }
+    }
+  }
+
+  // Timeframe Grid
+  .timeframe-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+
+    .timeframe-pill {
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      padding: 0.65rem 0.5rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+
+      &:hover {
+        background: #f8fafc;
+        border-color: #94a3b8;
+      }
+
+      &.active {
+        background: #0f172a;
+        border-color: #0f172a;
+        color: #ffffff;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18);
+      }
+    }
+  }
+
+  // Signatory Card
+  .signatory-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 1rem 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.02);
+
+    .input-field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+
+      .field-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #64748b;
+      }
+
+      .styled-input {
+        width: 100%;
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        padding: 0.65rem 0.85rem;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: #0f172a;
+        outline: none;
+        transition: all 0.2s ease;
+
+        &:focus {
+          background: #ffffff;
+          border-color: #2563eb;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+      }
+    }
+  }
+
+  // Bottom Action Buttons
+  .config-action-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
+    margin-top: 0.5rem;
+
+    .generate-report-btn {
+      width: 100%;
+      border: none;
+      background: #2563eb;
+      color: #ffffff;
+      padding: 0.95rem;
+      border-radius: 14px;
+      font-size: 0.92rem;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.25);
+      transition: all 0.15s ease;
+
+      &:hover {
+        background: #1d4ed8;
+      }
+
+      &:active {
+        transform: scale(0.98);
+      }
+
+      ion-icon {
+        font-size: 1.25rem;
+      }
+    }
+
+    .return-portal-btn {
+      border: none;
+      background: transparent;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #64748b;
+      cursor: pointer;
+
+      &:hover {
+        color: #0f172a;
+      }
+    }
+  }
+}
+
+// ── 2. PREVIEW HEADER & ZOOM CONTROLS ──────────────────
+.srh-preview-header {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+
+  ion-toolbar {
+    --background: transparent;
+    --border-width: 0;
+    padding: 0.5rem 0.85rem;
+  }
+
+  .preview-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .preview-back-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      padding: 0.45rem 0.85rem;
+      border-radius: 10px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: #0f172a;
+      cursor: pointer;
+
+      ion-icon {
+        font-size: 1.05rem;
+      }
+    }
+
+    .print-save-pdf-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      border: none;
+      background: #2563eb;
+      color: #ffffff;
+      padding: 0.55rem 1.15rem;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(37, 99, 235, 0.25);
+
+      &:active {
+        transform: scale(0.97);
+      }
+
+      ion-icon {
+        font-size: 1.15rem;
+      }
+    }
+  }
+}
+
+.srh-preview-content {
+  --background: #edf2f7;
+
+  .zoom-controls-floating-bar {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 0.45rem 0.85rem;
+    max-width: 480px;
+    margin: 0.75rem auto 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+
+    .zoom-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .zoom-btn-group {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+
+      .zoom-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        color: #0f172a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+
+      .zoom-val-badge {
+        font-size: 0.78rem;
+        font-weight: 800;
+        background: #0f172a;
+        color: #ffffff;
+        padding: 0.2rem 0.55rem;
+        border-radius: 14px;
+        min-width: 44px;
+        text-align: center;
+      }
+    }
+
+    .fit-page-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      padding: 0.35rem 0.65rem;
+      border-radius: 8px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #2563eb;
+      cursor: pointer;
+
+      &.active {
+        background: #eff6ff;
+        border-color: #2563eb;
+      }
+    }
+  }
+
+  .a4-document-viewport {
+    padding: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    width: 100%;
+    height: calc(100vh - 128px);
+    max-height: calc(100vh - 128px);
+    box-sizing: border-box;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    position: relative;
+
+    &.is-panning {
+      cursor: grabbing !important;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+  }
+
+  .a4-interactive-canvas {
+    transform-origin: center center;
+    transition: transform 0.05s ease-out;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+
+    &.is-dragging {
+      transition: none !important;
+    }
+  }
+}
+
+// ── 3. REALISTIC A4 PAPER SHEET ────────────────────────
+.a4-paper-sheet {
+  width: 794px;
+  min-width: 794px;
+  max-width: 794px;
+  height: 1123px;
+  min-height: 1123px;
+  background: #ffffff;
+  border-radius: 4px;
+  box-shadow: 0 10px 35px rgba(15, 23, 42, 0.14);
+  padding: 38px 45px 30px 45px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  color: #000000;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  box-sizing: border-box;
+  position: relative;
+  margin: 0 auto;
+  flex-shrink: 0;
+
+  // ── LETTERHEAD ───────────────────────────────────────
+  .doc-letterhead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 10px;
+    border-bottom: 1.5px solid #000000;
+    width: 100%;
+
+    .side-logo-wrap {
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 60px;
+
+      .side-logo {
+        width: 52px;
+        height: 52px;
+        object-fit: contain;
+      }
+    }
+
+    .center-letterhead-info {
+      flex: 1 1 auto;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      margin: 0;
+      padding: 0 8px;
+
+      .lh-country {
+        font-size: 8.5pt;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        color: #1e293b;
+      }
+
+      .lh-province {
+        font-size: 7.5pt;
+        font-weight: 700;
+        color: #334155;
+        letter-spacing: 0.02em;
+      }
+
+      .lh-barangay {
+        font-size: 13pt;
+        font-weight: 900;
+        color: #000000;
+        margin: 1px 0;
+        letter-spacing: 0.02em;
+      }
+
+      .lh-assoc {
+        font-size: 9pt;
+        font-weight: 800;
+        color: #1d4ed8;
+        margin: 0;
+        letter-spacing: 0.01em;
+      }
+
+      .lh-address,
+      .lh-contact {
+        font-size: 7.5pt;
+        color: #334155;
+        line-height: 1.25;
+      }
+    }
+  }
+
+  // ── SUB-HEADER METADATA STRIP ────────────────────────
+  .doc-meta-strip {
+    padding: 8px 0;
+    border-bottom: 1px solid #cbd5e1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 14px;
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 8pt;
+
+      .meta-item {
+        display: flex;
+        gap: 6px;
+
+        &.text-right {
+          justify-content: flex-end;
+        }
+
+        .meta-label {
+          font-weight: 700;
+          color: #475569;
+        }
+
+        .meta-val {
+          font-weight: 800;
+          color: #0f172a;
+
+          &.status-certified {
+            color: #059669;
+            letter-spacing: 0.04em;
+          }
+        }
+      }
+    }
+  }
+
+  // ── DOCUMENT SECTION HEADINGS ────────────────────────
+  .doc-section-heading {
+    font-size: 10.5pt;
+    font-weight: 900;
+    color: #0f172a;
+    text-align: center;
+    margin: 4px 0 10px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .doc-section-sub {
+    font-size: 8pt;
+    color: #64748b;
+    text-align: center;
+    display: block;
+    margin-top: -6px;
+    margin-bottom: 12px;
+  }
+
+  // ── OFFICIAL DOCUMENT TABLES ─────────────────────────
+  .doc-official-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 7.5pt;
+    margin-bottom: 8px;
+
+    thead th {
+      background: #0f3675; // Official dark blue header
+      color: #ffffff;
+      font-weight: 800;
+      text-align: left;
+      padding: 5px 6px;
+      font-size: 7pt;
+      letter-spacing: 0.03em;
+      border: 1px solid #0f3675;
+    }
+
+    tbody td {
+      padding: 5px 6px;
+      border: 1px solid #e2e8f0;
+      color: #1e293b;
+      vertical-align: middle;
+
+      &.font-bold {
+        font-weight: 800;
+      }
+
+      &.text-center {
+        text-align: center;
+      }
+
+      &.empty-cell {
+        padding: 16px;
+        color: #64748b;
+        font-style: italic;
+      }
+    }
+
+    tbody tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    .complainant-name,
+    .driver-roster-name {
+      font-weight: 800;
+      color: #2563eb;
+    }
+
+    .driver-involved-name {
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .driver-mtop-sub {
+      font-size: 6.8pt;
+      color: #2563eb;
+      font-weight: 700;
+    }
+
+    .status-chip {
+      font-size: 6.8pt;
+      font-weight: 900;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+      letter-spacing: 0.02em;
+
+      &.resolved { background: #dcfce7; color: #15803d; }
+      &.investigating { background: #dbeafe; color: #1d4ed8; }
+      &.pending { background: #fef3c7; color: #b45309; }
+      &.dismissed { background: #f1f5f9; color: #475569; }
+    }
+
+    .desc-cell {
+      font-size: 7pt;
+      color: #475569;
+      line-height: 1.35;
+    }
+
+    .active-member-note {
+      font-size: 6.8pt;
+      color: #059669;
+      font-weight: 700;
+    }
+
+    .suspension-note {
+      font-size: 6.8pt;
+      color: #dc2626;
+      font-weight: 700;
+    }
+
+    .pending-member-note {
+      font-size: 6.8pt;
+      color: #d97706;
+      font-weight: 700;
+    }
+  }
+
+  .total-row-right {
+    text-align: right;
+    font-size: 7.5pt;
+    font-weight: 700;
+    color: #334155;
+    margin-top: 4px;
+    margin-bottom: 14px;
+  }
+
+  // ── FORMAT 3: ROSTER GROUP BANNERS ───────────────────
+  .roster-group {
+    margin-bottom: 12px;
+
+    .roster-group-banner {
+      font-size: 7.5pt;
+      font-weight: 900;
+      padding: 4px 8px;
+      letter-spacing: 0.04em;
+      border-radius: 4px 4px 0 0;
+
+      &.approved-banner {
+        background: #dcfce7;
+        color: #15803d;
+        border: 1px solid #bbf7d0;
+      }
+
+      &.removed-banner {
+        background: #fee2e2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+      }
+
+      &.pending-banner {
+        background: #fef3c7;
+        color: #b45309;
+        border: 1px solid #fde68a;
+      }
+    }
+
+    .group-subtotal-row {
+      text-align: right;
+      font-size: 7.2pt;
+      font-weight: 700;
+      color: #475569;
+      margin-top: 2px;
+      margin-bottom: 6px;
+    }
+  }
+
+  .total-fleet-summary-row {
+    text-align: right;
+    font-size: 7.8pt;
+    color: #0f172a;
+    font-weight: 700;
+    padding-top: 6px;
+    border-top: 1px solid #cbd5e1;
+    margin-top: 10px;
+    margin-bottom: 14px;
+  }
+
+  // ── FORMAT 4: DASHBOARD ELEMENTS ─────────────────────
+  .dashboard-kpi-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+
+    .dash-kpi-box {
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 6px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      &.blue-border { border-top: 3px solid #2563eb; }
+      &.amber-border { border-top: 3px solid #f59e0b; }
+      &.red-border { border-top: 3px solid #ef4444; }
+
+      .dash-kpi-label {
+        font-size: 6pt;
+        font-weight: 800;
+        color: #64748b;
+        letter-spacing: 0.04em;
+      }
+
+      .dash-kpi-val {
+        font-size: 11pt;
+        font-weight: 900;
+        color: #0f172a;
+      }
+    }
+  }
+
+  .dashboard-charts-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+
+    .chart-panel {
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+
+      .panel-heading {
+        font-size: 6.5pt;
+        font-weight: 900;
+        letter-spacing: 0.05em;
+        color: #0f172a;
+        margin-bottom: 8px;
+      }
+
+      .mini-bar-chart {
+        height: 80px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+
+        .bar-col {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+
+          .bar-fill-stem {
+            width: 24px;
+            background: #2563eb;
+            border-radius: 3px 3px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 7.5pt;
+            font-weight: 800;
+          }
+
+          .bar-x-label {
+            font-size: 6.5pt;
+            font-weight: 700;
+            color: #64748b;
+          }
+        }
+      }
+
+      .donut-visual-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .donut-ring-graphic {
+          width: 68px;
+          height: 68px;
+          border-radius: 50%;
+          background: conic-gradient(
+            #10b981 0% 74%,
+            #f59e0b 74% 85%,
+            #ef4444 85% 100%
+          );
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+
+          .donut-center-text {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            .donut-num {
+              font-size: 8.5pt;
+              font-weight: 900;
+              color: #0f172a;
+              line-height: 1;
+            }
+
+            .donut-sub {
+              font-size: 4.5pt;
+              font-weight: 800;
+              color: #64748b;
+            }
+          }
+        }
+
+        .donut-legend-col {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          font-size: 6.5pt;
+
+          .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+
+            .legend-dot {
+              width: 7px;
+              height: 7px;
+              border-radius: 2px;
+
+              &.green { background: #10b981; }
+              &.amber { background: #f59e0b; }
+              &.red { background: #ef4444; }
+            }
+
+            .legend-name {
+              font-weight: 700;
+              color: #475569;
+            }
+
+            .legend-val {
+              font-weight: 800;
+              color: #0f172a;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .category-breakdown-section {
+    margin-bottom: 12px;
+
+    .panel-heading {
+      font-size: 6.5pt;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      color: #0f172a;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .progress-share-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .progress-share-fill {
+        height: 6px;
+        background: #2563eb;
+        border-radius: 3px;
+        min-width: 4px;
+      }
+
+      .progress-share-pct {
+        font-size: 6.5pt;
+        font-weight: 700;
+        color: #475569;
+      }
+    }
+  }
+
+  .compliance-insight-callout {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+
+    .insight-title {
+      font-size: 6.5pt;
+      font-weight: 900;
+      color: #15803d;
+      margin: 0 0 2px;
+      letter-spacing: 0.04em;
+    }
+
+    .insight-body {
+      font-size: 6.8pt;
+      color: #166534;
+      line-height: 1.4;
+      margin: 0;
+    }
+  }
+
+  // ── FORMAL SIGNATORIES SECTION ───────────────────────
+  .doc-signatories-section {
+    margin-top: 20px;
+    margin-bottom: 24px;
+
+    .sig-column {
+      width: 240px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+
+      .sig-caption {
+        font-size: 7pt;
+        color: #475569;
+      }
+
+      .sig-name-box {
+        display: flex;
+        flex-direction: column;
+        margin-top: 14px;
+
+        .sig-name {
+          font-size: 8.5pt;
+          font-weight: 800;
+          color: #0f172a;
+        }
+
+        .sig-title {
+          font-size: 7pt;
+          color: #64748b;
+        }
+
+        .sig-underline {
+          width: 100%;
+          border-bottom: 1px solid #0f172a;
+          margin-top: 2px;
+          margin-bottom: 3px;
+        }
+
+        .sig-subtext {
+          font-size: 6pt;
+          color: #94a3b8;
+          font-style: italic;
+        }
+      }
+    }
+  }
+
+  // ── OFFICIAL FOOTER ──────────────────────────────────
+  .doc-footer-strip {
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid #cbd5e1;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-size: 6.5pt;
+    color: #64748b;
+
+    .footer-left {
+      display: flex;
+      flex-direction: column;
+
+      .ft-barangay {
+        font-weight: 800;
+        color: #0f172a;
+      }
+    }
+
+    .footer-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+
+      .ft-date {
+        font-weight: 700;
+      }
+    }
+  }
+}
+
+// ── 4. BROWSER PRINT CSS SPECIFICATION ─────────────────
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm;
+  }
+
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  html,
+  body,
+  ion-app,
+  ion-router-outlet,
+  ion-content,
+  app-admin-reports,
+  .a4-document-viewport {
+    background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
+  .no-print,
+  ion-header,
+  ion-toolbar,
+  ion-tab-bar,
+  .zoom-controls-floating-bar {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  #official-print-document,
+  .a4-paper-sheet {
+    position: static !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
+    min-width: 210mm !important;
+    height: 297mm !important;
+    min-height: 297mm !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 10mm 12mm 8mm 12mm !important;
+    margin: 0 !important;
+    transform: none !important;
+    border-radius: 0 !important;
+    zoom: 1 !important;
+  }
+}

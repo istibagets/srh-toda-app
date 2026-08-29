@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+ionic_frontend/node_modules/
+laravel_backend/vendor/
+
+# Build Outputs
+ionic_frontend/www/
+ionic_frontend/.angular/
+laravel_backend/public/build/
+laravel_backend/public/hot/
+laravel_backend/public/storage
+
+# Environment & Sensitive Keys
+.env
+.env.backup
+.env.production
+laravel_backend/.env
+laravel_backend/storage/*.key
+laravel_backend/auth.json
+
+# Storage & Logs
+laravel_backend/storage/logs/*.log
+laravel_backend/storage/framework/cache/data/*
+laravel_backend/storage/framework/sessions/*
+laravel_backend/storage/framework/views/*
+laravel_backend/storage/pail/
+*.log
+
+# IDE & OS
+.idea/
+.vscode/
+.fleet/
+.nova/
+.zed/
+.DS_Store
+Thumbs.db

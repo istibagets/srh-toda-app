@@ -1,0 +1,362 @@
+:host {
+  display: contents;
+}
+
+.fresh-modal-container {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  pointer-events: none;
+  visibility: visible;
+  isolation: isolate;
+
+  &.is-open {
+    .fresh-modal-backdrop {
+      opacity: 1;
+      pointer-events: auto;
+      transition: opacity 0.48s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .fresh-modal-sheet {
+      transform: translate3d(0, 0, 0);
+      -webkit-transform: translate3d(0, 0, 0);
+      pointer-events: auto;
+      transition: transform 0.52s cubic-bezier(0.16, 1, 0.3, 1);
+      -webkit-transition: -webkit-transform 0.52s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  }
+}
+
+.fresh-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.62);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.38s cubic-bezier(0.32, 1, 0.23, 1);
+  will-change: opacity;
+  -webkit-tap-highlight-color: transparent;
+  transform: translateZ(0);
+}
+
+.fresh-modal-sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 28px 28px 0 0;
+  padding: 22px 18px calc(22px + env(safe-area-inset-bottom, 16px));
+  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.12);
+  
+  /* Pure GPU Compositor pre-allocation */
+  transform: translate3d(0, 105%, 0);
+  -webkit-transform: translate3d(0, 105%, 0);
+  will-change: transform;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-perspective: 1000px;
+  perspective: 1000px;
+  contain: layout paint;
+  
+  transition: transform 0.42s cubic-bezier(0.32, 1, 0.23, 1);
+  -webkit-transition: -webkit-transform 0.42s cubic-bezier(0.32, 1, 0.23, 1);
+  
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-sizing: border-box;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Header */
+.modal-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .modal-title-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+
+    .modal-eyebrow {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      color: #0284c7;
+      text-transform: uppercase;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+  }
+
+  .btn-close-circle {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+
+    &:active {
+      transform: scale(0.92);
+      background: #e2e8f0;
+    }
+
+    .close-icon {
+      width: 17px;
+      height: 17px;
+    }
+  }
+}
+
+.modal-content-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 1. Route Details Card */
+.route-details-card {
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 12px 14px;
+  gap: 10px;
+
+  .route-point-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+
+    .point-pin-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 4px;
+      width: 14px;
+
+      .pin-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+
+        &.green {
+          background: #10b981;
+          border: 2px solid #d1fae5;
+        }
+
+        &.red {
+          background: #ef4444;
+          border: 2px solid #fee2e2;
+        }
+      }
+
+      .pin-connector-line {
+        width: 2px;
+        height: 22px;
+        background: #cbd5e1;
+        margin: 3px 0 -3px;
+        border-radius: 1px;
+      }
+    }
+
+    .point-text-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      .point-eyebrow {
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        color: #64748b;
+        text-transform: uppercase;
+      }
+
+      .point-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+    }
+  }
+
+  .dest-row {
+    padding-top: 2px;
+  }
+
+  /* GPU-Accelerated Destination Chips (No OS select overlay) */
+  .dest-chips-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+
+    .dest-chip-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+      .dest-name {
+        font-weight: 700;
+      }
+
+      .dest-badge {
+        font-size: 10px;
+        color: #64748b;
+        background: #f1f5f9;
+        padding: 1px 5px;
+        border-radius: 6px;
+      }
+
+      &:active {
+        transform: scale(0.96);
+      }
+
+      &.selected {
+        background: #e0f2fe;
+        border-color: #0284c7;
+        color: #0369a1;
+
+        .dest-badge {
+          background: #bae6fd;
+          color: #0284c7;
+          font-weight: 700;
+        }
+      }
+    }
+  }
+}
+
+/* 2. Passenger Count Picker */
+.passenger-count-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    color: #64748b;
+    text-transform: uppercase;
+  }
+
+  .passenger-pills-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+
+    .passenger-pill-btn {
+      padding: 9px 0;
+      border-radius: 11px;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      color: #475569;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+      &:active {
+        transform: scale(0.96);
+      }
+
+      &.active {
+        background: #e0f2fe;
+        color: #0369a1;
+        border-color: #0284c7;
+      }
+    }
+  }
+}
+
+/* 3. Official TODA Tariff Rate Banner */
+.tariff-fare-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f0fdf4;
+  border: 1px solid #a7f3d0;
+  border-radius: 14px;
+  padding: 10px 14px;
+
+  .tariff-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+
+    .tariff-label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #065f46;
+      text-transform: uppercase;
+    }
+
+    .tariff-sub {
+      font-size: 9.5px;
+      font-weight: 500;
+      color: #047857;
+    }
+  }
+
+  .tariff-price-wrap {
+    .tariff-price-val {
+      font-size: 22px;
+      font-weight: 900;
+      color: #047857;
+      letter-spacing: -0.02em;
+    }
+  }
+}
+
+/* 4. Primary Button */
+.btn-primary-fresh {
+  width: 100%;
+  padding: 14px 0;
+  border-radius: 15px;
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+
+  &:active {
+    transform: scale(0.98);
+    background: #0369a1;
+  }
+}
