@@ -4,8 +4,8 @@ export const environment = {
   storageUrl: '/storage',
   reverb: {
     appKey: 'srhlinktodakey',
-    host: typeof window !== 'undefined' ? window.location.hostname : 'localhost',
+    host: 'srh-link-toda.duckdns.org',
     port: 8080,
-    scheme: 'http',
+    scheme: 'https',
   },
 };

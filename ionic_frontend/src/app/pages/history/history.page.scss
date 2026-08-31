@@ -102,62 +102,207 @@
   }
 }
 
-// ── 3. SUMMARY KPI METRIC DECK ─────────────────────────
-.summary-metric-deck {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
+// ── 3. EXECUTIVE HERO DECK WITH ANIMATED RADIAL RATING GRAPH ──
+.history-hero-deck {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+  padding: 1.15rem;
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+  overflow: hidden;
 
-  .metric-card {
-    background: #ffffff;
-    border-radius: 14px;
-    padding: 0.75rem 0.65rem;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+  /* Left: Radial Score Container */
+  .radial-score-container {
+    position: relative;
     display: flex;
     flex-direction: column;
+    align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 
-    .metric-data {
+    .radial-ring-wrapper {
+      position: relative;
+      width: 88px;
+      height: 88px;
       display: flex;
-      flex-direction: column;
-      gap: 2px;
+      align-items: center;
+      justify-content: center;
+    }
 
-      .metric-label {
-        font-size: 0.62rem;
-        font-weight: 700;
-        letter-spacing: 0.04em;
-        color: #64748b;
-        text-transform: uppercase;
-        margin-bottom: 0.1rem;
+    .radial-svg {
+      width: 100%;
+      height: 100%;
+
+      .ring-bg {
+        fill: none;
+        stroke: #f1f5f9;
+        stroke-width: 7;
       }
 
-      .metric-value {
-        font-size: 1.15rem;
-        font-weight: 800;
-        color: #0f172a;
-        letter-spacing: -0.02em;
-
-        &.text-emerald {
-          color: #059669;
-        }
-
-        &.text-amber {
-          color: #d97706;
-        }
-      }
-
-      .rating-val-wrap {
-        display: flex;
-        align-items: center;
-        gap: 0.2rem;
-
-        .metric-sub-label {
-          font-size: 0.85rem;
-          color: #d97706;
-        }
+      .conic-ring-gradient {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: conic-gradient(
+          from -15deg at 50% 50%,
+          #2563eb 0deg,
+          #2563eb 35deg,
+          #3b82f6 90deg,
+          #0284c7 140deg,
+          #06b6d4 180deg,
+          #10b981 270deg,
+          #059669 340deg,
+          #2563eb 360deg
+        );
       }
     }
+
+    .radial-avatar-center {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #eff6ff;
+
+      .radial-avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .radial-avatar-fallback {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #1e40af, #3b82f6);
+        color: #ffffff;
+        font-size: 1.2rem;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        letter-spacing: -0.02em;
+      }
+    }
+
+    .radial-score-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+      border-radius: 99px;
+      padding: 2px 8px;
+      margin-top: -12px;
+      z-index: 5;
+
+      .score-num {
+        font-size: 0.78rem;
+        font-weight: 900;
+        color: #0f172a;
+      }
+
+      .star-gold {
+        font-size: 0.8rem;
+        color: #f59e0b;
+      }
+    }
+  }
+
+  /* Right: Performance Metrics Column */
+  .hero-metrics-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    min-width: 0;
+
+    .user-greeting-row {
+      display: flex;
+      flex-direction: column;
+
+      .user-role-label {
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        color: #2563eb;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+      }
+
+      .user-display-name {
+        font-size: 1.15rem;
+        font-weight: 900;
+        color: #0f172a;
+        margin: 0;
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .metric-tiles-row {
+      display: flex;
+      align-items: center;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 0.55rem 0.65rem;
+
+      .tile-box {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+
+        .tile-lbl {
+          font-size: 0.6rem;
+          font-weight: 800;
+          letter-spacing: 0.04em;
+          color: #64748b;
+          text-transform: uppercase;
+          margin-bottom: 1px;
+        }
+
+        .tile-val {
+          font-size: 1rem;
+          font-weight: 900;
+          color: #0f172a;
+
+          &.text-emerald {
+            color: #059669;
+          }
+        }
+      }
+
+      .tile-divider {
+        width: 1px;
+        height: 22px;
+        background: #cbd5e1;
+      }
+    }
+  }
+}
+
+@keyframes rotateGlowRing {
+  0% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 1;
   }
 }
 
@@ -369,27 +514,25 @@
     }
 
     .trip-status-badge {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-      font-size: 0.68rem;
+      display: inline-block;
+      font-size: 0.72rem;
       font-weight: 800;
-      letter-spacing: 0.03em;
-      padding: 0.25rem 0.55rem;
-      border-radius: 8px;
-      background: #f1f5f9;
-      color: #475569;
+      letter-spacing: 0.04em;
+      padding: 0;
+      background: transparent !important;
+      border: none !important;
+      color: #64748b;
 
       &.completed {
-        background: #ecfdf5;
-        color: #059669;
-        border: 1px solid rgba(16, 185, 129, 0.2);
+        background: transparent !important;
+        color: #059669 !important;
+        border: none !important;
       }
 
       &.cancelled {
-        background: #fef2f2;
-        color: #dc2626;
-        border: 1px solid rgba(239, 68, 68, 0.2);
+        background: transparent !important;
+        color: #dc2626 !important;
+        border: none !important;
       }
     }
   }

@@ -65,11 +65,63 @@ class DashboardController extends Controller
 
         // ── PASSENGER HOME DATA ────────────────────────────
         if ($role === 'passenger') {
-            $activeRide = Ride::with('driver.driverProfile')
+            $activeRideModel = Ride::with('driver.driverProfile')
                 ->where('passenger_id', $user->id)
-                ->whereIn('status', ['searching', 'fare_proposed', 'fare_accepted', 'accepted', 'arrived', 'in_transit'])
-                ->latest()
+                ->whereIn('status', ['searching', 'bargaining', 'fare_proposed', 'fare_accepted', 'accepted', 'en_route', 'arrived', 'in_transit'])
+                ->latest('updated_at')
                 ->first();
+
+            $activeRide = null;
+            if ($activeRideModel) {
+                $isAccepted = in_array($activeRideModel->status, ['fare_accepted', 'accepted', 'en_route', 'arrived', 'in_transit']);
+                $driverUser = $activeRideModel->driver;
+                $driverProfile = $driverUser ? ($driverUser->driverProfile ?? Driver::where('user_id', $driverUser->id)->first()) : null;
+
+                $driverInfo = null;
+                if ($isAccepted && $driverUser) {
+                    $mtop = $driverProfile ? $driverProfile->mtop_number : '101';
+                    if ($mtop === 'ADMIN' || $mtop === 'PENDING') $mtop = '101';
+                    $driverInfo = [
+                        'id'          => $driverUser->id,
+                        'name'        => $driverProfile ? $driverProfile->full_name : $driverUser->name,
+                        'phone'       => $driverUser->phone_number ?? '',
+                        'mtop_number' => $mtop,
+                        'avatar_url'  => $driverUser->avatar_url,
+                        'rating'      => 5.0,
+                    ];
+                }
+
+                // Driver Live Location lookup from Cache or Terminal Fallback
+                $driverLoc = null;
+                if ($driverUser) {
+                    $driverLoc = Cache::get("driver_location_{$driverUser->id}");
+                    if (!$driverLoc) {
+                        $driverLoc = Cache::get("ride_driver_location_{$activeRideModel->id}");
+                    }
+                }
+                $driverLat = $driverLoc ? (float) $driverLoc['lat'] : 15.42955;
+                $driverLng = $driverLoc ? (float) $driverLoc['lng'] : 120.92240;
+                $driverHeading = $driverLoc && isset($driverLoc['heading']) ? (float) $driverLoc['heading'] : 0.0;
+
+                $activeRide = [
+                    'id'              => $activeRideModel->id,
+                    'passenger_id'    => $activeRideModel->passenger_id,
+                    'status'          => $activeRideModel->status,
+                    'pickup_location' => $activeRideModel->pickup_location ?? $activeRideModel->pickup_address ?? 'Pickup Point',
+                    'pickup_lat'      => (float) ($activeRideModel->pickup_lat ?? 15.42955),
+                    'pickup_lng'      => (float) ($activeRideModel->pickup_lng ?? 120.92240),
+                    'destination'     => $activeRideModel->destination ?? $activeRideModel->destination_address ?? 'Destination',
+                    'destination_lat' => $activeRideModel->destination_lat ? (float) $activeRideModel->destination_lat : null,
+                    'destination_lng' => $activeRideModel->destination_lng ? (float) $activeRideModel->destination_lng : null,
+                    'fare'            => (float) $activeRideModel->fare,
+                    'driver'          => $driverInfo,
+                    'driver_id'       => $driverUser ? $driverUser->id : $activeRideModel->driver_id,
+                    'driver_lat'      => $driverLat,
+                    'driver_lng'      => $driverLng,
+                    'driver_heading'  => $driverHeading,
+                    'created_at'      => $activeRideModel->created_at ? $activeRideModel->created_at->format('M d, g:i A') : '',
+                ];
+            }
 
             $recentRides = Ride::with('driver.driverProfile')
                 ->where('passenger_id', $user->id)
@@ -96,12 +148,27 @@ class DashboardController extends Controller
                 ['name' => 'TODA Central Terminal', 'desc' => 'Queue Dispatch Point', 'fare' => 20],
             ];
 
+            $activeQueue = Driver::where('is_online', true)
+                ->whereNotNull('queue_position')
+                ->orderBy('queue_position', 'asc')
+                ->get()
+                ->map(function ($d) {
+                    return [
+                        'id'             => $d->id,
+                        'user_id'        => $d->user_id,
+                        'full_name'      => $d->full_name,
+                        'mtop_number'    => $d->mtop_number,
+                        'queue_position' => $d->queue_position,
+                    ];
+                });
+
             $data['passenger'] = [
                 'active_ride'          => $activeRide,
                 'recent_rides'         => $recentRides,
                 'landmarks'            => $landmarks,
                 'active_drivers_count' => Driver::where('is_online', true)->count(),
                 'terminal_queue_count' => Driver::where('is_online', true)->whereNotNull('queue_position')->count(),
+                'active_queue'         => $activeQueue,
             ];
         }
 
@@ -127,12 +194,34 @@ class DashboardController extends Controller
 
             $todayEarnings = (float) ($driver ? Ride::where('driver_id', $user->id)->whereDate('created_at', today())->where('status', 'completed')->sum('fare') : 0.00);
 
-            $activeRide = $driver
+            $activeRideModel = $driver
                 ? Ride::with('passenger')
                     ->where('driver_id', $user->id)
-                    ->whereIn('status', ['accepted', 'arrived', 'in_transit'])
+                    ->whereIn('status', ['bargaining', 'fare_proposed', 'fare_accepted', 'accepted', 'en_route', 'arrived', 'in_transit'])
+                    ->latest('updated_at')
                     ->first()
                 : null;
+
+            $activeRide = $activeRideModel ? [
+                'id'                  => $activeRideModel->id,
+                'passenger_id'        => $activeRideModel->passenger_id,
+                'passenger'           => $activeRideModel->passenger ? [
+                    'id'           => $activeRideModel->passenger->id,
+                    'name'         => $activeRideModel->passenger->name,
+                    'phone_number' => $activeRideModel->passenger->phone_number ?? '',
+                ] : null,
+                'status'              => $activeRideModel->status,
+                'pickup_location'     => $activeRideModel->pickup_location ?? $activeRideModel->pickup_address ?? 'Pickup Point',
+                'pickup_lat'          => (float) ($activeRideModel->pickup_lat ?? 15.42955),
+                'pickup_lng'          => (float) ($activeRideModel->pickup_lng ?? 120.92240),
+                'destination'         => $activeRideModel->destination ?? $activeRideModel->destination_address ?? 'Destination',
+                'destination_lat'     => $activeRideModel->destination_lat ? (float) $activeRideModel->destination_lat : null,
+                'destination_lng'     => $activeRideModel->destination_lng ? (float) $activeRideModel->destination_lng : null,
+                'fare'                => (float) $activeRideModel->fare,
+                'original_fare'       => (float) ($activeRideModel->fare ?? 20),
+                'passenger_count'     => (int) ($activeRideModel->passenger_count ?? 1),
+                'created_at'          => $activeRideModel->created_at ? $activeRideModel->created_at->toIso8601String() : null,
+            ] : null;
 
             $activeQueue = Driver::where('is_online', true)
                 ->whereNotNull('queue_position')
@@ -149,15 +238,16 @@ class DashboardController extends Controller
                 });
 
             $activeRidesInTransit = Ride::with(['driver.driverProfile', 'passenger'])
-                ->whereIn('status', ['fare_proposed', 'fare_accepted', 'accepted', 'arrived', 'in_transit', 'returning'])
+                ->whereIn('status', ['bargaining', 'fare_proposed', 'fare_accepted', 'accepted', 'en_route', 'arrived', 'in_transit', 'returning'])
                 ->latest('updated_at')
                 ->get()
                 ->map(function($r) {
+                    $drvProfile = $r->driver ? $r->driver->driverProfile : null;
                     return [
                         'id'          => $r->id,
-                        'driver_name' => $r->driver->driverProfile->full_name ?? ($r->driver->name ?? 'TODA Driver'),
-                        'mtop_number' => $r->driver->driverProfile->mtop_number ?? 'N/A',
-                        'passenger'   => $r->passenger->name ?? 'Passenger',
+                        'driver_name' => $drvProfile ? $drvProfile->full_name : ($r->driver ? $r->driver->name : 'TODA Driver'),
+                        'mtop_number' => $drvProfile ? $drvProfile->mtop_number : 'N/A',
+                        'passenger'   => $r->passenger ? $r->passenger->name : 'Passenger',
                         'pickup'      => $r->pickup_address ?? $r->pickup_location ?? 'Santa Rosa Homes',
                         'destination' => $r->destination_address ?? $r->destination ?? 'Destination',
                         'fare'        => (float) ($r->fare ?? 0),
@@ -165,7 +255,7 @@ class DashboardController extends Controller
                     ];
                 });
 
-            $activeDriverUserIds = Ride::whereIn('status', ['fare_proposed', 'fare_accepted', 'accepted', 'arrived', 'in_transit', 'returning'])
+            $activeDriverUserIds = Ride::whereIn('status', ['bargaining', 'fare_proposed', 'fare_accepted', 'accepted', 'en_route', 'arrived', 'in_transit', 'returning'])
                 ->pluck('driver_id')
                 ->filter()
                 ->toArray();
@@ -198,6 +288,12 @@ class DashboardController extends Controller
                     'is_online'         => (bool) $driver->is_online,
                     'queue_position'    => $driver->queue_position,
                     'suspension_reason' => $driver->suspension_reason,
+                    'rating'            => ($role === 'admin' || $role === 'superadmin')
+                        ? (float) round(Ride::whereNotNull('rating')->avg('rating') ?: 5.0, 1)
+                        : (float) round(Ride::where('driver_id', $user->id)->whereNotNull('rating')->avg('rating') ?: 5.0, 1),
+                    'rating_count'      => ($role === 'admin' || $role === 'superadmin')
+                        ? (int) Ride::whereNotNull('rating')->count()
+                        : (int) Ride::where('driver_id', $user->id)->whereNotNull('rating')->count(),
                 ] : null,
                 'today_rides_count'   => $todayRides,
                 'today_earnings'      => $todayEarnings,
@@ -220,6 +316,44 @@ class DashboardController extends Controller
                 ];
             }
         }
+
+        // Fetch User Relevant Announcements & Notifications
+        $userAudiences = ['all', 'ALL'];
+        if ($role === 'driver') {
+            $userAudiences[] = 'drivers';
+            $userAudiences[] = 'DRIVERS';
+            $userAudiences[] = 'user_' . $user->id;
+        } elseif ($role === 'admin' || $role === 'superadmin') {
+            $userAudiences[] = 'admin';
+            $userAudiences[] = 'ADMIN';
+            $userAudiences[] = 'drivers';
+            $userAudiences[] = 'passengers';
+            $userAudiences[] = 'user_' . $user->id;
+        } else {
+            $userAudiences[] = 'passengers';
+            $userAudiences[] = 'PASSENGERS';
+            $userAudiences[] = 'user_' . $user->id;
+        }
+
+        $announcements = Announcement::whereIn('target_audience', $userAudiences)
+            ->latest('created_at')
+            ->take(20)
+            ->get()
+            ->map(function ($a) {
+                $target = strtoupper($a->target_audience ?? 'ALL');
+                if (str_contains(strtolower($a->title), 'rating') || str_contains(strtolower($a->message), 'rated your trip')) {
+                    $target = 'RATING';
+                }
+                return [
+                    'id'              => $a->id,
+                    'title'           => $a->title,
+                    'message'         => $a->message,
+                    'target_audience' => $target,
+                    'created_at'      => $a->created_at ? $a->created_at->format('M d, Y • g:i A') : '',
+                ];
+            });
+
+        $data['announcements'] = $announcements;
 
         return response()->json($data);
     }
@@ -322,16 +456,21 @@ class DashboardController extends Controller
 
         $driverIds = $request->input('driver_ids', []);
         if (is_array($driverIds) && !empty($driverIds)) {
+            $matchingDrivers = Driver::whereIn('id', $driverIds)->pluck('id')->toArray();
+            $useDriverId = count($matchingDrivers) === count($driverIds);
+
             foreach ($driverIds as $index => $driverId) {
-                Driver::where('id', $driverId)->orWhere('user_id', $driverId)->update([
-                    'queue_position' => $index + 1
-                ]);
+                if ($useDriverId) {
+                    Driver::where('id', $driverId)->update([
+                        'queue_position' => $index + 1
+                    ]);
+                } else {
+                    Driver::where('user_id', $driverId)->update([
+                        'queue_position' => $index + 1
+                    ]);
+                }
             }
 
-            try {
-                app(\App\Services\QueueService::class)->normalizeQueue();
-            } catch (\Throwable $e) {}
-            
             try {
                 broadcast(new QueueUpdated());
             } catch (\Throwable $e) {}
@@ -444,6 +583,19 @@ class DashboardController extends Controller
                 'status'       => 'completed',
                 'completed_at' => now(),
             ]);
+            if ($activeRide->passenger_id) {
+                try {
+                    app(\App\Services\PushService::class)->sendToUser(
+                        $activeRide->passenger_id,
+                        '🏁 Arrived at Destination!',
+                        "You have reached your destination ({$activeRide->destination}). Thank you for riding with TODA!",
+                        url('/'),
+                        'ride-completed-' . $activeRide->id,
+                        ['type' => 'trip_completed', 'ride_id' => $activeRide->id]
+                    );
+                } catch (\Throwable $e) {}
+            }
+
             try {
                 broadcast(new \App\Events\RideStatusUpdated($activeRide));
             } catch (\Throwable $e) {}
@@ -875,6 +1027,36 @@ class DashboardController extends Controller
                 ];
             });
 
+        // Recent Passenger Ratings & Reviews
+        $recentRatings = (clone $completedQuery)
+            ->whereNotNull('rating')
+            ->latest('updated_at')
+            ->take(15)
+            ->get()
+            ->map(function($r) {
+                $feedbackTags = [];
+                if ($r->feedback_tags) {
+                    if (is_array($r->feedback_tags)) {
+                        $feedbackTags = $r->feedback_tags;
+                    } else {
+                        $decoded = json_decode($r->feedback_tags, true);
+                        $feedbackTags = is_array($decoded) ? $decoded : [$r->feedback_tags];
+                    }
+                }
+                return [
+                    'id'             => $r->id,
+                    'trip_id'        => 'SRH-' . str_pad($r->id, 5, '0', STR_PAD_LEFT),
+                    'passenger_name' => 'Passenger',
+                    'rating'         => (float) $r->rating,
+                    'review_comment' => $r->review_comment,
+                    'feedback_tags'  => $feedbackTags,
+                    'destination'    => $r->destination ?? 'Drop-off Point',
+                    'fare'           => (float) ($r->fare ?? 0),
+                    'created_at'     => $r->updated_at ? $r->updated_at->format('M d, Y • g:i A') : ($r->created_at ? $r->created_at->format('M d, Y • g:i A') : ''),
+                    'time_only'      => $r->updated_at ? $r->updated_at->format('g:i A') : ($r->created_at ? $r->created_at->format('g:i A') : ''),
+                ];
+            });
+
         return response()->json([
             'status'     => 'success',
             'period'     => $period,
@@ -890,6 +1072,7 @@ class DashboardController extends Controller
             'chart'      => $weeklyChart,
             'sources'    => $sourceBreakdown,
             'ledger'     => $recentTransactions,
+            'ratings'    => $recentRatings,
         ]);
     }
 
@@ -935,9 +1118,12 @@ class DashboardController extends Controller
                     'is_online'            => (bool) $d->is_online,
                     'queue_position'       => $d->queue_position,
                     'average_rating'       => $d->average_rating ?? 5.0,
-                    'rating_count'         => $d->rating_count ?? 0,
-                    'mtop_certificate_url' => $d->mtop_certificate_url,
-                    'drivers_license_url'  => $d->drivers_license_url,
+                    'mtop_certificate_url' => $d->mtop_certificate_url 
+                        ? (str_starts_with($d->mtop_certificate_url, 'http') ? $d->mtop_certificate_url : '/storage/' . ltrim($d->mtop_certificate_url, '/')) 
+                        : '/assets/icon/srh-logo.png',
+                    'drivers_license_url'  => $d->drivers_license_url 
+                        ? (str_starts_with($d->drivers_license_url, 'http') ? $d->drivers_license_url : '/storage/' . ltrim($d->drivers_license_url, '/')) 
+                        : '/assets/icon/srh-logo.png',
                     'created_at'           => $d->created_at ? $d->created_at->format('M d, Y') : '',
                 ];
             });
@@ -951,7 +1137,8 @@ class DashboardController extends Controller
             ->map(function ($d) {
                 return [
                     'id'             => $d->id,
-                    'driver_id'      => $d->user_id,
+                    'driver_id'      => $d->id,
+                    'user_id'        => $d->user_id,
                     'driver_name'    => $d->full_name ?? ($d->user ? $d->user->name : 'Driver'),
                     'mtop_number'    => $d->mtop_number ?? 'N/A',
                     'position'       => $d->queue_position,
@@ -983,16 +1170,19 @@ class DashboardController extends Controller
                 ];
             });
 
-        // Announcements
-        $announcements = Announcement::latest('created_at')
-            ->take(15)
+        // Official Broadcast Announcements (Excludes private driver rating alerts)
+        $announcements = Announcement::whereNotIn('target_audience', ['RATING'])
+            ->where('target_audience', 'not like', 'user_%')
+            ->where('title', 'not like', '%Rating%')
+            ->latest('created_at')
+            ->take(25)
             ->get()
             ->map(function ($a) {
                 return [
                     'id'              => $a->id,
                     'title'           => $a->title,
                     'message'         => $a->message,
-                    'target_audience' => $a->target_audience ?? 'ALL',
+                    'target_audience' => strtoupper($a->target_audience ?? 'ALL'),
                     'created_at'      => $a->created_at ? $a->created_at->format('M d, Y • g:i A') : '',
                 ];
             });
@@ -1114,6 +1304,41 @@ class DashboardController extends Controller
             'target_audience' => $request->input('target_audience', 'ALL'),
         ]);
 
+        // Broadcast real-time event to connected WebSockets / Reverb clients
+        try {
+            broadcast(new \App\Events\AnnouncementCreated($announcement));
+        } catch (\Throwable $e) {
+            \Log::warning('Announcement real-time broadcast error: ' . $e->getMessage());
+        }
+
+        // Web-push the announcement to the selected audience
+        try {
+            $push = app(\App\Services\PushService::class);
+            $tag = 'announcement-' . $announcement->id;
+            $targetAudience = strtoupper($request->input('target_audience', 'ALL'));
+
+            if ($targetAudience === 'DRIVERS') {
+                $driverUserIds = \App\Models\Driver::whereNotNull('user_id')->pluck('user_id')->all();
+                $push->sendToUsers($driverUserIds, '📢 ' . $announcement->title, $announcement->message, '/tabs/home', $tag, [
+                    'type' => 'announcement',
+                    'requireInteraction' => true,
+                ]);
+            } elseif ($targetAudience === 'PASSENGERS') {
+                $passengerUserIds = \App\Models\User::whereIn('role', ['user', 'passenger'])->pluck('id')->all();
+                $push->sendToUsers($passengerUserIds, '📢 ' . $announcement->title, $announcement->message, '/tabs/home', $tag, [
+                    'type' => 'announcement',
+                    'requireInteraction' => true,
+                ]);
+            } else {
+                $push->sendToAll('📢 ' . $announcement->title, $announcement->message, '/tabs/home', $tag, [
+                    'type' => 'announcement',
+                    'requireInteraction' => true,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('Announcement Web Push error: ' . $e->getMessage());
+        }
+
         return response()->json([
             'status'       => 'success',
             'message'      => 'Announcement broadcasted successfully.',
@@ -1135,7 +1360,9 @@ class DashboardController extends Controller
             'driver_id' => 'required|integer',
         ]);
 
-        $driver = Driver::find($request->driver_id);
+        $driver = Driver::where('id', $request->driver_id)
+            ->orWhere('user_id', $request->driver_id)
+            ->first();
         if (!$driver) {
             return response()->json(['status' => 'error', 'message' => 'Driver not found.'], 404);
         }
@@ -1163,6 +1390,719 @@ class DashboardController extends Controller
         return response()->json([
             'status'  => 'success',
             'message' => "Driver {$driver->full_name} removed from queue and set offline.",
+        ]);
+    }
+
+    /**
+     * Passenger Book / Request a Tricycle Ride.
+     */
+    public function requestPassengerRide(Request $request): JsonResponse
+    {
+        $user = $this->resolveUser($request);
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $request->validate([
+            'destination'     => 'required|string|max:255',
+            'pickup_location' => 'nullable|string|max:255',
+            'fare'            => 'nullable|numeric|min:1',
+            'passenger_count' => 'nullable|integer|min:1|max:4',
+            'pickup_lat'      => 'nullable|numeric',
+            'pickup_lng'      => 'nullable|numeric',
+            'destination_lat' => 'nullable|numeric',
+            'destination_lng' => 'nullable|numeric',
+        ]);
+
+        $destination = $request->input('destination');
+        $pickup = $request->input('pickup_location', 'Santa Rosa Homes');
+        $fare = (float) $request->input('fare', 25.00);
+        $paxCount = (int) $request->input('passenger_count', 1);
+        $pickupLat = (float) $request->input('pickup_lat', 15.42955);
+        $pickupLng = (float) $request->input('pickup_lng', 120.92240);
+        $destLat = $request->has('destination_lat') ? (float) $request->input('destination_lat') : null;
+        $destLng = $request->has('destination_lng') ? (float) $request->input('destination_lng') : null;
+
+        // Check if passenger already has an active ride
+        $existing = Ride::where('passenger_id', $user->id)
+            ->whereIn('status', ['searching', 'fare_proposed', 'fare_accepted', 'accepted', 'arrived', 'in_transit'])
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'You already have an active ride request in progress.',
+                'ride'    => $existing,
+            ], 400);
+        }
+
+        // Find front-of-line online driver at Terminal
+        $frontDriver = Driver::where('is_online', true)
+            ->whereNotNull('queue_position')
+            ->orderBy('queue_position', 'asc')
+            ->first();
+
+        $assignedDriverId = null;
+        $status = 'searching';
+
+        if ($frontDriver) {
+            $assignedDriverId = $frontDriver->user_id;
+            $status = 'bargaining';
+
+            // Remove driver from active queue line
+            $frontDriver->update([
+                'queue_position' => null,
+            ]);
+
+            try {
+                app(\App\Services\QueueService::class)->normalizeQueue();
+            } catch (\Throwable $e) {}
+        }
+
+        $ride = Ride::create([
+            'passenger_id'    => $user->id,
+            'driver_id'       => $assignedDriverId,
+            'status'          => $status,
+            'pickup_location' => $pickup,
+            'destination'     => $destination,
+            'pickup_lat'      => $pickupLat,
+            'pickup_lng'      => $pickupLng,
+            'destination_lat' => $destLat,
+            'destination_lng' => $destLng,
+            'fare'            => $fare,
+        ]);
+
+        if ($assignedDriverId) {
+            try {
+                app(\App\Services\PushService::class)->sendToUser(
+                    $assignedDriverId,
+                    '🚖 New Ride Request!',
+                    "Passenger requesting trip to {$destination} (₱" . number_format($fare, 2) . ")",
+                    url('/'),
+                    'ride-booking-' . $ride->id,
+                    ['type' => 'incoming_booking', 'ride_id' => $ride->id]
+                );
+            } catch (\Throwable $e) {}
+        }
+
+        try {
+            broadcast(new \App\Events\RideStatusUpdated($ride));
+        } catch (\Throwable $e) {}
+
+        try {
+            broadcast(new \App\Events\QueueUpdated());
+        } catch (\Throwable $e) {}
+
+        $driverInfo = null;
+        if ($assignedDriverId) {
+            $driverUser = User::find($assignedDriverId);
+            $driverProfile = Driver::where('user_id', $assignedDriverId)->first();
+            $driverInfo = [
+                'id'          => $assignedDriverId,
+                'name'        => $driverProfile->full_name ?? ($driverUser->name ?? 'TODA Driver'),
+                'phone'       => $driverUser->phone_number ?? '',
+                'mtop_number' => $driverProfile->mtop_number ?? '101',
+                'avatar_url'  => $driverUser->avatar_url ?? null,
+                'rating'      => 5.0,
+            ];
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => $assignedDriverId ? 'TODA Tricycle matched! Driver is evaluating your route.' : 'Looking for available TODA tricycle...',
+            'ride'    => [
+                'id'              => $ride->id,
+                'status'          => $ride->status,
+                'pickup_location' => $ride->pickup_location,
+                'destination'     => $ride->destination,
+                'fare'            => (float) $ride->fare,
+                'passenger_count' => $paxCount,
+                'driver'          => null, // Driver identity anonymized until passenger accepts fare
+                'created_at'      => $ride->created_at ? $ride->created_at->format('M d, g:i A') : '',
+            ],
+        ]);
+    }
+
+    /**
+     * Get Active Ride for Passenger or Driver.
+     */
+    public function getActiveRide(Request $request): JsonResponse
+    {
+        $user = $this->resolveUser($request);
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $query = Ride::with(['driver.driverProfile', 'passenger']);
+
+        if ($user->role === 'passenger') {
+            $query->where('passenger_id', $user->id);
+        } else {
+            $query->where('driver_id', $user->id);
+        }
+
+        $activeRide = $query->whereIn('status', ['searching', 'bargaining', 'fare_proposed', 'fare_accepted', 'accepted', 'en_route', 'arrived', 'in_transit', 'returning'])
+            ->latest('updated_at')
+            ->first();
+
+        if (!$activeRide) {
+            return response()->json([
+                'status'      => 'success',
+                'active_ride' => null,
+                'ride'        => null,
+            ]);
+        }
+
+        $isAccepted = in_array($activeRide->status, ['fare_accepted', 'accepted', 'en_route', 'arrived', 'in_transit']);
+        $shouldShowDriver = $user->role !== 'passenger' || $isAccepted;
+
+        $driverUser = $activeRide->driver;
+        $driverProfile = $driverUser && $driverUser->driverProfile ? $driverUser->driverProfile : null;
+        if ($driverUser && !$driverProfile) {
+            $driverProfile = Driver::where('user_id', $driverUser->id)->first();
+        }
+
+        $cachedLoc = $driverUser ? Cache::get("driver_location_{$driverUser->id}") : null;
+        if (!$cachedLoc) {
+            $cachedLoc = Cache::get("ride_driver_location_{$activeRide->id}");
+        }
+        $driverLat = $cachedLoc ? (float) $cachedLoc['lat'] : ($driverProfile && $driverProfile->current_lat ? (float)$driverProfile->current_lat : ($driverUser && $driverUser->current_lat ? (float)$driverUser->current_lat : null));
+        $driverLng = $cachedLoc ? (float) $cachedLoc['lng'] : ($driverProfile && $driverProfile->current_lng ? (float)$driverProfile->current_lng : ($driverUser && $driverUser->current_lng ? (float)$driverUser->current_lng : null));
+        $driverHeading = $cachedLoc && isset($cachedLoc['heading']) ? (float) $cachedLoc['heading'] : null;
+
+        $mtop = $driverProfile ? $driverProfile->mtop_number : '101';
+        if ($mtop === 'ADMIN' || $mtop === 'PENDING') $mtop = '101';
+
+        $driverInfo = ($shouldShowDriver && $driverUser) ? [
+            'id'          => $driverUser->id,
+            'name'        => $driverProfile ? $driverProfile->full_name : $driverUser->name,
+            'phone'       => $driverUser->phone_number ?? '',
+            'mtop_number' => $mtop,
+            'avatar_url'  => $driverUser->avatar_url,
+            'rating'      => 5.0,
+            'lat'         => $driverLat,
+            'lng'         => $driverLng,
+            'heading'     => $driverHeading,
+        ] : null;
+
+        $rideData = [
+            'id'              => $activeRide->id,
+            'status'          => $activeRide->status,
+            'pickup_location' => $activeRide->pickup_location,
+            'pickup_lat'      => (float) ($activeRide->pickup_lat ?? 15.42955),
+            'pickup_lng'      => (float) ($activeRide->pickup_lng ?? 120.92240),
+            'destination'     => $activeRide->destination,
+            'destination_lat' => $activeRide->destination_lat ? (float) $activeRide->destination_lat : null,
+            'destination_lng' => $activeRide->destination_lng ? (float) $activeRide->destination_lng : null,
+            'fare'            => (float) $activeRide->fare,
+            'passenger_name'  => $activeRide->passenger ? $activeRide->passenger->name : 'Passenger',
+            'passenger_phone' => $activeRide->passenger ? ($activeRide->passenger->phone_number ?? '') : '',
+            'driver'          => $driverInfo,
+            'driver_lat'      => $driverLat,
+            'driver_lng'      => $driverLng,
+            'driver_heading'  => $driverHeading,
+            'created_at'      => $activeRide->created_at ? $activeRide->created_at->format('M d, g:i A') : '',
+        ];
+
+        return response()->json([
+            'status'      => 'success',
+            'active_ride' => $rideData,
+            'ride'        => $rideData,
+        ]);
+    }
+
+    /**
+     * Cancel active ride.
+     */
+    public function cancelRide(Request $request, $rideId): JsonResponse
+    {
+        $user = $this->resolveUser($request);
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $ride = Ride::find($rideId);
+        if (!$ride) {
+            return response()->json(['status' => 'error', 'message' => 'Ride not found.'], 404);
+        }
+
+        // Authorize passenger or driver
+        if ($ride->passenger_id !== $user->id && $ride->driver_id !== $user->id && $user->role !== 'admin' && $user->role !== 'superadmin') {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized.'], 403);
+        }
+
+        $ride->update(['status' => 'cancelled']);
+
+        // Restore driver to front of queue if driver was assigned
+        if ($ride->driver_id) {
+            $driver = Driver::where('user_id', $ride->driver_id)->first();
+            if ($driver && $driver->is_online) {
+                try {
+                    app(\App\Services\QueueService::class)->insertAtFront($driver);
+                } catch (\Throwable $e) {}
+            }
+        }
+
+        try {
+            broadcast(new \App\Events\RideStatusUpdated($ride));
+        } catch (\Throwable $e) {}
+
+        try {
+            broadcast(new \App\Events\QueueUpdated());
+        } catch (\Throwable $e) {}
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Ride cancelled successfully.',
+        ]);
+    }
+
+    /**
+     * Rate completed ride.
+     */
+    public function rateRide(Request $request, $rideId): JsonResponse
+    {
+        $user = $this->resolveUser($request);
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $ride = Ride::find($rideId);
+        if (!$ride) {
+            return response()->json(['status' => 'error', 'message' => 'Ride not found.'], 404);
+        }
+
+        $request->validate([
+            'rating'         => 'required|numeric|min:1|max:5',
+            'review_comment' => 'nullable|string|max:500',
+            'feedback_tags'  => 'nullable|array',
+        ]);
+
+        $ride->update([
+            'rating'         => (float) $request->rating,
+            'review_comment' => $request->review_comment,
+            'feedback_tags'  => $request->feedback_tags ? json_encode($request->feedback_tags) : null,
+        ]);
+
+        // Create notification for the specific assigned driver
+        $ratingVal = (int) $request->rating;
+        $starsText = str_repeat('★', $ratingVal) . str_repeat('☆', 5 - $ratingVal);
+        $fareFormatted = '₱' . number_format($ride->fare ?? 25.00, 2);
+
+        $messageLines = [
+            "A passenger rated your trip ({$fareFormatted}).",
+            "Rating: {$ratingVal}/5 Stars ({$starsText})"
+        ];
+
+        if ($request->filled('feedback_tags')) {
+            $tags = is_array($request->feedback_tags) ? implode(', ', $request->feedback_tags) : trim($request->feedback_tags);
+            if (!empty($tags)) {
+                $messageLines[] = "Compliments: " . $tags;
+            }
+        }
+
+        if ($request->filled('review_comment') && !empty(trim($request->review_comment))) {
+            $messageLines[] = "Comment: \"" . trim($request->review_comment) . "\"";
+        }
+
+        $driverUserId = $ride->driver_id;
+        if ($driverUserId) {
+            try {
+                \App\Models\Announcement::create([
+                    'created_by'      => $user->id,
+                    'title'           => "New Rating Received: {$ratingVal}/5 Stars",
+                    'message'         => implode("\n", $messageLines),
+                    'target_audience' => 'user_' . $driverUserId,
+                ]);
+
+                app(\App\Services\PushService::class)->sendToUser(
+                    $driverUserId,
+                    "⭐ New Rating: {$ratingVal}/5 Stars",
+                    "A passenger gave your ride #{$ride->id} a {$ratingVal}-star rating!",
+                    route('dashboard'),
+                    "ride-{$ride->id}-rating"
+                );
+            } catch (\Throwable $e) {}
+
+            try {
+                broadcast(new \App\Events\RideStatusUpdated($ride));
+            } catch (\Throwable $e) {}
+            try {
+                broadcast(new \App\Events\QueueUpdated());
+            } catch (\Throwable $e) {}
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Thank you for rating your ride!',
+        ]);
+    }
+
+    /**
+     * Driver submits proposed fare.
+     */
+    public function proposeFare(Request $request, $rideId): JsonResponse
+    {
+        $user = $this->resolveUser($request);
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $ride = Ride::find($rideId);
+        if (!$ride) {
+            return response()->json(['status' => 'error', 'message' => 'Ride not found.'], 404);
+        }
+
+        if ($ride->driver_id !== $user->id && $user->role !== 'admin' && $user->role !== 'superadmin') {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized.'], 403);
+        }
+
+        $request->validate([
+            'fare' => 'required|numeric|min:1',
+        ]);
+
+        $proposedFare = (float) $request->fare;
+        $ride->update([
+            'fare'   => $proposedFare,
+            'status' => 'fare_proposed',
+        ]);
+
+        if ($ride->passenger_id) {
+            try {
+                app(\App\Services\PushService::class)->sendToUser(
+                    $ride->passenger_id,
+                    '💰 Fare Proposed',
+                    "Driver proposed ₱" . number_format($proposedFare, 2) . " for your trip to {$ride->destination}",
+                    url('/'),
+                    'ride-fare-' . $ride->id,
+                    ['type' => 'fare_proposed', 'ride_id' => $ride->id]
+                );
+            } catch (\Throwable $e) {}
+        }
+
+        try {
+            broadcast(new \App\Events\RideStatusUpdated($ride));
+        } catch (\Throwable $e) {}
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => "Fare proposal of ₱{$proposedFare} sent to passenger.",
+            'ride'    => [
+                'id'     => $ride->id,
+                'fare'   => (float) $ride->fare,
+                'status' => $ride->status,
+            ],
+        ]);
+    }
+
+    /**
+     * Passenger accepts driver's proposed fare.
+     */
+    public function acceptFare(Request $request, $rideId): JsonResponse
+    {
+        $user = $this->resolveUser($request);
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $ride = Ride::find($rideId);
+        if (!$ride) {
+            return response()->json(['status' => 'error', 'message' => 'Ride not found.'], 404);
+        }
+
+        if ($ride->passenger_id !== $user->id && $user->role !== 'admin' && $user->role !== 'superadmin') {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized.'], 403);
+        }
+
+        $ride->update([
+            'status' => 'en_route',
+        ]);
+
+        if ($ride->driver_id) {
+            try {
+                app(\App\Services\PushService::class)->sendToUser(
+                    $ride->driver_id,
+                    '✅ Fare Accepted!',
+                    "Passenger accepted ₱" . number_format($ride->fare, 2) . ". Please proceed to pickup point.",
+                    url('/'),
+                    'ride-accepted-' . $ride->id,
+                    ['type' => 'fare_accepted', 'ride_id' => $ride->id]
+                );
+            } catch (\Throwable $e) {}
+        }
+
+        try {
+            broadcast(new \App\Events\RideStatusUpdated($ride));
+        } catch (\Throwable $e) {}
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Fare accepted! Driver is en route to your pickup location.',
+            'ride'    => [
+                'id'     => $ride->id,
+                'fare'   => (float) $ride->fare,
+                'status' => $ride->status,
+            ],
+        ]);
+    }
+
+    /**
+     * Driver confirms arrival at pickup point.
+     */
+    public function driverArrived(Request $request, $rideId): JsonResponse
+    {
+        $user = $this->resolveUser($request);
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $ride = Ride::find($rideId);
+        if (!$ride) {
+            return response()->json(['status' => 'error', 'message' => 'Ride not found.'], 404);
+        }
+
+        if ($ride->driver_id !== $user->id && $user->role !== 'admin' && $user->role !== 'superadmin') {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized.'], 403);
+        }
+
+        $ride->update([
+            'status' => 'arrived',
+        ]);
+
+        if ($ride->passenger_id) {
+            try {
+                app(\App\Services\PushService::class)->sendToUser(
+                    $ride->passenger_id,
+                    '📍 Driver Arrived!',
+                    "Your TODA tricycle driver has arrived at the pickup location.",
+                    url('/'),
+                    'ride-arrived-' . $ride->id,
+                    ['type' => 'driver_arrived', 'ride_id' => $ride->id]
+                );
+            } catch (\Throwable $e) {}
+        }
+
+        try {
+            broadcast(new \App\Events\RideStatusUpdated($ride));
+        } catch (\Throwable $e) {}
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Arrival confirmed! Passenger has been notified.',
+            'ride'    => [
+                'id'     => $ride->id,
+                'status' => $ride->status,
+            ],
+        ]);
+    }
+
+    /**
+     * Driver starts trip / departs with passenger.
+     */
+    public function startTrip(Request $request, $rideId): JsonResponse
+    {
+        $user = $this->resolveUser($request);
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $ride = Ride::find($rideId);
+        if (!$ride) {
+            return response()->json(['status' => 'error', 'message' => 'Ride not found.'], 404);
+        }
+
+        if ($ride->driver_id !== $user->id && $user->role !== 'admin' && $user->role !== 'superadmin') {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized.'], 403);
+        }
+
+        $ride->update([
+            'status' => 'in_transit',
+        ]);
+
+        if ($ride->passenger_id) {
+            try {
+                app(\App\Services\PushService::class)->sendToUser(
+                    $ride->passenger_id,
+                    '🚀 Trip Started!',
+                    "Heading towards {$ride->destination}.",
+                    url('/'),
+                    'ride-started-' . $ride->id,
+                    ['type' => 'trip_started', 'ride_id' => $ride->id]
+                );
+            } catch (\Throwable $e) {}
+        }
+
+        try {
+            broadcast(new \App\Events\RideStatusUpdated($ride));
+        } catch (\Throwable $e) {}
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Trip started! In transit to destination.',
+            'ride'    => [
+                'id'     => $ride->id,
+                'status' => $ride->status,
+            ],
+        ]);
+    }
+
+    /**
+     * Fetch temporary in-app chat messages for active ride.
+     */
+    public function getChatMessages(Request $request, $rideId): JsonResponse
+    {
+        $user = $this->resolveUser($request);
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $ride = Ride::find($rideId);
+        if (!$ride) {
+            return response()->json(['status' => 'error', 'message' => 'Ride not found.'], 404);
+        }
+
+        if ($ride->passenger_id !== $user->id && $ride->driver_id !== $user->id && $user->role !== 'admin' && $user->role !== 'superadmin') {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized.'], 403);
+        }
+
+        \App\Models\ChatMessage::where('ride_id', $ride->id)
+            ->where('sender_id', '!=', $user->id)
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+
+        $messages = \App\Models\ChatMessage::with('sender')
+            ->where('ride_id', $ride->id)
+            ->orderBy('created_at', 'asc')
+            ->get()
+            ->map(function ($msg) use ($user) {
+                $sender = $msg->sender;
+                return [
+                    'id'            => (int) $msg->id,
+                    'ride_id'       => (int) $msg->ride_id,
+                    'sender_id'     => (int) $msg->sender_id,
+                    'sender_name'   => $sender ? $sender->name : 'User',
+                    'sender_avatar' => $sender ? ($sender->avatar_url ?? null) : null,
+                    'sender_role'   => $sender ? ($sender->role ?? 'passenger') : 'passenger',
+                    'message'       => $msg->message,
+                    'time'          => $msg->created_at ? $msg->created_at->format('g:i A') : now()->format('g:i A'),
+                    'created_at'    => $msg->created_at ? $msg->created_at->toIso8601String() : now()->toIso8601String(),
+                    'is_me'         => ((int) $msg->sender_id === (int) $user->id),
+                ];
+            });
+
+        return response()->json([
+            'status'   => 'success',
+            'ride_id'  => $ride->id,
+            'messages' => $messages,
+        ]);
+    }
+
+    /**
+     * Send temporary in-app chat message.
+     */
+    public function sendChatMessage(Request $request, $rideId): JsonResponse
+    {
+        $user = $this->resolveUser($request);
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $ride = Ride::find($rideId);
+        if (!$ride) {
+            return response()->json(['status' => 'error', 'message' => 'Ride not found.'], 404);
+        }
+
+        if ($ride->passenger_id !== $user->id && $ride->driver_id !== $user->id && $user->role !== 'admin' && $user->role !== 'superadmin') {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized.'], 403);
+        }
+
+        $request->validate([
+            'message' => 'required|string|max:1000',
+        ]);
+
+        $chatMessage = \App\Models\ChatMessage::create([
+            'ride_id'   => $ride->id,
+            'sender_id' => $user->id,
+            'message'   => trim($request->input('message')),
+            'is_read'   => false,
+        ]);
+
+        $chatMessage->load('sender');
+
+        try {
+            broadcast(new \App\Events\ChatMessageSent($chatMessage));
+        } catch (\Throwable $e) {}
+
+        // Send background Web Push to recipient (Passenger or Driver)
+        $recipientId = ($user->id === (int) $ride->passenger_id) ? (int) $ride->driver_id : (int) $ride->passenger_id;
+        if ($recipientId) {
+            try {
+                app(\App\Services\PushService::class)->sendToUser(
+                    $recipientId,
+                    "💬 " . $user->name,
+                    $chatMessage->message,
+                    "/tabs/home",
+                    "srh-toda-chat-{$ride->id}"
+                );
+            } catch (\Throwable $e) {}
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => [
+                'id'            => (int) $chatMessage->id,
+                'ride_id'       => (int) $chatMessage->ride_id,
+                'sender_id'     => (int) $chatMessage->sender_id,
+                'sender_name'   => $user->name,
+                'sender_avatar' => $user->avatar_url ?? null,
+                'sender_role'   => $user->role ?? 'passenger',
+                'message'       => $chatMessage->message,
+                'time'          => $chatMessage->created_at->format('g:i A'),
+                'created_at'    => $chatMessage->created_at->toIso8601String(),
+                'is_me'         => true,
+            ],
+        ]);
+    }
+
+    /**
+     * Submit Incident Report for a Ride.
+     */
+    public function reportDriver(Request $request, $rideId): JsonResponse
+    {
+        $user = $this->resolveUser($request);
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $ride = Ride::find($rideId);
+        if (!$ride) {
+            return response()->json(['status' => 'error', 'message' => 'Ride not found.'], 404);
+        }
+
+        $request->validate([
+            'category'    => 'required|string|max:100',
+            'subject'     => 'required|string|max:255',
+            'description' => 'required|string|max:1000',
+        ]);
+
+        $report = Report::create([
+            'reporter_id' => $user->id,
+            'driver_id'   => $ride->driver_id,
+            'ride_id'     => $ride->id,
+            'category'    => $request->category,
+            'subject'     => $request->subject,
+            'description' => $request->description,
+            'status'      => 'pending',
+        ]);
+
+        try {
+            broadcast(new \App\Events\ReportUpdated($report));
+        } catch (\Throwable $e) {}
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Incident report submitted to TODA administration.',
+            'report'  => $report,
         ]);
     }
 }

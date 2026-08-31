@@ -143,6 +143,71 @@ export class DashboardService {
     return this.http.post<any>(`${environment.apiUrl}/driver/update-location`, coords, { headers });
   }
 
+  requestPassengerRide(details: {
+    destination: string;
+    pickup_location?: string;
+    fare?: number;
+    passenger_count?: number;
+    notes?: string;
+    pickup_lat?: number;
+    pickup_lng?: number;
+    destination_lat?: number;
+    destination_lng?: number;
+  }): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.post<any>(`${environment.apiUrl}/rides/request`, details, { headers });
+  }
+
+  getActiveRide(): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.get<any>(`${environment.apiUrl}/rides/active`, { headers });
+  }
+
+  cancelActiveRide(rideId: number): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.post<any>(`${environment.apiUrl}/rides/${rideId}/cancel`, {}, { headers });
+  }
+
+  proposeFare(rideId: number, fare: number): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.post<any>(`${environment.apiUrl}/rides/${rideId}/propose-fare`, { fare }, { headers });
+  }
+
+  acceptFare(rideId: number): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.post<any>(`${environment.apiUrl}/rides/${rideId}/accept-fare`, {}, { headers });
+  }
+
+  driverArrived(rideId: number): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.post<any>(`${environment.apiUrl}/rides/${rideId}/driver-arrived`, {}, { headers });
+  }
+
+  startTrip(rideId: number): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.post<any>(`${environment.apiUrl}/rides/${rideId}/start-trip`, {}, { headers });
+  }
+
+  getChatMessages(rideId: number): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.get<any>(`${environment.apiUrl}/rides/${rideId}/messages`, { headers });
+  }
+
+  sendChatMessage(rideId: number, message: string): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.post<any>(`${environment.apiUrl}/rides/${rideId}/messages`, { message }, { headers });
+  }
+
+  rateRide(rideId: number, ratingData: { rating: number; review_comment?: string; feedback_tags?: string[] }): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.post<any>(`${environment.apiUrl}/rides/${rideId}/rate`, ratingData, { headers });
+  }
+
+  reportDriver(rideId: number, data: { category: string; subject: string; description: string }): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.post<any>(`${environment.apiUrl}/rides/${rideId}/report`, data, { headers });
+  }
+
   getRideHistory(filters?: { status?: string; range?: string; search?: string }): Observable<RideHistoryResponse> {
     const headers = this.getAuthHeaders();
     let params: any = {};
@@ -256,6 +321,19 @@ export interface EarningsLedgerItem {
   payment_method: string;
 }
 
+export interface DriverReviewItem {
+  id: number;
+  trip_id: string;
+  passenger_name: string;
+  rating: number;
+  review_comment?: string;
+  feedback_tags?: string[];
+  destination: string;
+  fare: number;
+  created_at: string;
+  time_only?: string;
+}
+
 export interface EarningsSummaryResponse {
   status: string;
   period: string;
@@ -271,6 +349,7 @@ export interface EarningsSummaryResponse {
   chart: DailyEarningsBar[];
   sources: TripSourceItem[];
   ledger: EarningsLedgerItem[];
+  ratings?: DriverReviewItem[];
 }
 
 export interface AdminDriverItem {

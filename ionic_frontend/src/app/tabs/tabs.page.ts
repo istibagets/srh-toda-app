@@ -13,10 +13,14 @@ import { addIcons } from 'ionicons';
 import {
   homeOutline,
   home,
+  bookmarkOutline,
+  bookmark,
   timeOutline,
   time,
   walletOutline,
   wallet,
+  statsChartOutline,
+  statsChart,
   shieldOutline,
   shield,
   personOutline,
@@ -33,16 +37,22 @@ import {
 export class TabsPage {
   public environmentInjector = inject(EnvironmentInjector);
   authService = inject(AuthService);
-  isAdmin = computed(() => this.authService.currentUser()?.role === 'admin');
+  isAdmin = computed(() => this.authService.currentUser()?.role === 'admin' || this.authService.currentUser()?.role === 'superadmin');
+  isPassenger = computed(() => this.authService.currentUser()?.role === 'passenger');
+  isDriver = computed(() => this.authService.currentUser()?.role === 'driver');
 
   constructor() {
     addIcons({
       homeOutline,
       home,
+      bookmarkOutline,
+      bookmark,
       timeOutline,
       time,
       walletOutline,
       wallet,
+      statsChartOutline,
+      statsChart,
       shieldOutline,
       shield,
       personOutline,

@@ -135,6 +135,24 @@
         }
       }
 
+      &.offer-badge {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #ffffff;
+        box-shadow: 0 2px 6px rgba(217, 119, 6, 0.3);
+      }
+
+      &.enroute-badge {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        color: #ffffff;
+        box-shadow: 0 2px 6px rgba(29, 78, 216, 0.3);
+      }
+
+      &.active-badge {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: #ffffff;
+        box-shadow: 0 2px 6px rgba(5, 150, 105, 0.3);
+      }
+
       &.active-ride {
         background: #2563eb;
         color: #ffffff;
@@ -156,7 +174,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: auto;
+  overscroll-behavior-y: contain;
   touch-action: pan-y;
   padding: 0 12px 30px;
   position: relative;
@@ -701,32 +719,27 @@
         }
 
         .trip-status-pill {
-          padding: 3px 8px;
-          border-radius: 8px;
-          font-size: 9.5px;
+          padding: 0;
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+          font-size: 10px;
           font-weight: 800;
           letter-spacing: 0.05em;
           text-transform: uppercase;
-          border: 1px solid;
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
           flex-shrink: 0;
+          display: inline-block;
 
           &.in-transit {
-            background-color: #ecfdf5;
-            color: #047857;
-            border-color: #a7f3d0;
+            color: #059669;
           }
 
           &.en-route {
-            background-color: #eff6ff;
-            color: #1d4ed8;
-            border-color: #bfdbfe;
+            color: #2563eb;
           }
 
           &.at-pickup {
-            background-color: #fffbeb;
-            color: #b45309;
-            border-color: #fde68a;
+            color: #d97706;
           }
         }
       }
@@ -785,44 +798,67 @@
   }
 }
 
-/* Unsaved Queue Order Changes Fixed Action Bar (PHP Parity) */
+/* Unsaved Queue Order Changes Top Floating Toast Bar */
 .fixed-unsaved-order-bar {
   position: fixed !important;
-  bottom: calc(65px + env(safe-area-inset-bottom, 0px)) !important;
+  top: calc(14px + env(safe-area-inset-top, 0px)) !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
   width: calc(100% - 24px) !important;
-  max-width: 380px !important;
-  background-color: #0f172a !important;
+  max-width: 390px !important;
+  background: rgba(15, 23, 42, 0.94) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
   border: 1px solid rgba(255, 255, 255, 0.18) !important;
-  box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.75) !important;
-  padding: 8px 12px !important;
-  border-radius: 14px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+  padding: 8px 10px 8px 14px !important;
+  border-radius: 999px !important;
   z-index: 999999 !important;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  animation: slideUpUnsavedBar 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  gap: 10px;
+  animation: slideDownTopToast 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 
   .bar-info {
     display: flex;
-    flex-direction: column;
-    gap: 1px;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
 
-    .bar-title {
-      color: #ffffff !important;
-      font-size: 11px;
-      font-weight: 800;
-      margin: 0;
-      line-height: 1.2;
+    .unsaved-pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #f59e0b;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.8);
+      flex-shrink: 0;
+      animation: pulseDot 1.2s infinite;
     }
 
-    .bar-sub {
-      color: #94a3b8 !important;
-      font-size: 9px;
-      font-weight: 600;
-      margin: 0;
+    .text-col {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+
+      .bar-title {
+        color: #ffffff !important;
+        font-size: 0.76rem;
+        font-weight: 800;
+        margin: 0;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .bar-sub {
+        color: #94a3b8 !important;
+        font-size: 0.65rem;
+        font-weight: 600;
+        margin: 0;
+        white-space: nowrap;
+      }
     }
   }
 
@@ -830,36 +866,38 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    flex-shrink: 0;
 
     .btn-cancel {
-      background-color: #1e293b !important;
+      background-color: rgba(255, 255, 255, 0.1) !important;
       color: #cbd5e1 !important;
-      border: 1px solid #334155 !important;
-      padding: 4px 10px !important;
-      border-radius: 8px !important;
-      font-size: 10px !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      padding: 6px 12px !important;
+      border-radius: 999px !important;
+      font-size: 0.72rem !important;
       font-weight: 700 !important;
       cursor: pointer;
       white-space: nowrap;
-      transition: transform 0.15s ease;
+      transition: all 0.15s ease;
 
       &:active {
+        background-color: rgba(255, 255, 255, 0.18) !important;
         transform: scale(0.95);
       }
     }
 
     .btn-save {
-      background-color: #2563eb !important;
+      background-color: #10b981 !important;
       color: #ffffff !important;
-      border: 1px solid #3b82f6 !important;
-      padding: 4px 12px !important;
-      border-radius: 8px !important;
-      font-size: 10px !important;
+      border: none !important;
+      padding: 6px 14px !important;
+      border-radius: 999px !important;
+      font-size: 0.74rem !important;
       font-weight: 800 !important;
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
       white-space: nowrap;
-      transition: transform 0.15s ease;
+      transition: all 0.15s ease;
 
       &:active {
         transform: scale(0.95);
@@ -868,10 +906,10 @@
   }
 }
 
-@keyframes slideUpUnsavedBar {
+@keyframes slideDownTopToast {
   0% {
     opacity: 0;
-    transform: translateX(-50%) translateY(20px);
+    transform: translateX(-50%) translateY(-20px);
   }
 
   100% {

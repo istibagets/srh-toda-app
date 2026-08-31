@@ -1,0 +1,95 @@
+@if (isOpen()) {
+  <div class="chat-backdrop" (click)="handleClose()"></div>
+
+  <div class="chat-drawer-container">
+    <!-- DRAG PILL -->
+    <div class="chat-drawer-handle" (click)="handleClose()">
+      <div class="drag-bar"></div>
+    </div>
+
+    <!-- CHAT HEADER -->
+    <div class="chat-header">
+      <div class="header-left">
+        <div class="avatar-wrapper">
+          @if (targetAvatar()) {
+            <img [src]="targetAvatar()" [alt]="targetName()" class="user-avatar" />
+          } @else {
+            <div class="avatar-fallback">
+              {{ targetName().charAt(0).toUpperCase() }}
+            </div>
+          }
+          <div class="live-dot-badge"></div>
+        </div>
+        <div class="meta-info">
+          <h4 class="target-name">{{ targetName() }}</h4>
+          <span class="target-sub">{{ targetSub() }} • <span class="active-tag">Active Trip</span></span>
+        </div>
+      </div>
+
+      <button type="button" class="close-chat-btn" (click)="handleClose()" title="Close chat">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+
+    <!-- QUICK PRESET TAGS -->
+    <div class="quick-presets-scroll">
+      <div class="preset-label">
+        QUICK:
+      </div>
+      @for (preset of quickPresets(); track preset) {
+        <button type="button" class="preset-chip" (click)="sendPreset(preset)">
+          {{ preset }}
+        </button>
+      }
+    </div>
+
+    <!-- MESSAGES FEED -->
+    <div #messagesContainer class="messages-feed">
+      @if (isLoading() && messages().length === 0) {
+        <div class="feed-empty">
+          <div class="chat-spinner"></div>
+          <p>Connecting trip chat...</p>
+        </div>
+      } @else if (messages().length === 0) {
+        <div class="feed-empty">
+          <ion-icon name="chatbubble-ellipses-outline" class="empty-icon"></ion-icon>
+          <h5>No messages yet</h5>
+          <p>Coordinate pickup point or quick directions directly with {{ targetName() }}.</p>
+        </div>
+      } @else {
+        @for (msg of messages(); track msg.id) {
+          <div class="message-row" [class.is-me]="msg.is_me">
+            <div class="bubble">
+              <p class="bubble-text">{{ msg.message }}</p>
+              <span class="bubble-time">{{ msg.time }}</span>
+            </div>
+          </div>
+        }
+      }
+    </div>
+
+    <!-- INPUT BAR -->
+    <div class="chat-input-bar">
+      <div class="input-shell">
+        <input
+          type="text"
+          [ngModel]="newMessage()"
+          (ngModelChange)="newMessage.set($event)"
+          (keyup.enter)="sendMessage()"
+          placeholder="Type a message..."
+          maxlength="250"
+          autocomplete="off"
+        />
+        <button
+          type="button"
+          class="send-btn"
+          [disabled]="!newMessage().trim() || isSending()"
+          (click)="sendMessage()"
+          title="Send message"
+        >
+          <ion-icon name="send-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -132,11 +132,13 @@ class PushService
             'url' => $url,
             'tag' => $tag,
             'silent' => false,
-            'icon' => '/favicon.png',
-            'badge' => '/badge.png',
+            'icon' => '/assets/icon/icon-192.png',
+            'badge' => '/assets/icon/badge-192.png',
         ], $extra));
 
         $webPush = $this->client();
+
+        $expiredEndpoints = [];
 
         foreach ($subscriptions as $subscription) {
             if (empty($subscription->endpoint)) {
@@ -151,33 +153,33 @@ class PushService
                 $options['topic'] = substr($tag, 0, 32);
             }
 
-            $webPush->queueNotification(
-                Subscription::create([
-                    'endpoint' => $subscription->endpoint,
-                    'publicKey' => $subscription->public_key,
-                    'authToken' => $subscription->auth_token,
-                    'contentEncoding' => 'aes128gcm',
-                ]),
-                $payload,
-                $options
-            );
+            try {
+                $webPush->queueNotification(
+                    Subscription::create([
+                        'endpoint' => $subscription->endpoint,
+                        'publicKey' => $subscription->public_key,
+                        'authToken' => $subscription->auth_token,
+                        'contentEncoding' => 'aes128gcm',
+                    ]),
+                    $payload,
+                    $options
+                );
+            } catch (\Throwable $e) {
+                $expiredEndpoints[] = $subscription->endpoint;
+            }
         }
 
-        $expiredEndpoints = [];
-
-        foreach ($webPush->flush() as $report) {
-            if (!$report->isSuccess()) {
-                $status = $report->getResponse()?->getStatusCode();
-                // 404/410 means the subscription no longer exists (device revoked it).
-                // 401 means the VAPID key was rotated after the device subscribed —
-                // the client re-subscribes automatically with the new key, so the
-                // stale row can never succeed again and must be pruned too.
-                // 403 means the endpoint is bound to a different VAPID key (the
-                // device subscribed with a pre-rotation key) — also permanent.
-                if ($report->isSubscriptionExpired() || in_array($status, [404, 410, 401, 403], true)) {
-                    $expiredEndpoints[] = $report->getEndpoint();
+        try {
+            foreach ($webPush->flush() as $report) {
+                if (!$report->isSuccess()) {
+                    $status = $report->getResponse()?->getStatusCode();
+                    if ($report->isSubscriptionExpired() || in_array($status, [404, 410, 401, 403], true)) {
+                        $expiredEndpoints[] = $report->getEndpoint();
+                    }
                 }
             }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('[PushService] WebPush flush notice: ' . $e->getMessage());
         }
 
         if (!empty($expiredEndpoints)) {

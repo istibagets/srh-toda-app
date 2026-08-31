@@ -1,35 +1,63 @@
 <ion-tabs>
   <ion-tab-bar slot="bottom" class="srh-mobile-tab-bar">
-    <!-- 1. HOME -->
-    <ion-tab-button tab="home" [routerLink]="['/tabs/home']" class="tab-btn">
-      <ion-icon name="home-outline"></ion-icon>
-      <ion-label>HOME</ion-label>
-    </ion-tab-button>
+    <!-- ── PASSENGER TABS (HOME, SAVED, HISTORY, PROFILE) ── -->
+    @if (isPassenger()) {
+      <!-- 1. HOME -->
+      <ion-tab-button tab="home" [routerLink]="['/tabs/home']" class="tab-btn">
+        <ion-icon name="home-outline"></ion-icon>
+        <ion-label>HOME</ion-label>
+      </ion-tab-button>
 
-    <!-- 2. HISTORY -->
-    <ion-tab-button tab="history" [routerLink]="['/tabs/history']" class="tab-btn">
-      <ion-icon name="time-outline"></ion-icon>
-      <ion-label>HISTORY</ion-label>
-    </ion-tab-button>
+      <!-- 2. SAVED -->
+      <ion-tab-button tab="saved" [routerLink]="['/tabs/saved']" class="tab-btn">
+        <ion-icon name="bookmark-outline"></ion-icon>
+        <ion-label>SAVED</ion-label>
+      </ion-tab-button>
 
-    <!-- 3. EARNINGS -->
-    <ion-tab-button tab="earnings" [routerLink]="['/tabs/earnings']" class="tab-btn">
-      <ion-icon name="wallet-outline"></ion-icon>
-      <ion-label>EARNINGS</ion-label>
-    </ion-tab-button>
+      <!-- 3. HISTORY -->
+      <ion-tab-button tab="history" [routerLink]="['/tabs/history']" class="tab-btn">
+        <ion-icon name="time-outline"></ion-icon>
+        <ion-label>HISTORY</ion-label>
+      </ion-tab-button>
 
-    <!-- 4. ADMIN (Only visible to admin role) -->
-    @if (isAdmin()) {
-      <ion-tab-button tab="admin" [routerLink]="['/tabs/admin']" class="tab-btn">
-        <ion-icon name="shield-outline"></ion-icon>
-        <ion-label>ADMIN</ion-label>
+      <!-- 4. PROFILE -->
+      <ion-tab-button tab="profile" [routerLink]="['/tabs/profile']" class="tab-btn">
+        <ion-icon name="person-outline"></ion-icon>
+        <ion-label>PROFILE</ion-label>
+      </ion-tab-button>
+    } @else {
+      <!-- ── DRIVER / ADMIN TABS ── -->
+      <!-- 1. HOME -->
+      <ion-tab-button tab="home" [routerLink]="['/tabs/home']" class="tab-btn">
+        <ion-icon name="home-outline"></ion-icon>
+        <ion-label>HOME</ion-label>
+      </ion-tab-button>
+
+      <!-- 2. HISTORY -->
+      <ion-tab-button tab="history" [routerLink]="['/tabs/history']" class="tab-btn">
+        <ion-icon name="time-outline"></ion-icon>
+        <ion-label>HISTORY</ion-label>
+      </ion-tab-button>
+
+      <!-- 3. STATS / PERFORMANCE -->
+      <ion-tab-button tab="earnings" [routerLink]="['/tabs/earnings']" class="tab-btn">
+        <ion-icon name="stats-chart-outline"></ion-icon>
+        <ion-label>STATS</ion-label>
+      </ion-tab-button>
+
+      <!-- 4. ADMIN (Only visible to admin role) -->
+      @if (isAdmin()) {
+        <ion-tab-button tab="admin" [routerLink]="['/tabs/admin']" class="tab-btn">
+          <ion-icon name="shield-outline"></ion-icon>
+          <ion-label>ADMIN</ion-label>
+        </ion-tab-button>
+      }
+
+      <!-- 5. PROFILE -->
+      <ion-tab-button tab="profile" [routerLink]="['/tabs/profile']" class="tab-btn">
+        <ion-icon name="person-outline"></ion-icon>
+        <ion-label>PROFILE</ion-label>
       </ion-tab-button>
     }
-
-    <!-- 5. PROFILE -->
-    <ion-tab-button tab="profile" [routerLink]="['/tabs/profile']" class="tab-btn">
-      <ion-icon name="person-outline"></ion-icon>
-      <ion-label>PROFILE</ion-label>
-    </ion-tab-button>
   </ion-tab-bar>
 </ion-tabs>

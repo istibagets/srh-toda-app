@@ -1,6 +1,8 @@
 <ion-header class="ion-no-border srh-profile-header">
   <ion-toolbar class="header-toolbar">
-    <ion-title class="header-title">Driver Profile &amp; Settings</ion-title>
+    <ion-title class="header-title">
+      {{ authService.isPassenger() ? 'Passenger Profile & Settings' : (authService.isAdmin() ? 'Admin Profile & Settings' : 'Driver Profile & Settings') }}
+    </ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -19,7 +21,7 @@
             @if (authService.currentUser()?.avatar_url) {
               <img [src]="authService.currentUser()?.avatar_url" alt="Avatar" class="avatar-img" />
             } @else {
-              <div class="avatar-fallback">
+              <div class="avatar-fallback" [class.passenger-bg]="authService.isPassenger()">
                 <span>{{ (authService.currentUser()?.name || 'U').charAt(0).toUpperCase() }}</span>
               </div>
             }
@@ -43,12 +45,22 @@
           </div>
 
           <div class="meta-badges-row">
-            <span class="role-pill" [class.driver]="authService.isDriver()" [class.admin]="authService.isAdmin()">
-              {{ authService.userRole() | uppercase }}
-            </span>
-            <span class="mtop-franchise-pill">
-              MTOP #{{ getDisplayMtop() }}
-            </span>
+            @if (authService.isPassenger()) {
+              <span class="role-pill passenger">
+                COMMUNITY PASSENGER
+              </span>
+              <span class="commuter-resident-pill">
+                <ion-icon name="heart-outline"></ion-icon>
+                SANTA ROSA RESIDENT
+              </span>
+            } @else {
+              <span class="role-pill" [class.driver]="authService.isDriver()" [class.admin]="authService.isAdmin()">
+                {{ authService.userRole() | uppercase }}
+              </span>
+              <span class="mtop-franchise-pill">
+                MTOP #{{ getDisplayMtop() }}
+              </span>
+            }
           </div>
 
           <div class="contact-subline">
@@ -66,22 +78,41 @@
 
       <!-- Quick Metrics Strip -->
       <div class="hero-stats-strip">
-        <div class="stat-box">
-          <span class="stat-label">TODAY'S TRIPS</span>
-          <span class="stat-value">{{ driverService.driver().tripsTodayCount || 0 }}</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-box">
-          <span class="stat-label">TODAY'S EARNINGS</span>
-          <span class="stat-value text-emerald">₱{{ (driverService.driver().todayEarnings || 0).toFixed(2) }}</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-box">
-          <span class="stat-label">COMPLIANCE</span>
-          <span class="stat-value status-tag" [class.approved]="(driverService.driver().complianceStatus || authService.currentUser()?.driver_profile?.compliance_status || 'Approved') === 'Approved'">
-            {{ driverService.driver().complianceStatus || authService.currentUser()?.driver_profile?.compliance_status || 'Approved' }}
-          </span>
-        </div>
+        @if (authService.isPassenger()) {
+          <div class="stat-box">
+            <span class="stat-label">TOTAL RIDES</span>
+            <span class="stat-value">{{ passengerTotalRides() }}</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-box">
+            <span class="stat-label">TOTAL FARES</span>
+            <span class="stat-value text-emerald">₱{{ passengerTotalFares().toFixed(2) }}</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-box">
+            <span class="stat-label">COMMUNITY STATUS</span>
+            <span class="stat-value status-tag approved">
+              Verified
+            </span>
+          </div>
+        } @else {
+          <div class="stat-box">
+            <span class="stat-label">TODAY'S TRIPS</span>
+            <span class="stat-value">{{ driverService.driver().tripsTodayCount || 0 }}</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-box">
+            <span class="stat-label">TODAY'S EARNINGS</span>
+            <span class="stat-value text-emerald">₱{{ (driverService.driver().todayEarnings || 0).toFixed(2) }}</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-box">
+            <span class="stat-label">COMPLIANCE</span>
+            <span class="stat-value status-tag" [class.approved]="(driverService.driver().complianceStatus || authService.currentUser()?.driver_profile?.compliance_status || 'Approved') === 'Approved'">
+              {{ driverService.driver().complianceStatus || authService.currentUser()?.driver_profile?.compliance_status || 'Approved' }}
+            </span>
+          </div>
+        }
       </div>
     </div>
 
@@ -92,9 +123,15 @@
           <ion-icon name="person-outline"></ion-icon>
         </ion-segment-button>
 
-        <ion-segment-button value="credentials" title="TODA MTOP Credentials">
-          <ion-icon src="/assets/icon/srh-tricycle.svg"></ion-icon>
-        </ion-segment-button>
+        @if (authService.isPassenger()) {
+          <ion-segment-button value="commute" title="Saved Places & Commute">
+            <ion-icon name="bookmark-outline"></ion-icon>
+          </ion-segment-button>
+        } @else {
+          <ion-segment-button value="credentials" title="TODA MTOP Credentials">
+            <ion-icon src="assets/icon/srh-tricycle.svg"></ion-icon>
+          </ion-segment-button>
+        }
 
         <ion-segment-button value="security" title="Security & Password">
           <ion-icon name="shield-checkmark-outline"></ion-icon>
@@ -180,8 +217,80 @@
       </div>
     }
 
-    <!-- ── 4. TAB 2: DRIVER MTOP & CREDENTIALS ──────────────── -->
-    @if (activeTab() === 'credentials') {
+    <!-- ── 4A. TAB 2 (PASSENGER): SAVED PLACES & COMMUTE PERKS ── -->
+    @if (activeTab() === 'commute' && authService.isPassenger()) {
+      <div class="panel-section-card animate-fade-in">
+        <div class="panel-header">
+          <div class="header-text">
+            <h2 class="panel-title">Saved Places &amp; Commuter Info</h2>
+            <p class="panel-subtitle">Quick neighborhood destinations and regulated fare guidelines</p>
+          </div>
+        </div>
+
+        <div class="commute-shortcuts-stack">
+          <!-- Saved Places Navigation Card -->
+          <div class="commute-feature-card">
+            <div class="feature-head">
+              <div class="feature-icon-box">
+                <ion-icon name="bookmark-outline"></ion-icon>
+              </div>
+              <div class="feature-meta">
+                <span class="feature-eyebrow">DESTINATION SHORTCUTS</span>
+                <h3 class="feature-title">Manage Saved Places</h3>
+                <p class="feature-desc">{{ savedLocationService.locations().length }} places currently saved</p>
+              </div>
+            </div>
+
+            <a [routerLink]="['/tabs/saved']" class="manage-saved-places-btn">
+              <ion-icon name="pin-outline"></ion-icon>
+              <span>Open Saved Places Tab</span>
+              <ion-icon name="open-outline" class="btn-arrow"></ion-icon>
+            </a>
+          </div>
+
+          <!-- Official Fare Matrix Highlights -->
+          <div class="fare-guide-box">
+            <div class="guide-header">
+              <span class="guide-eyebrow">BARANGAY &amp; HOA MATRIX</span>
+              <h4 class="guide-title">Standard Neighbor Fares</h4>
+            </div>
+
+            <div class="fare-chips-list">
+              <div class="fare-chip-item">
+                <span class="chip-dest">Main Gate Guard House</span>
+                <span class="chip-price">₱20.00</span>
+              </div>
+              <div class="fare-chip-item">
+                <span class="chip-dest">Phase 1 Clubhouse &amp; Pool</span>
+                <span class="chip-price">₱25.00</span>
+              </div>
+              <div class="fare-chip-item">
+                <span class="chip-dest">Commercial Strip / Plaza</span>
+                <span class="chip-price">₱20.00</span>
+              </div>
+              <div class="fare-chip-item">
+                <span class="chip-dest">Santa Rosa Public Market</span>
+                <span class="chip-price">₱35.00</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Passenger Rights & Verification -->
+          <div class="commuter-rights-card">
+            <div class="rights-icon">
+              <ion-icon name="shield-checkmark-outline"></ion-icon>
+            </div>
+            <div class="rights-text">
+              <h4>Verified Commuter Safety</h4>
+              <p>Every TODA driver operating in Santa Rosa Homes has passed administrative inspection and possesses a verified MTOP permit number visible on their tricycle.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ── 4B. TAB 2 (DRIVER): DRIVER MTOP & CREDENTIALS ──────── -->
+    @if (activeTab() === 'credentials' && !authService.isPassenger()) {
       <div class="panel-section-card animate-fade-in">
         <div class="panel-header">
           <div class="header-text">
@@ -214,7 +323,6 @@
             </div>
             <div class="cred-right">
               <span class="compliance-status-pill" [class.approved]="(driverService.driver().complianceStatus || authService.currentUser()?.driver_profile?.compliance_status || 'Approved') === 'Approved'">
-                <ion-icon [name]="(driverService.driver().complianceStatus || authService.currentUser()?.driver_profile?.compliance_status || 'Approved') === 'Approved' ? 'checkmark-circle-outline' : 'alert-circle-outline'"></ion-icon>
                 {{ authService.currentUser()?.driver_profile?.compliance_status || driverService.driver().complianceStatus || 'Approved' }}
               </span>
             </div>
@@ -222,7 +330,11 @@
 
           <!-- Uploaded Documents Links -->
           @if (authService.currentUser()?.driver_profile?.mtop_certificate_url) {
-            <a [href]="authService.currentUser()?.driver_profile?.mtop_certificate_url" target="_blank" class="document-action-link">
+            <button
+              type="button"
+              class="document-action-link"
+              (click)="openDocPreview('MTOP Franchise Certificate', authService.currentUser()?.driver_profile?.mtop_certificate_url)"
+            >
               <div class="doc-link-icon-wrap">
                 <ion-icon name="document-attach-outline"></ion-icon>
               </div>
@@ -231,11 +343,15 @@
                 <span class="doc-sub">Official uploaded TODA permit document</span>
               </div>
               <ion-icon name="open-outline" class="doc-external-icon"></ion-icon>
-            </a>
+            </button>
           }
 
           @if (authService.currentUser()?.driver_profile?.drivers_license_url) {
-            <a [href]="authService.currentUser()?.driver_profile?.drivers_license_url" target="_blank" class="document-action-link">
+            <button
+              type="button"
+              class="document-action-link"
+              (click)="openDocPreview('Driver\'s License Document', authService.currentUser()?.driver_profile?.drivers_license_url)"
+            >
               <div class="doc-link-icon-wrap">
                 <ion-icon name="card-outline"></ion-icon>
               </div>
@@ -244,7 +360,7 @@
                 <span class="doc-sub">Official LTO professional license copy</span>
               </div>
               <ion-icon name="open-outline" class="doc-external-icon"></ion-icon>
-            </a>
+            </button>
           }
         </div>
       </div>
@@ -340,7 +456,9 @@
             </div>
             <div class="setting-info">
               <h4 class="setting-title">GPS High-Accuracy Location</h4>
-              <p class="setting-desc">Required for live terminal geofence &amp; dispatch</p>
+              <p class="setting-desc">
+                {{ authService.isPassenger() ? 'Enables accurate pickup location for nearby TODA tricycles' : 'Required for live terminal geofence & dispatch' }}
+              </p>
             </div>
             <div class="setting-action">
               <span class="permission-pill" [class.granted]="gpsStatus() === 'granted'">
@@ -356,7 +474,9 @@
             </div>
             <div class="setting-info">
               <h4 class="setting-title">Push Notifications</h4>
-              <p class="setting-desc">Live dispatch alerts and passenger bookings</p>
+              <p class="setting-desc">
+                {{ authService.isPassenger() ? 'Live ride arrival alerts and trip status updates' : 'Live dispatch alerts and passenger bookings' }}
+              </p>
             </div>
             <div class="setting-action">
               <ion-toggle [checked]="notifEnabled()" (ionChange)="toggleNotif($event)"></ion-toggle>
@@ -370,7 +490,9 @@
             </div>
             <div class="setting-info">
               <h4 class="setting-title">In-App Chime Audio</h4>
-              <p class="setting-desc">Audible tones on incoming booking notifications</p>
+              <p class="setting-desc">
+                {{ authService.isPassenger() ? 'Audible tones when your driver arrives or status changes' : 'Audible tones on incoming booking notifications' }}
+              </p>
             </div>
             <div class="setting-action">
               <ion-toggle [checked]="soundEnabled()" (ionChange)="toggleSound($event)"></ion-toggle>
@@ -384,7 +506,9 @@
             </div>
             <div class="setting-info">
               <h4 class="setting-title">Haptic Vibration</h4>
-              <p class="setting-desc">Tactile physical vibration on dispatch updates</p>
+              <p class="setting-desc">
+                {{ authService.isPassenger() ? 'Tactile vibration when driver reaches your pickup point' : 'Tactile physical vibration on dispatch updates' }}
+              </p>
             </div>
             <div class="setting-action">
               <ion-toggle [checked]="vibrationEnabled()" (ionChange)="toggleVibration($event)"></ion-toggle>
@@ -415,4 +539,90 @@
     </div>
 
   </div>
+
+  <!-- ── 8. IN-APP DOCUMENT PREVIEW MODAL ─────────────────── -->
+  <ion-modal
+    [isOpen]="isDocPreviewOpen()"
+    (didDismiss)="closeDocPreview()"
+    [initialBreakpoint]="1"
+    [breakpoints]="[0, 1]"
+    [handle]="false"
+    class="admin-sheet-modal doc-preview-modal"
+  >
+    <ng-template>
+      <div class="modal-sheet-container doc-preview-container">
+        <div class="modal-drag-handle"></div>
+
+        <div class="modal-sheet-header">
+          <div class="header-title-block">
+            <button type="button" class="back-pill-btn" (click)="closeDocPreview()" title="Back">
+              <ion-icon name="arrow-back-outline"></ion-icon>
+              <span>Back</span>
+            </button>
+            <div class="header-text-group">
+              <span class="kicker">OFFICIAL DOCUMENT INSPECTOR</span>
+              <h2 class="driver-title">{{ previewDocTitle() }}</h2>
+            </div>
+          </div>
+
+          <div class="header-action-group">
+            <button type="button" class="tool-circle-btn" (click)="downloadDoc()" title="Download Document">
+              <ion-icon name="download-outline"></ion-icon>
+            </button>
+            <button type="button" class="tool-circle-btn" (click)="printDoc()" title="Print Document">
+              <ion-icon name="print-outline"></ion-icon>
+            </button>
+            <button type="button" class="modal-close-btn" (click)="closeDocPreview()" title="Close">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Zoom & Inspection Controls Pill -->
+        <div class="doc-controls-floating-bar">
+          <button type="button" class="zoom-btn" (click)="zoomDocOut()" [disabled]="docZoomScale() <= 1" title="Zoom Out">
+            <ion-icon name="remove-outline"></ion-icon>
+          </button>
+          <span class="zoom-pct" (click)="resetDocZoom()" title="Click to reset zoom">{{ (docZoomScale() * 100) | number:'1.0-0' }}%</span>
+          <button type="button" class="zoom-btn" (click)="zoomDocIn()" [disabled]="docZoomScale() >= 4" title="Zoom In">
+            <ion-icon name="add-outline"></ion-icon>
+          </button>
+          <button type="button" class="zoom-reset-btn" (click)="resetDocZoom()" title="Reset Zoom">
+            <ion-icon name="refresh-outline"></ion-icon>
+          </button>
+          <span class="pinch-hint">Pinch or double-tap to zoom</span>
+        </div>
+
+        <div
+          class="modal-sheet-body doc-preview-body"
+          (wheel)="onWheelZoom($event)"
+          (touchstart)="onImageTouchStart($event)"
+          (touchmove)="onImageTouchMove($event)"
+          (touchend)="onImageTouchEnd()"
+        >
+          <div class="doc-image-frame">
+            <img
+              [src]="previewDocUrl()"
+              [alt]="previewDocTitle()"
+              class="doc-preview-img"
+              [style.transform]="'translate3d(' + docPanX() + 'px, ' + docPanY() + 'px, 0) scale(' + docZoomScale() + ')'"
+              [style.cursor]="docZoomScale() > 1 ? 'grab' : 'default'"
+              (error)="previewDocUrl.set('/assets/icon/srh-logo.png')"
+            />
+          </div>
+        </div>
+
+        <div class="modal-sheet-footer doc-preview-footer">
+          <button type="button" class="modal-btn outline" (click)="openInExternalBrowser(previewDocUrl(), $event)">
+            <ion-icon name="open-outline"></ion-icon>
+            <span>Open in Browser</span>
+          </button>
+          <button type="button" class="modal-btn approve" (click)="closeDocPreview()">
+            <ion-icon name="checkmark-outline"></ion-icon>
+            <span>Done Inspecting</span>
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
 </ion-content>

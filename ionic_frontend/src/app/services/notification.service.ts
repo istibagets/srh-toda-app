@@ -12,6 +12,14 @@ export class NotificationService {
     () => this.announcementsSignal().filter((a) => !a.isRead).length
   );
 
+  setAnnouncements(items: Announcement[]): void {
+    this.announcementsSignal.set(items);
+  }
+
+  addAnnouncement(item: Announcement): void {
+    this.announcementsSignal.update((list) => [item, ...list.filter((a) => a.id !== item.id)]);
+  }
+
   markAsRead(id: number): void {
     this.announcementsSignal.update((list) =>
       list.map((a) => (a.id === id ? { ...a, isRead: true } : a))

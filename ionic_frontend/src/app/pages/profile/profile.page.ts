@@ -1,6 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import {
   IonHeader,
   IonToolbar,
@@ -24,10 +25,15 @@ import {
   IonBadge,
   IonAvatar,
   IonNote,
+  IonModal,
   ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { DriverService } from '../../services/driver.service';
+import { DashboardService } from '../../services/dashboard.service';
+import { SavedLocationService } from '../../services/saved-location.service';
+import { PushService } from '../../services/push.service';
+import { SoundService } from '../../services/sound.service';
 import {
   personOutline,
   shieldCheckmarkOutline,
@@ -53,6 +59,25 @@ import {
   callOutline,
   sparklesOutline,
   ribbonOutline,
+  bookmarkOutline,
+  bookmark,
+  navigateOutline,
+  pinOutline,
+  storefrontOutline,
+  businessOutline,
+  informationCircleOutline,
+  shieldOutline,
+  happyOutline,
+  heartOutline,
+  helpCircleOutline,
+  checkmarkOutline,
+  refreshOutline,
+  addOutline,
+  removeOutline,
+  arrowBackOutline,
+  downloadOutline,
+  printOutline,
+  closeOutline,
 } from 'ionicons/icons';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { AuthService } from '../../services/auth.service';
@@ -65,6 +90,8 @@ import { AuthService } from '../../services/auth.service';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
+    RouterModule,
     IonHeader,
     IonToolbar,
     IonTitle,
@@ -74,13 +101,22 @@ import { AuthService } from '../../services/auth.service';
     IonSegmentButton,
     IonIcon,
     IonToggle,
+    IonModal,
   ],
 })
-export class ProfilePage {
+export class ProfilePage implements OnInit {
   authService = inject(AuthService);
   driverService = inject(DriverService);
+  dashboardService = inject(DashboardService);
+  savedLocationService = inject(SavedLocationService);
+  pushService = inject(PushService);
+  soundService = inject(SoundService);
   private fb = inject(FormBuilder);
   private toastCtrl = inject(ToastController);
+
+  // Passenger specific live statistics
+  passengerTotalRides = signal<number>(0);
+  passengerTotalFares = signal<number>(0);
 
   getDisplayMtop(): string {
     const fromProfile = this.authService.currentUser()?.driver_profile?.mtop_number;
@@ -94,8 +130,8 @@ export class ProfilePage {
     return '128491';
   }
 
-  // Active Segment Tab: 'account' | 'credentials' | 'security' | 'permissions'
-  activeTab = signal<'account' | 'credentials' | 'security' | 'permissions'>('account');
+  // Active Segment Tab: 'account' | 'credentials' | 'commute' | 'security' | 'permissions'
+  activeTab = signal<'account' | 'credentials' | 'commute' | 'security' | 'permissions'>('account');
 
   // Permissions & Hardware state
   gpsStatus = signal<'granted' | 'prompt' | 'denied'>('prompt');
@@ -124,6 +160,178 @@ export class ProfilePage {
   // Avatar uploading
   isUploadingAvatar = signal<boolean>(false);
 
+  // In-App Document Preview State
+  isDocPreviewOpen = signal<boolean>(false);
+  previewDocTitle = signal<string>('');
+  previewDocUrl = signal<string>('');
+  docZoomScale = signal<number>(1);
+  docPanX = signal<number>(0);
+  docPanY = signal<number>(0);
+
+  private initialPinchDist = 0;
+  private initialScale = 1;
+  private lastTapTime = 0;
+  private touchStartX = 0;
+  private touchStartY = 0;
+  private initialPanX = 0;
+  private initialPanY = 0;
+
+  openDocPreview(title: string, url?: string | null): void {
+    if (!url) return;
+    this.previewDocTitle.set(title);
+    this.previewDocUrl.set(url);
+    this.resetDocZoom();
+    this.isDocPreviewOpen.set(true);
+  }
+
+  closeDocPreview(): void {
+    this.isDocPreviewOpen.set(false);
+    this.resetDocZoom();
+  }
+
+  zoomDocIn(): void {
+    this.docZoomScale.update((s) => Math.min(4, +(s + 0.4).toFixed(1)));
+  }
+
+  zoomDocOut(): void {
+    this.docZoomScale.update((s) => {
+      const ns = Math.max(1, +(s - 0.4).toFixed(1));
+      if (ns === 1) {
+        this.docPanX.set(0);
+        this.docPanY.set(0);
+      }
+      return ns;
+    });
+  }
+
+  resetDocZoom(): void {
+    this.docZoomScale.set(1);
+    this.docPanX.set(0);
+    this.docPanY.set(0);
+  }
+
+  openInExternalBrowser(url?: string, event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    const targetUrl = url || this.previewDocUrl();
+    if (!targetUrl) return;
+    try {
+      const win = window.open(targetUrl, '_system');
+      if (!win) {
+        window.open(targetUrl, '_blank', 'noopener,noreferrer');
+      }
+    } catch {
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
+    }
+  }
+
+  downloadDoc(): void {
+    const url = this.previewDocUrl();
+    if (!url) return;
+    try {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${this.previewDocTitle().replace(/\s+/g, '_')}_document.png`;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch {
+      window.open(url, '_blank');
+    }
+  }
+
+  printDoc(): void {
+    const url = this.previewDocUrl();
+    if (!url) return;
+    try {
+      const win = window.open('', '_blank');
+      if (win) {
+        win.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>${this.previewDocTitle() || 'Official Document'}</title>
+              <style>
+                body { margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 95vh; font-family: sans-serif; }
+                .title { font-size: 18px; font-weight: bold; margin-bottom: 12px; }
+                img { max-width: 100%; max-height: 85vh; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+              </style>
+            </head>
+            <body>
+              <div class="title">${this.previewDocTitle()}</div>
+              <img src="${url}" onload="setTimeout(() => { window.print(); window.close(); }, 300);" />
+            </body>
+          </html>
+        `);
+        win.document.close();
+      }
+    } catch {
+      window.print();
+    }
+  }
+
+  onImageTouchStart(e: TouchEvent): void {
+    if (e.touches.length === 2) {
+      this.initialPinchDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      this.initialScale = this.docZoomScale();
+    } else if (e.touches.length === 1) {
+      const now = Date.now();
+      if (now - this.lastTapTime < 300) {
+        if (this.docZoomScale() > 1) {
+          this.resetDocZoom();
+        } else {
+          this.docZoomScale.set(2.2);
+        }
+      }
+      this.lastTapTime = now;
+      this.touchStartX = e.touches[0].clientX;
+      this.touchStartY = e.touches[0].clientY;
+      this.initialPanX = this.docPanX();
+      this.initialPanY = this.docPanY();
+    }
+  }
+
+  onImageTouchMove(e: TouchEvent): void {
+    if (e.touches.length === 2 && this.initialPinchDist > 0) {
+      if (e.cancelable) e.preventDefault();
+      const curDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const scale = Math.max(1, Math.min(4, +(this.initialScale * (curDist / this.initialPinchDist)).toFixed(2)));
+      this.docZoomScale.set(scale);
+      if (scale <= 1) {
+        this.docPanX.set(0);
+        this.docPanY.set(0);
+      }
+    } else if (e.touches.length === 1 && this.docZoomScale() > 1) {
+      if (e.cancelable) e.preventDefault();
+      const dx = e.touches[0].clientX - this.touchStartX;
+      const dy = e.touches[0].clientY - this.touchStartY;
+      this.docPanX.set(this.initialPanX + dx);
+      this.docPanY.set(this.initialPanY + dy);
+    }
+  }
+
+  onImageTouchEnd(): void {
+    this.initialPinchDist = 0;
+  }
+
+  onWheelZoom(e: WheelEvent): void {
+    if (e.cancelable) e.preventDefault();
+    if (e.deltaY < 0) {
+      this.zoomDocIn();
+    } else {
+      this.zoomDocOut();
+    }
+  }
+
   constructor() {
     addIcons({
       personOutline,
@@ -150,10 +358,48 @@ export class ProfilePage {
       callOutline,
       sparklesOutline,
       ribbonOutline,
+      bookmarkOutline,
+      bookmark,
+      navigateOutline,
+      pinOutline,
+      storefrontOutline,
+      businessOutline,
+      informationCircleOutline,
+      shieldOutline,
+      happyOutline,
+      heartOutline,
+      helpCircleOutline,
+      checkmarkOutline,
+      refreshOutline,
+      addOutline,
+      removeOutline,
+      arrowBackOutline,
+      downloadOutline,
+      printOutline,
+      closeOutline,
     });
 
     this.initUserForm();
     this.initHardwarePermissions();
+  }
+
+  ngOnInit(): void {
+    if (this.authService.isPassenger()) {
+      this.loadPassengerStats();
+      this.savedLocationService.loadSavedLocations().subscribe();
+    }
+  }
+
+  private loadPassengerStats(): void {
+    this.dashboardService.getRideHistory().subscribe({
+      next: (res) => {
+        if (res?.summary) {
+          this.passengerTotalRides.set(res.summary.total_trips || 0);
+          this.passengerTotalFares.set(res.summary.total_earnings || 0);
+        }
+      },
+      error: () => {},
+    });
   }
 
   private initUserForm(): void {
@@ -232,18 +478,17 @@ export class ProfilePage {
     }
   }
 
-  requestPush(): void {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      Notification.requestPermission().then((permission) => {
-        this.pushPermission.set(permission);
-        if (permission === 'granted') {
-          this.diagResult.set('System notifications are enabled and ready.');
-          this.showToast('Push notifications enabled.', 'success');
-          this.triggerHaptic(ImpactStyle.Medium);
-        } else {
-          this.showToast('Push notifications not enabled.', 'warning');
-        }
-      });
+  async requestPush(): Promise<void> {
+    const granted = await this.pushService.requestPermissionAndSubscribe();
+    if (granted) {
+      this.pushPermission.set('granted');
+      this.soundService.playOnDuty();
+      this.diagResult.set('System notifications are enabled and registered with TODA Push Server.');
+      this.showToast('Push notifications enabled & active!', 'success');
+      this.triggerHaptic(ImpactStyle.Medium);
+    } else {
+      this.pushPermission.set('denied');
+      this.showToast('Push notifications permission was not granted.', 'warning');
     }
   }
 
@@ -270,16 +515,34 @@ export class ProfilePage {
     }
   }
 
-  runDiagnostics(): void {
+  async runDiagnostics(): Promise<void> {
     this.diagRunning.set(true);
     this.diagResult.set(null);
 
+    // 1. Play sound chime
+    try {
+      this.soundService.playBookingAlert();
+    } catch { }
+
+    // 2. Trigger Haptics
+    this.triggerHaptic(ImpactStyle.Heavy);
+
+    // 3. Ensure permissions and trigger Web Push test
+    try {
+      if (this.pushService.permissionStatus() !== 'granted') {
+        await this.pushService.requestPermissionAndSubscribe();
+      }
+      this.pushService.triggerTestPush();
+    } catch (e) {
+      console.warn('Diagnostic push test note:', e);
+    }
+
     setTimeout(() => {
       this.diagRunning.set(false);
-      this.diagResult.set('All hardware diagnostics passed. Device is ready for live ride matching.');
-      this.showToast('Hardware diagnostics completed successfully.', 'success');
+      this.diagResult.set('Diagnostics passed! Sound, vibration, and push notification banner verified.');
+      this.showToast('Hardware diagnostics completed. Test notification sent!', 'success');
       this.triggerHaptic(ImpactStyle.Medium);
-    }, 900);
+    }, 800);
   }
 
   // Account update

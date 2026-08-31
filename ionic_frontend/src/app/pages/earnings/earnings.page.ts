@@ -26,6 +26,10 @@ import {
   personOutline,
   sparklesOutline,
   chevronDownCircleOutline,
+  star,
+  starOutline,
+  chatbubbleEllipsesOutline,
+  thumbsUpOutline,
 } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
 import {
@@ -33,6 +37,7 @@ import {
   DailyEarningsBar,
   TripSourceItem,
   EarningsLedgerItem,
+  DriverReviewItem,
   EarningsSummaryResponse,
 } from '../../services/dashboard.service';
 
@@ -76,6 +81,7 @@ export class EarningsPage implements OnInit {
   chartBars = signal<DailyEarningsBar[]>([]);
   sources = signal<TripSourceItem[]>([]);
   recentLedger = signal<EarningsLedgerItem[]>([]);
+  ratings = signal<DriverReviewItem[]>([]);
 
   // Computed properties
   maxDayEarnings = computed(() => {
@@ -101,6 +107,10 @@ export class EarningsPage implements OnInit {
       personOutline,
       sparklesOutline,
       chevronDownCircleOutline,
+      star,
+      starOutline,
+      chatbubbleEllipsesOutline,
+      thumbsUpOutline,
     });
   }
 
@@ -121,6 +131,7 @@ export class EarningsPage implements OnInit {
           this.chartBars.set(res.chart || []);
           this.sources.set(res.sources || []);
           this.recentLedger.set(res.ledger || []);
+          this.ratings.set(res.ratings || []);
 
           // Auto-select today's bar or highest bar for interactive tooltip
           const todayBar = (res.chart || []).find((b) => b.is_today);

@@ -1,7 +1,7 @@
 <ion-header class="ion-no-border srh-earnings-header">
   <ion-toolbar class="header-toolbar">
     <div class="header-title-group">
-      <h1 class="header-title">{{ authService.isPassenger() ? 'Spending & Fares' : 'Driver Earnings' }}</h1>
+      <h1 class="header-title">{{ authService.isPassenger() ? 'Spending & Fares' : 'Driver Performance & Stats' }}</h1>
     </div>
 
     <!-- ── TIME HORIZON FILTER TABS ───────────────────────── -->
@@ -139,7 +139,6 @@
           </div>
 
           <div class="peak-badge">
-            <ion-icon name="trending-up-outline"></ion-icon>
             <span>Peak: {{ summary().peak_day_name }} (₱{{ summary().peak_day_earnings.toFixed(0) }})</span>
           </div>
         </div>
@@ -230,36 +229,64 @@
         </div>
       </div>
 
-      <!-- ── 4. RECENT TRANSACTIONS STREAM ──────────────────── -->
-      <div class="analytics-card ledger-card">
+      <!-- ── 4. PASSENGER RATINGS & REVIEWS STREAM ──────────────────── -->
+      <div class="analytics-card ratings-card">
         <div class="card-header-row">
           <div class="card-title-group">
-            <h3 class="card-title">Recent Fare Activity</h3>
-            <span class="card-subtitle">Latest recorded dropoffs</span>
+            <h3 class="card-title">Passenger Reviews & Ratings</h3>
+            <span class="card-subtitle">Verified feedback from completed trips</span>
           </div>
         </div>
 
-        @if (recentLedger().length === 0) {
+        @if (ratings().length === 0) {
           <div class="empty-ledger-state">
-            <span class="empty-text">No fare transactions recorded for this period.</span>
+            <ion-icon name="star-outline" class="empty-star-icon"></ion-icon>
+            <span class="empty-text">No passenger reviews recorded for this period.</span>
           </div>
         } @else {
-          <div class="ledger-items-stream">
-            @for (tx of recentLedger(); track tx.id) {
-              <div class="ledger-item-card">
-                <div class="ledger-icon-wrap">
-                  <ion-icon src="/assets/icon/srh-tricycle.svg" class="tx-icon"></ion-icon>
+          <div class="reviews-items-stream">
+            @for (rev of ratings(); track rev.id) {
+              <div class="review-item-card">
+                <div class="review-top-row">
+                  <div class="stars-badge" [class.five-stars]="rev.rating >= 5">
+                    <span class="star-score">{{ rev.rating | number:'1.1-1' }}</span>
+                    <div class="star-icons-wrap">
+                      @for (s of [1, 2, 3, 4, 5]; track s) {
+                        <ion-icon
+                          [name]="s <= rev.rating ? 'star' : 'star-outline'"
+                          class="review-star-icon"
+                          [class.filled]="s <= rev.rating"
+                        ></ion-icon>
+                      }
+                    </div>
+                  </div>
+                  <span class="review-time">{{ rev.time_only || rev.created_at }}</span>
                 </div>
 
-                <div class="ledger-center-info">
-                  <div class="ledger-row-top">
-                    <span class="tx-route">{{ tx.destination }}</span>
-                    <span class="tx-fare">+₱{{ tx.fare.toFixed(2) }}</span>
+                @if (rev.feedback_tags && rev.feedback_tags.length > 0) {
+                  <div class="review-tags-wrap">
+                    @for (tag of rev.feedback_tags; track tag) {
+                      <span class="review-tag-chip">
+                        <ion-icon name="thumbs-up-outline"></ion-icon>
+                        {{ tag }}
+                      </span>
+                    }
                   </div>
-                  <div class="ledger-row-bottom">
-                    <span class="tx-meta-text">{{ tx.trip_id }} • {{ tx.trip_type === 'terminal_walk_in' ? 'Walk-In' : (tx.trip_type === 'wayside_pickup' ? 'Wayside' : 'Dispatch') }} • {{ tx.time_only || tx.created_at }}</span>
-                    <span class="tx-payment-tag">Cash</span>
+                }
+
+                @if (rev.review_comment) {
+                  <div class="review-comment-bubble">
+                    <ion-icon name="chatbubble-ellipses-outline" class="quote-icon"></ion-icon>
+                    <p class="comment-text">"{{ rev.review_comment }}"</p>
                   </div>
+                }
+
+                <div class="review-trip-meta">
+                  <span class="meta-dest">{{ rev.destination }}</span>
+                  <span class="meta-dot">•</span>
+                  <span class="meta-fare">₱{{ rev.fare.toFixed(2) }}</span>
+                  <span class="meta-dot">•</span>
+                  <span class="meta-id">{{ rev.trip_id }}</span>
                 </div>
               </div>
             }

@@ -1,0 +1,308 @@
+<div #sheetElement id="passenger-bottom-sheet" class="srh-edge-bottom-sheet">
+  <!-- TOP DRAG HANDLE BAR (Drag anywhere on handle / header) -->
+  <div id="sheet-drag-handle" class="sheet-drag-handle">
+    <div class="drag-handle-pill"></div>
+
+    <!-- CONCISE COLLAPSED STATUS HEADER ROW (Matches Driver Sheet) -->
+    <div class="sheet-status-row">
+      <div class="status-left">
+        @if (activeRide(); as ride) {
+          <span class="status-dot online active-pulse"></span>
+          <span class="status-label active-trip-label">
+            @if (ride.status === 'searching' || ride.status === 'bargaining') { ALERTING DRIVER }
+            @else if (ride.status === 'fare_proposed') { FARE PROPOSAL }
+            @else if (ride.status === 'accepted' || ride.status === 'en_route') { EN ROUTE TO PICKUP }
+            @else if (ride.status === 'arrived') { DRIVER ARRIVED }
+            @else if (ride.status === 'in_transit') { HEADING TO DESTINATION }
+            @else { ACTIVE RIDE }
+          </span>
+        } @else {
+          <div class="tricycle-avatar-circle">
+            <ion-icon src="assets/icon/srh-tricycle.svg"></ion-icon>
+          </div>
+          <div class="mini-meta">
+            <h3 class="mini-title">BOOK A TODA RIDE</h3>
+            <p class="mini-sub">Pull up to book</p>
+          </div>
+        }
+      </div>
+
+      <div class="status-right">
+        @if (activeRide(); as ride) {
+          <span
+            class="compact-badge"
+            [class.badge-blue]="ride.status === 'searching' || ride.status === 'bargaining' || ride.status === 'en_route' || ride.status === 'accepted'"
+            [class.badge-amber]="ride.status === 'fare_proposed'"
+            [class.badge-emerald]="ride.status === 'arrived'"
+            [class.badge-indigo]="ride.status === 'in_transit'"
+          >
+            {{ (ride.status === 'searching' || ride.status === 'bargaining') ? 'SEARCHING' : (ride.status === 'fare_proposed' ? 'PROPOSAL' : (ride.status === 'en_route' || ride.status === 'accepted' ? 'EN ROUTE' : (ride.status === 'arrived' ? 'ARRIVED' : 'IN TRANSIT'))) }}
+          </span>
+        } @else {
+          <span
+            class="ready-badge"
+            [class.empty-queue]="driverService.totalQueueCount() === 0"
+          >
+            <span class="badge-num-slot">{{ driverService.totalQueueCount() }}</span>
+            <span class="badge-text-label">Available</span>
+          </span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- COLLAPSIBLE DETAILS CONTENT -->
+  <div #scrollContentElement id="sheet-details-content" class="sheet-details-content" [class.is-trip-active]="activeRide()">
+    @if (activeRide(); as ride) {
+      <!-- ACTIVE RIDE IN PROGRESS: Modern, Simple, Clean (Matches Driver UI) -->
+      <div class="passenger-trip-content-wrapper" [class.pre-acceptance]="!isDriverVisible()" [attr.data-status]="ride.status">
+
+        <!-- 1. SEARCHING / ALERTING DRIVER -->
+        @if (ride.status === 'searching' || ride.status === 'bargaining') {
+          <div class="active-status-bar searching-bar">
+            <div class="status-left-meta">
+              <span class="status-dot searching-pulse"></span>
+              <span class="status-title">ALERTING #1 DRIVER</span>
+            </div>
+            <span class="fare-pill">₱{{ ride.fare | number:'1.2-2' }}</span>
+          </div>
+
+          <div class="route-preview-card">
+            <div class="route-node">
+              <div class="node-dot pickup-dot"></div>
+              <div class="node-details">
+                <span class="node-lbl">PICKUP LOCATION</span>
+                <span class="node-val">{{ ride.pickup_location }}</span>
+              </div>
+            </div>
+            <div class="route-connector-line"></div>
+            <div class="route-node">
+              <div class="node-dot dropoff-dot"></div>
+              <div class="node-details">
+                <span class="node-lbl">DESTINATION</span>
+                <span class="node-val">{{ ride.destination }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="action-buttons-single">
+            <button type="button" class="cancel-link-btn" (click)="cancelRide.emit()">
+              <ion-icon name="close-outline"></ion-icon>
+              <span>Cancel Request</span>
+            </button>
+          </div>
+        }
+
+        <!-- 2. FARE PROPOSAL RECEIVED -->
+        @else if (ride.status === 'fare_proposed') {
+          <div class="active-status-bar proposed-bar">
+            <div class="status-left-meta">
+              <span class="status-dot proposed-pulse"></span>
+              <span class="status-title">DRIVER PROPOSED FARE</span>
+            </div>
+            <span class="fare-pill proposed">₱{{ ride.fare | number:'1.2-2' }}</span>
+          </div>
+
+          <div class="route-preview-card">
+            <div class="route-node">
+              <div class="node-dot pickup-dot"></div>
+              <div class="node-details">
+                <span class="node-lbl">PICKUP LOCATION</span>
+                <span class="node-val">{{ ride.pickup_location }}</span>
+              </div>
+            </div>
+            <div class="route-connector-line"></div>
+            <div class="route-node">
+              <div class="node-dot dropoff-dot"></div>
+              <div class="node-details">
+                <span class="node-lbl">DESTINATION</span>
+                <span class="node-val">{{ ride.destination }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="action-buttons-grid">
+            <button type="button" class="decline-secondary-btn" (click)="cancelRide.emit()">
+              <ion-icon name="close-outline"></ion-icon>
+              <span>Decline</span>
+            </button>
+            <button type="button" class="primary-action-btn accept-btn" (click)="acceptFare.emit()">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <span>Accept Fare (₱{{ ride.fare | number:'1.2-2' }})</span>
+            </button>
+          </div>
+        }
+
+        <!-- 3. EN ROUTE TO PICKUP (Driver on the way) -->
+        @else if (ride.status === 'en_route' || ride.status === 'accepted') {
+          <div class="active-status-bar en-route-bar">
+            <div class="status-left-meta">
+              <span class="status-dot en-route-pulse"></span>
+              <span class="status-title">PICKUP: {{ ride.pickup_location }}</span>
+            </div>
+            <span class="fare-pill">₱{{ ride.fare | number:'1.2-2' }}</span>
+          </div>
+
+          <div class="driver-overview-card">
+            <div class="drv-meta">
+              <div class="avatar-circle">
+                @if (ride.driver?.avatar_url) {
+                  <img [src]="ride.driver.avatar_url" alt="Driver" class="avatar-img" />
+                } @else {
+                  <ion-icon name="person-outline"></ion-icon>
+                }
+              </div>
+              <div class="drv-text">
+                <h3 class="drv-name">{{ driverName() }}</h3>
+                <p class="drv-sub">MTOP #{{ driverMtopNumber() }} • Santa Rosa TODA</p>
+              </div>
+            </div>
+            @if (ride.driver?.phone) {
+              <a [href]="'tel:' + ride.driver.phone" class="call-btn" title="Call Driver">
+                <ion-icon name="call-outline"></ion-icon>
+              </a>
+            }
+          </div>
+
+          <div class="action-buttons-grid">
+            <button type="button" class="cancel-secondary-btn" (click)="confirmCancelRide()">
+              <ion-icon name="close-outline"></ion-icon>
+              <span>Cancel</span>
+            </button>
+            <button type="button" class="primary-action-btn chat-primary-btn" (click)="openChat.emit()">
+              <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+              <span>Chat with Driver</span>
+              @if (unreadChatCount() > 0) {
+                <span class="chat-badge-corner">{{ unreadChatCount() > 9 ? '9+' : unreadChatCount() }}</span>
+              }
+            </button>
+          </div>
+        }
+
+        <!-- 4. DRIVER ARRIVED -->
+        @else if (ride.status === 'arrived') {
+          <div class="active-status-bar arrived-bar">
+            <div class="status-left-meta">
+              <span class="status-dot arrived-dot"></span>
+              <span class="status-title">DRIVER IS WAITING OUTSIDE</span>
+            </div>
+            <span class="fare-pill">₱{{ ride.fare | number:'1.2-2' }}</span>
+          </div>
+
+          <div class="driver-overview-card">
+            <div class="drv-meta">
+              <div class="avatar-circle">
+                @if (ride.driver?.avatar_url) {
+                  <img [src]="ride.driver.avatar_url" alt="Driver" class="avatar-img" />
+                } @else {
+                  <ion-icon name="person-outline"></ion-icon>
+                }
+              </div>
+              <div class="drv-text">
+                <h3 class="drv-name">{{ driverName() }}</h3>
+                <p class="drv-sub">MTOP #{{ driverMtopNumber() }} • Board Tricycle</p>
+              </div>
+            </div>
+            @if (ride.driver?.phone) {
+              <a [href]="'tel:' + ride.driver.phone" class="call-btn" title="Call Driver">
+                <ion-icon name="call-outline"></ion-icon>
+              </a>
+            }
+          </div>
+
+          <div class="action-buttons-grid">
+            <button type="button" class="cancel-secondary-btn" (click)="confirmCancelRide()">
+              <ion-icon name="close-outline"></ion-icon>
+              <span>Cancel</span>
+            </button>
+            <button type="button" class="primary-action-btn chat-primary-btn" (click)="openChat.emit()">
+              <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+              <span>Chat with Driver</span>
+              @if (unreadChatCount() > 0) {
+                <span class="chat-badge-corner">{{ unreadChatCount() > 9 ? '9+' : unreadChatCount() }}</span>
+              }
+            </button>
+          </div>
+        }
+
+        <!-- 5. IN TRANSIT / HEADING TO DESTINATION -->
+        @else {
+          <div class="active-status-bar in-transit-bar">
+            <div class="status-left-meta">
+              <span class="status-dot in-transit-dot"></span>
+              <span class="status-title">DESTINATION: {{ ride.destination }}</span>
+            </div>
+            <span class="fare-pill">₱{{ ride.fare | number:'1.2-2' }}</span>
+          </div>
+
+          <div class="driver-overview-card">
+            <div class="drv-meta">
+              <div class="avatar-circle">
+                @if (ride.driver?.avatar_url) {
+                  <img [src]="ride.driver.avatar_url" alt="Driver" class="avatar-img" />
+                } @else {
+                  <ion-icon name="person-outline"></ion-icon>
+                }
+              </div>
+              <div class="drv-text">
+                <h3 class="drv-name">{{ driverName() }}</h3>
+                <p class="drv-sub">MTOP #{{ driverMtopNumber() }} • Heading to Drop-Off</p>
+              </div>
+            </div>
+            @if (ride.driver?.phone) {
+              <a [href]="'tel:' + ride.driver.phone" class="call-btn" title="Call Driver">
+                <ion-icon name="call-outline"></ion-icon>
+              </a>
+            }
+          </div>
+
+          <div class="action-buttons-grid single-chat">
+            <button type="button" class="chat-secondary-btn full-width" (click)="openChat.emit()">
+              <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+              <span>Chat with Driver</span>
+              @if (unreadChatCount() > 0) {
+                <span class="chat-badge-corner">{{ unreadChatCount() > 9 ? '9+' : unreadChatCount() }}</span>
+              }
+            </button>
+          </div>
+        }
+
+      </div>
+    } @else {
+      <!-- EXPANDED BOOKING HUB -->
+      <div class="booking-expanded-hub">
+        <!-- Quick Destination Fares -->
+        <div class="quick-destinations-section">
+          <div class="dest-section-head">
+            <span class="head-title">Popular Landmarks (Regulated Rates)</span>
+            <a [routerLink]="['/tabs/saved']" class="see-all-link">
+              <span>Saved Places</span>
+              <ion-icon name="bookmark-outline"></ion-icon>
+            </a>
+          </div>
+
+          <div class="destinations-horizontal-scroller">
+            @for (lm of popularLandmarks(); track lm.name) {
+              <div class="dest-chip" (click)="openBooking.emit(lm)">
+                <div class="dest-icon-box" [class]="lm.color">
+                  <ion-icon [name]="lm.icon"></ion-icon>
+                </div>
+                <div class="dest-text">
+                  <span class="dest-name">{{ lm.name }}</span>
+                  <span class="dest-fare">₱{{ lm.fare | number:'1.2-2' }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Primary Booking Button -->
+        <div class="sheet-action-row">
+          <button type="button" class="commuter-action-btn primary" (click)="openBooking.emit(null)">
+            <span>Book a Tricycle</span>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

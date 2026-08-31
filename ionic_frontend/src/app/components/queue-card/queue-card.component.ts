@@ -1,6 +1,7 @@
 import {
   Component,
   inject,
+  input,
   output,
   signal,
   computed,
@@ -13,6 +14,7 @@ import {
   untracked,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { IonToast } from '@ionic/angular';
 import { DriverService } from '../../services/driver.service';
 import { AuthService } from '../../services/auth.service';
 import { DropOffCardComponent } from '../drop-off-card/drop-off-card.component';
@@ -24,7 +26,7 @@ export type SheetSnap = 'min' | 'mid' | 'max';
 @Component({
   selector: 'app-queue-card',
   standalone: true,
-  imports: [CommonModule, DropOffCardComponent, ReturningCardComponent],
+  imports: [CommonModule, IonToast, DropOffCardComponent, ReturningCardComponent],
   templateUrl: './queue-card.component.html',
   styleUrls: ['./queue-card.component.scss'],
 })
@@ -32,11 +34,31 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
   driverService = inject(DriverService);
   authService = inject(AuthService);
   isAdmin = computed(() => this.authService.currentUser()?.role === 'admin');
+  unreadChatCount = input<number>(0);
   private ngZone = inject(NgZone);
+
+  unsavedToastButtons = [
+    {
+      text: 'Cancel',
+      role: 'cancel',
+      handler: () => {
+        this.cancelAdminQueue();
+        return true;
+      },
+    },
+    {
+      text: 'Save',
+      handler: () => {
+        this.saveAdminQueue();
+        return true;
+      },
+    },
+  ];
 
   startWalkIn = output<void>();
   toggleDutyClick = output<void>();
   dropOffClick = output<void>();
+  openChat = output<void>();
   addWayside = output<void>();
   snapChange = output<SheetSnap>();
   dragSync = output<number>(); // Emits live translateY coordinate for 120fps hardware transforms
@@ -49,9 +71,10 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
 
   snapState = signal<SheetSnap>('mid');
 
-  private currentDragEventType: 'pointer' | 'touch' | 'mouse' | null = null;
-  private boundDragMove = (e: TouchEvent | PointerEvent | MouseEvent) => this.onDragMove(e);
-  private boundDragEnd = (e: TouchEvent | PointerEvent | MouseEvent) => this.onDragEnd(e);
+  private currentDragEventType: 'touch' | 'mouse' | null = null;
+  private boundDragMove = (e: TouchEvent | MouseEvent) => this.onDragMove(e);
+  private boundDragEnd = (e: TouchEvent | MouseEvent) => this.onDragEnd(e);
+  private boundDragCancel = () => this.onDragCancel();
   private boundWindowResize = () => this.handleWindowResize();
 
   private sortableInstance: Sortable | null = null;
@@ -82,23 +105,34 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
   }
 
   get MID_TRANSLATE_Y(): number {
-    let visibleHeight = 235; // Original online state docked height
+    let visibleHeight = 236; // Original online state docked height
+    const active = this.driverService.activeTrip();
     if (this.driverService.isReturning()) {
-      visibleHeight = 175; // Snug height for returning card
-    } else if (this.driverService.activeTrip()) {
-      visibleHeight = 205; // Snug height for drop-off card
+      visibleHeight = 180; // Snug height for returning card
+    } else if (active) {
+      if (active.status === 'bargaining') {
+        visibleHeight = 360; // Bargaining: countdown + route nodes + stepper + presets + primary button completely above tab bar
+      } else if (active.status === 'fare_proposed') {
+        visibleHeight = 210; // Waiting for passenger response completely above tab bar
+      } else if (active.status === 'en_route') {
+        visibleHeight = 215; // Passenger details + chat + arrive/depart buttons
+      } else if (active.status === 'arrived') {
+        visibleHeight = 206; // Passenger details + chat + arrive/depart buttons
+      } else {
+        visibleHeight = 170; // In transit / Drop off
+      }
     } else if (!this.driverService.isOnline()) {
-      visibleHeight = 235; // Offline card
+      visibleHeight = 236; // Offline card
     }
-    return Math.max(80, window.innerHeight - 56 - visibleHeight);
+    return Math.max(20, window.innerHeight - 56 - visibleHeight);
   }
 
   get MAX_TRANSLATE_Y(): number {
-    return window.innerHeight - 56 - 43; // 43px visible (pushed down sliver)
+    return window.innerHeight - 56 - 44; // 44px visible (pushed down sliver)
   }
 
   readonly queueOrdinalText = computed(() => {
-    const pos = this.driverService.queuePosition() || 1;
+    const pos = this.driverService.getDisplayQueuePosition() || 1;
     if (pos === 1) return 'Next for TODA terminal & app passenger dispatch!';
     const ends = ['th', 'st', 'nd', 'rd', 'th', 'th', 'th', 'th', 'th', 'th'];
     const ordStr =
@@ -111,8 +145,11 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
 
   constructor() {
     effect(() => {
-      // Auto-retract to exact snug content height on any state change
-      const _ = this.driverService.isReturning() || this.driverService.activeTrip() || this.driverService.isOnline();
+      // Auto-retract to exact snug content height on any state or trip status change
+      const trip = this.driverService.activeTrip();
+      const status = trip?.status;
+      const returning = this.driverService.isReturning();
+      const isOnline = this.driverService.isOnline();
       untracked(() => {
         setTimeout(() => {
           this.setSnap('mid');
@@ -354,30 +391,24 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
   // NATIVE BOTTOM SHEET TOUCH ENGINE (Instant Direct 1:1 Response)
   // =========================================================================
   private attachNativeTouchGestures(sheetEl: HTMLElement): void {
-    const onStart = (e: TouchEvent | PointerEvent | MouseEvent) => this.onDragStart(e);
+    const onTouchStart = (e: TouchEvent) => this.onDragStart(e);
+    const onMouseDown = (e: MouseEvent) => this.onDragStart(e);
 
-    // Support Pointer Events (works uniformly for mouse, touch, stylus & DevTools mobile emulation)
-    sheetEl.addEventListener('pointerdown', onStart as EventListener);
-    sheetEl.addEventListener('touchstart', onStart as EventListener, { passive: true });
-    sheetEl.addEventListener('mousedown', onStart as EventListener);
+    sheetEl.addEventListener('touchstart', onTouchStart, { passive: true });
+    sheetEl.addEventListener('mousedown', onMouseDown);
 
     this.unbindTouchListeners = () => {
-      sheetEl.removeEventListener('pointerdown', onStart as EventListener);
-      sheetEl.removeEventListener('touchstart', onStart as EventListener);
-      sheetEl.removeEventListener('mousedown', onStart as EventListener);
+      sheetEl.removeEventListener('touchstart', onTouchStart);
+      sheetEl.removeEventListener('mousedown', onMouseDown);
       this.removeWindowDragListeners();
     };
   }
 
-  private addWindowDragListeners(type: 'pointer' | 'touch' | 'mouse'): void {
-    if (type === 'pointer') {
-      window.addEventListener('pointermove', this.boundDragMove, { passive: false });
-      window.addEventListener('pointerup', this.boundDragEnd);
-      window.addEventListener('pointercancel', this.boundDragEnd);
-    } else if (type === 'touch') {
+  private addWindowDragListeners(type: 'touch' | 'mouse'): void {
+    if (type === 'touch') {
       window.addEventListener('touchmove', this.boundDragMove, { passive: false });
       window.addEventListener('touchend', this.boundDragEnd);
-      window.addEventListener('touchcancel', this.boundDragEnd);
+      window.addEventListener('touchcancel', this.boundDragCancel);
     } else {
       window.addEventListener('mousemove', this.boundDragMove);
       window.addEventListener('mouseup', this.boundDragEnd);
@@ -385,28 +416,31 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
   }
 
   private removeWindowDragListeners(): void {
-    window.removeEventListener('pointermove', this.boundDragMove);
-    window.removeEventListener('pointerup', this.boundDragEnd);
-    window.removeEventListener('pointercancel', this.boundDragEnd);
-
     window.removeEventListener('touchmove', this.boundDragMove);
     window.removeEventListener('touchend', this.boundDragEnd);
-    window.removeEventListener('touchcancel', this.boundDragEnd);
+    window.removeEventListener('touchcancel', this.boundDragCancel);
 
     window.removeEventListener('mousemove', this.boundDragMove);
     window.removeEventListener('mouseup', this.boundDragEnd);
   }
 
-  private getClientY(e: TouchEvent | PointerEvent | MouseEvent): number {
-    if ('touches' in e && e.touches && e.touches.length > 0) return e.touches[0].clientY;
-    if ('changedTouches' in e && e.changedTouches && e.changedTouches.length > 0) return e.changedTouches[0].clientY;
-    return (e as MouseEvent | PointerEvent).clientY;
+  private onDragCancel(): void {
+    this.removeWindowDragListeners();
+    this.currentDragEventType = null;
+    this.gestureMode = 'idle';
+    this.dragEnd.emit();
   }
 
-  private getClientX(e: TouchEvent | PointerEvent | MouseEvent): number {
+  private getClientY(e: TouchEvent | MouseEvent): number {
+    if ('touches' in e && e.touches && e.touches.length > 0) return e.touches[0].clientY;
+    if ('changedTouches' in e && e.changedTouches && e.changedTouches.length > 0) return e.changedTouches[0].clientY;
+    return (e as MouseEvent).clientY;
+  }
+
+  private getClientX(e: TouchEvent | MouseEvent): number {
     if ('touches' in e && e.touches && e.touches.length > 0) return e.touches[0].clientX;
     if ('changedTouches' in e && e.changedTouches && e.changedTouches.length > 0) return e.changedTouches[0].clientX;
-    return (e as MouseEvent | PointerEvent).clientX;
+    return (e as MouseEvent).clientX;
   }
 
   private getCurrentTranslateY(): number {
@@ -423,7 +457,7 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
     return this.activeTranslateY || this.MID_TRANSLATE_Y;
   }
 
-  private onDragStart(e: TouchEvent | PointerEvent | MouseEvent): void {
+  private onDragStart(e: TouchEvent | MouseEvent): void {
     if (this.isItemSorting || this.currentDragEventType !== null) {
       return;
     }
@@ -437,7 +471,7 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
       // Exclude ONLY the 6-dots drag handle icon so grabbing reorders the queue, while touching anywhere else drags the sheet
       if (
         targetEl.closest(
-          '.drag-handle-icon, .drag-handle, [data-no-sheet-drag], .sortable-drag, .sortable-chosen, .sortable-fallback, .fixed-unsaved-order-bar'
+          'button, a, input, select, textarea, .drag-handle-icon, .drag-handle, [data-no-sheet-drag], .sortable-drag, .sortable-chosen, .sortable-fallback, .fixed-unsaved-order-bar'
         )
       ) {
         return;
@@ -478,9 +512,7 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
     this.baseTranslateY = this.activeTranslateY || this.getCurrentTranslateY();
     this.dragAnchorY = this.startTouchY;
 
-    if ('pointerId' in e) {
-      this.currentDragEventType = 'pointer';
-    } else if ('touches' in e) {
+    if ('touches' in e) {
       this.currentDragEventType = 'touch';
     } else {
       this.currentDragEventType = 'mouse';
@@ -497,10 +529,10 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
     );
   }
 
-  private onDragMove(e: TouchEvent | PointerEvent | MouseEvent): void {
+  private onDragMove(e: TouchEvent | MouseEvent): void {
     if (this.isItemSorting || this.gestureMode === 'ignored' || this.currentDragEventType === null) return;
 
-    if ('buttons' in e && (e as MouseEvent).buttons === 0 && (this.currentDragEventType === 'mouse' || (this.currentDragEventType === 'pointer' && (e as PointerEvent).pointerType === 'mouse'))) {
+    if ('buttons' in e && (e as MouseEvent).buttons === 0 && this.currentDragEventType === 'mouse') {
       this.onDragEnd(e);
       return;
     }
@@ -520,37 +552,36 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
     this.lastTouchY = curY;
     this.lastTouchTime = now;
 
-    const isSheetAtTop = this.activeTranslateY <= this.MIN_TRANSLATE_Y + 5;
+    const isSheetAtMax = this.activeTranslateY <= this.MIN_TRANSLATE_Y + 3;
     const targetEl = e.target as HTMLElement;
 
     if (this.gestureMode === 'idle') {
-      if (Math.abs(deltaX) > Math.abs(deltaY) * 1.5 && Math.abs(deltaX) > 8) {
+      if (Math.abs(deltaX) > Math.abs(deltaY) * 1.5 && Math.abs(deltaX) > 6) {
         this.gestureMode = 'ignored';
         this.removeWindowDragListeners();
         this.currentDragEventType = null;
         return;
       }
 
-      if (Math.abs(deltaY) >= 2) {
+      if (Math.abs(deltaY) >= 1) {
         this.hasMoved = true;
         const isHeaderTouch = this.isHeaderOrHandle(targetEl);
 
-        if (!isSheetAtTop || isHeaderTouch) {
-          // Sheet is not at MAX, or user touched top handle/hero card -> Sheet Drag
+        if (!isSheetAtMax || isHeaderTouch) {
           this.gestureMode = 'sheet_drag';
-          this.dragAnchorY = curY;
-          this.baseTranslateY = this.activeTranslateY;
+          this.startTouchY = curY;
+          this.baseTranslateY = this.activeTranslateY || this.getCurrentTranslateY();
           if (e.cancelable) e.preventDefault();
         } else {
-          // Sheet is at MAX:
-          if (deltaY > 0 && this.startScrollTop <= 0) {
-            // User touches inside the queue list while at the top (scrollTop <= 0) and pulls DOWN -> Sheet Drag!
+          // Sheet is already fully expanded at MAX:
+          if (deltaY > 0 && this.startScrollTop <= 1) {
+            // Pulling DOWN while at top of scroll list -> Drag Sheet DOWN
             this.gestureMode = 'sheet_drag';
-            this.dragAnchorY = curY;
+            this.startTouchY = curY;
             this.baseTranslateY = this.MIN_TRANSLATE_Y;
             if (e.cancelable) e.preventDefault();
           } else {
-            // User touches inside the list when scrolled or moving UP -> 100% Native List Scroll
+            // Swiping UP or scrolling through queue items -> Native Smooth List Scroll
             this.gestureMode = 'content_scroll';
             this.removeWindowDragListeners();
             this.currentDragEventType = null;
@@ -563,7 +594,7 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
     if (this.gestureMode === 'sheet_drag') {
       if (e.cancelable) e.preventDefault();
 
-      const dragDelta = curY - this.dragAnchorY;
+      const dragDelta = curY - this.startTouchY;
       const computedTranslateY = this.baseTranslateY + dragDelta;
       const rawTranslateY = Math.max(
         this.MIN_TRANSLATE_Y,
@@ -605,67 +636,59 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
     }
 
     const dragDelta = finalPos - this.baseTranslateY; // < 0 is Drag UP, > 0 is Drag DOWN
-    const isFlickUp = this.velocity < -0.3;
-    const isFlickDown = this.velocity > 0.3;
-    const isStrongFlickDown = this.velocity > 0.7;
-    const isStrongFlickUp = this.velocity < -0.7;
+    const isFlickUp = this.velocity < -0.25;
+    const isFlickDown = this.velocity > 0.25;
 
     let targetSnap: SheetSnap = 'mid';
 
-    // Determine current starting snap state
-    const isStartedNearMin = this.baseTranslateY >= this.MID_TRANSLATE_Y + 40;
-    const isStartedNearMax = this.baseTranslateY <= this.MIN_TRANSLATE_Y + 40;
-
     // In returning or active trip states: only snap between mid (docked) and min (tucked down), never max (fullscreen)
     if (this.driverService.isReturning() || this.driverService.activeTrip()) {
-      if (finalPos >= this.MID_TRANSLATE_Y + 50 || isFlickDown) {
+      if (dragDelta > 40 || isFlickDown) {
         targetSnap = 'min';
       } else {
         targetSnap = 'mid';
       }
-      this.animateToSnap(targetSnap, 320);
+      this.animateToSnap(targetSnap, 300);
       return;
     }
 
+    // Determine current starting snap state
+    const isStartedNearMin = this.baseTranslateY >= this.MID_TRANSLATE_Y + 50;
+    const isStartedNearMax = this.baseTranslateY <= this.MIN_TRANSLATE_Y + 50;
+
     if (isStartedNearMax) {
-      // Starting from fully expanded (MAX)
-      // Only go all the way to MIN if dragged past MID or strong intentional downward flick
-      if (finalPos >= this.MID_TRANSLATE_Y + 80 || (finalPos >= this.MID_TRANSLATE_Y && isStrongFlickDown)) {
-        targetSnap = 'min';
-      } else if (dragDelta > 35 || isFlickDown) {
-        targetSnap = 'mid'; // Gracefully stops at MID
+      // Starting from MAX: even a small drag down (~45px) or flick down snaps to MID (never skips MID)
+      if (dragDelta > 45 || isFlickDown) {
+        targetSnap = 'mid';
       } else {
         targetSnap = 'max';
       }
     } else if (isStartedNearMin) {
-      // Starting from collapsed bottom (MIN)
-      // Only go all the way to MAX if dragged past MID or strong intentional upward flick
-      if (finalPos <= this.MID_TRANSLATE_Y - 80 || (finalPos <= this.MID_TRANSLATE_Y && isStrongFlickUp)) {
-        targetSnap = 'max';
-      } else if (dragDelta < -35 || isFlickUp) {
-        targetSnap = 'mid'; // Gracefully stops at MID
+      // Starting from MIN: even a small drag up (~-45px) or flick up snaps to MID (never skips MID)
+      if (dragDelta < -45 || isFlickUp) {
+        targetSnap = 'mid';
       } else {
         targetSnap = 'min';
       }
     } else {
-      // Starting from resting middle (MID)
-      if (dragDelta < -40 || isFlickUp) {
+      // Starting from resting MID:
+      if (dragDelta < -45 || isFlickUp) {
         targetSnap = 'max';
-      } else if (dragDelta > 40 || isFlickDown) {
+      } else if (dragDelta > 45 || isFlickDown) {
         targetSnap = 'min';
       } else {
         targetSnap = 'mid';
       }
     }
 
-    this.animateToSnap(targetSnap, 340);
+    this.animateToSnap(targetSnap, 520);
   }
 
   setSnap(snap: SheetSnap): void {
-    this.animateToSnap(snap, 340);
+    this.animateToSnap(snap, 520);
   }
 
-  private animateToSnap(targetSnap: SheetSnap, duration = 340): void {
+  private animateToSnap(targetSnap: SheetSnap, duration = 520): void {
     if (this.snapRafId !== null) {
       cancelAnimationFrame(this.snapRafId);
       this.snapRafId = null;
@@ -687,56 +710,64 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
       sheetEl.style.willChange = 'transform';
     }
 
-    // Immediately enable scrolling when moving to max so user can scroll right away even while snapping up
-    if (contentEl && targetSnap === 'max') {
-      contentEl.style.overflowY = 'auto';
+    if (contentEl) {
+      if (targetSnap === 'max') {
+        contentEl.style.overflowY = 'auto';
+      } else {
+        contentEl.style.overflowY = 'hidden';
+        contentEl.scrollTop = 0;
+      }
     }
 
-    const startY = this.activeTranslateY;
+    const startY = this.activeTranslateY || this.getCurrentTranslateY();
     const diffY = targetTranslateY - startY;
     const startTime = performance.now();
 
     this.dragStart.emit();
 
-    const snapStep = (now: number) => {
-      const progress = Math.min(1, (now - startTime) / duration);
-      // Fast, smooth cubic ease-out deceleration curve for ultra-smooth gliding
-      const ease = 1 - Math.pow(1 - progress, 3.2);
-      const currentY = startY + diffY * ease;
+    this.ngZone.runOutsideAngular(() => {
+      const snapStep = (now: number) => {
+        const progress = Math.min(1, (now - startTime) / duration);
+        // Ultra-slow, luxurious buttery deceleration curve
+        const ease = 1 - Math.pow(1 - progress, 4.2);
+        const currentY = startY + diffY * ease;
 
-      this.activeTranslateY = currentY;
+        this.activeTranslateY = currentY;
 
-      if (sheetEl) {
-        sheetEl.style.transform = `translate3d(0, ${currentY.toFixed(2)}px, 0)`;
-      }
-      this.dragSync.emit(currentY);
-
-      if (progress < 1) {
-        this.snapRafId = requestAnimationFrame(snapStep);
-      } else {
-        this.snapRafId = null;
-        this.activeTranslateY = targetTranslateY;
         if (sheetEl) {
-          sheetEl.style.transform = `translate3d(0, ${targetTranslateY.toFixed(2)}px, 0)`;
-          sheetEl.style.willChange = 'auto';
+          sheetEl.style.transform = `translate3d(0, ${currentY.toFixed(2)}px, 0)`;
         }
-        if (contentEl) {
-          if (targetSnap === 'max') {
-            contentEl.style.overflowY = 'auto';
-          } else {
-            contentEl.style.overflowY = 'hidden';
-            contentEl.scrollTop = 0;
-          }
-        }
-        this.ngZone.run(() => {
-          this.snapState.set(targetSnap);
-          this.snapChange.emit(targetSnap);
-          this.dragEnd.emit();
-        });
-      }
-    };
+        // Emits 1:1 on the exact same frame so floating buttons move in perfect unison
+        this.dragSync.emit(currentY);
 
-    this.snapRafId = requestAnimationFrame(snapStep);
+        if (progress < 1) {
+          this.snapRafId = requestAnimationFrame(snapStep);
+        } else {
+          this.snapRafId = null;
+          this.activeTranslateY = targetTranslateY;
+          if (sheetEl) {
+            sheetEl.style.transform = `translate3d(0, ${targetTranslateY.toFixed(2)}px, 0)`;
+            sheetEl.style.willChange = 'auto';
+          }
+          if (contentEl) {
+            if (targetSnap === 'max') {
+              contentEl.style.overflowY = 'auto';
+            } else {
+              contentEl.style.overflowY = 'hidden';
+              contentEl.scrollTop = 0;
+            }
+          }
+          this.ngZone.run(() => {
+            this.snapState.set(targetSnap);
+            this.snapChange.emit(targetSnap);
+            this.dragSync.emit(targetTranslateY);
+            this.dragEnd.emit();
+          });
+        }
+      };
+
+      this.snapRafId = requestAnimationFrame(snapStep);
+    });
   }
 
   onStartWalkIn(): void {
@@ -746,6 +777,26 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
 
   onDropOff(): void {
     this.dropOffClick.emit();
+  }
+
+  onOpenChat(): void {
+    this.openChat.emit();
+  }
+
+  onProposeFare(fare: number): void {
+    this.driverService.proposeFare(fare);
+  }
+
+  onDriverArrived(): void {
+    this.driverService.notifyDriverArrived();
+  }
+
+  onStartTrip(): void {
+    this.driverService.startDepartTrip();
+  }
+
+  onCancelTrip(): void {
+    this.driverService.cancelActiveTrip();
   }
 
   onAddWayside(): void {

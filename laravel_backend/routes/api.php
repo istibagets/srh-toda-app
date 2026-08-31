@@ -28,6 +28,25 @@ Route::prefix('home')->group(function () {
 
 Route::prefix('rides')->group(function () {
     Route::get('/history', [DashboardController::class, 'getRideHistory']);
+    Route::post('/request', [DashboardController::class, 'requestPassengerRide']);
+    Route::get('/active', [DashboardController::class, 'getActiveRide']);
+    Route::post('/{ride}/propose-fare', [DashboardController::class, 'proposeFare']);
+    Route::post('/{ride}/accept-fare', [DashboardController::class, 'acceptFare']);
+    Route::post('/{ride}/driver-arrived', [DashboardController::class, 'driverArrived']);
+    Route::post('/{ride}/start-trip', [DashboardController::class, 'startTrip']);
+    Route::get('/{ride}/messages', [DashboardController::class, 'getChatMessages']);
+    Route::post('/{ride}/messages', [DashboardController::class, 'sendChatMessage']);
+    Route::post('/{ride}/cancel', [DashboardController::class, 'cancelRide']);
+    Route::post('/{ride}/rate', [DashboardController::class, 'rateRide']);
+    Route::post('/{ride}/report', [DashboardController::class, 'reportDriver']);
+});
+
+Route::prefix('saved-locations')->group(function () {
+    Route::get('/', [\App\Http\Controllers\SavedLocationController::class, 'apiList']);
+    Route::post('/', [\App\Http\Controllers\SavedLocationController::class, 'store']);
+    Route::put('/{savedLocation}', [\App\Http\Controllers\SavedLocationController::class, 'update']);
+    Route::delete('/{savedLocation}', [\App\Http\Controllers\SavedLocationController::class, 'destroy']);
+    Route::post('/quick-save', [\App\Http\Controllers\SavedLocationController::class, 'quickSave']);
 });
 
 Route::prefix('driver')->group(function () {
@@ -47,6 +66,12 @@ Route::prefix('admin')->group(function () {
     Route::post('/announcement', [DashboardController::class, 'createAnnouncement']);
     Route::post('/reorder-queue', [DashboardController::class, 'reorderQueue']);
     Route::post('/remove-from-queue', [DashboardController::class, 'removeFromQueue']);
+});
+
+Route::prefix('push')->group(function () {
+    Route::post('/subscribe', [\App\Http\Controllers\PushController::class, 'subscribe']);
+    Route::post('/unsubscribe', [\App\Http\Controllers\PushController::class, 'unsubscribe']);
+    Route::post('/test', [\App\Http\Controllers\PushController::class, 'test']);
 });
 
 Route::get('/map-style', function () {

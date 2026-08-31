@@ -34,6 +34,18 @@ class DummyDataSeeder extends Seeder
             echo "Copied srh-logo.png to documents, drivers_license, and appeals storage." . PHP_EOL;
         }
 
+        // 1.5. Ensure Admin Account
+        User::updateOrCreate(
+            ['email' => 'admin@gmail.com'],
+            [
+                'name' => 'TODA Administrator',
+                'password' => Hash::make('admin123'),
+                'role' => 'admin',
+                'email_verified_at' => now(),
+            ]
+        );
+        echo "Created/Updated Admin: TODA Administrator (admin@gmail.com)" . PHP_EOL;
+
         // 2. Seed 10 Passengers: passenger1@gmail.com -> passenger10@gmail.com
         $passengerNames = [
             'Maria Clara Santos',
@@ -163,18 +175,13 @@ class DummyDataSeeder extends Seeder
                 $createdDate = Carbon::now()->subDays($daysAgo)->subHours(rand(1, 10))->subMinutes(rand(5, 55));
 
                 $statusRandom = rand(1, 10);
-                if ($statusRandom <= 7) {
+                if ($statusRandom <= 8) {
                     $status = 'completed';
                     $rating = rand(4, 5);
                     $reviewComment = $rating === 5 ? 'Very courteous and safe driving!' : 'Good and fast trip.';
                     $feedbackTags = implode(', ', (array) array_rand(array_flip($tagsPool), rand(1, 3)));
-                } elseif ($statusRandom <= 9) {
-                    $status = 'cancelled';
-                    $rating = null;
-                    $reviewComment = null;
-                    $feedbackTags = null;
                 } else {
-                    $status = 'in_transit';
+                    $status = 'cancelled';
                     $rating = null;
                     $reviewComment = null;
                     $feedbackTags = null;

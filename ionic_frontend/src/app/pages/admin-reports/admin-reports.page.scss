@@ -667,17 +667,26 @@
     }
 
     .status-chip {
-      font-size: 6.8pt;
-      font-weight: 900;
-      padding: 2px 6px;
-      border-radius: 4px;
+      font-size: 7pt;
+      font-weight: 800;
+      padding: 0;
+      background: transparent !important;
+      border: none !important;
       display: inline-block;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.03em;
 
-      &.resolved { background: #dcfce7; color: #15803d; }
-      &.investigating { background: #dbeafe; color: #1d4ed8; }
-      &.pending { background: #fef3c7; color: #b45309; }
-      &.dismissed { background: #f1f5f9; color: #475569; }
+      &.resolved {
+        color: #059669 !important;
+      }
+      &.investigating {
+        color: #2563eb !important;
+      }
+      &.pending {
+        color: #d97706 !important;
+      }
+      &.dismissed {
+        color: #64748b !important;
+      }
     }
 
     .desc-cell {

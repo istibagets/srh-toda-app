@@ -267,14 +267,12 @@ Route::delete('/history/driver-clear', [App\Http\Controllers\RideController::cla
 
 Route::get('/history', [App\Http\Controllers\RideController::class, 'history'])->name('history');
 
-// Passenger Saved Places / Locations
+// Passenger Saved Places / Locations (Web Routes)
 Route::middleware('auth')->group(function () {
     Route::get('/saved-locations', [App\Http\Controllers\SavedLocationController::class, 'index'])->name('saved-locations.index');
     Route::post('/saved-locations', [App\Http\Controllers\SavedLocationController::class, 'store'])->name('saved-locations.store');
     Route::put('/saved-locations/{savedLocation}', [App\Http\Controllers\SavedLocationController::class, 'update'])->name('saved-locations.update');
     Route::delete('/saved-locations/{savedLocation}', [App\Http\Controllers\SavedLocationController::class, 'destroy'])->name('saved-locations.destroy');
-    Route::get('/api/saved-locations', [App\Http\Controllers\SavedLocationController::class, 'apiList'])->name('api.saved-locations.index');
-    Route::post('/api/saved-locations/quick-save', [App\Http\Controllers\SavedLocationController::class, 'quickSave'])->name('api.saved-locations.quick-save');
 });
 
 Route::get('/rides/{ride}/active', [App\Http\Controllers\RideController::class, 'showActive'])->name('rides.active');

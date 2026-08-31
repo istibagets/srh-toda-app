@@ -41,7 +41,7 @@ export interface DriverOnTrip {
   rideId?: string;
   driverName: string;
   mtopNumber: string;
-  status: 'En Route' | 'At Pickup' | 'In Transit' | 'Returning' | 'On Trip';
+  status: 'Bargaining' | 'Negotiating' | 'En Route' | 'At Pickup' | 'In Transit' | 'Returning' | 'On Trip';
   pickupLocation: string;
   destination: string;
   fare: number;
@@ -61,7 +61,8 @@ export interface RideTrip {
   passengerCount: number;
   fare: number;
   originalFare?: number;
-  status: 'searching' | 'fare_proposed' | 'accepted' | 'arrived' | 'in_transit' | 'returning' | 'completed' | 'cancelled';
+  proposedFare?: number;
+  status: 'searching' | 'bargaining' | 'fare_proposed' | 'fare_accepted' | 'en_route' | 'accepted' | 'arrived' | 'in_transit' | 'returning' | 'completed' | 'cancelled';
   tripType: 'terminal_walk_in' | 'online_dispatch' | 'wayside_pickup';
   startedAt: string;
   completedAt?: string;
@@ -85,10 +86,11 @@ export interface Announcement {
   id: number;
   title: string;
   message: string;
-  targetAudience: 'ALL' | 'DRIVERS' | 'PASSENGERS' | 'RATING' | 'APPEAL';
+  targetAudience: 'ALL' | 'DRIVERS' | 'PASSENGERS' | 'RATING' | 'APPEAL' | string;
   isRead: boolean;
   createdAt: string;
   ratingStars?: number;
   feedbackComment?: string;
   feedbackTags?: string[];
+  actionUrl?: string;
 }

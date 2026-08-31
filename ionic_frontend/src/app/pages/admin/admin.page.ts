@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, effect, untracked, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -23,6 +23,8 @@ import {
   warningOutline,
   documentAttachOutline,
   openOutline,
+  eyeOutline,
+  imageOutline,
   checkmarkOutline,
   banOutline,
   swapVerticalOutline,
@@ -39,8 +41,12 @@ import {
   downloadOutline,
   logOutOutline,
   trashOutline,
+  addOutline,
+  removeOutline,
+  arrowBackOutline,
 } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
+import { DriverService } from '../../services/driver.service';
 import {
   DashboardService,
   AdminDriverItem,
@@ -69,6 +75,7 @@ import {
 })
 export class AdminPage implements OnInit {
   authService = inject(AuthService);
+  private driverService = inject(DriverService);
   private dashboardService = inject(DashboardService);
   private router = inject(Router);
   private alertController = inject(AlertController);
@@ -110,6 +117,178 @@ export class AdminPage implements OnInit {
   broadcastTitle = signal<string>('');
   broadcastMessage = signal<string>('');
   broadcastAudience = signal<'ALL' | 'DRIVERS' | 'PASSENGERS'>('ALL');
+
+  // In-App Document Preview State
+  isDocPreviewOpen = signal<boolean>(false);
+  previewDocTitle = signal<string>('');
+  previewDocUrl = signal<string>('');
+  docZoomScale = signal<number>(1);
+  docPanX = signal<number>(0);
+  docPanY = signal<number>(0);
+
+  private initialPinchDist = 0;
+  private initialScale = 1;
+  private lastTapTime = 0;
+  private touchStartX = 0;
+  private touchStartY = 0;
+  private initialPanX = 0;
+  private initialPanY = 0;
+
+  openDocPreview(title: string, url?: string | null): void {
+    if (!url) return;
+    this.previewDocTitle.set(title);
+    this.previewDocUrl.set(url);
+    this.resetDocZoom();
+    this.isDocPreviewOpen.set(true);
+  }
+
+  closeDocPreview(): void {
+    this.isDocPreviewOpen.set(false);
+    this.resetDocZoom();
+  }
+
+  zoomDocIn(): void {
+    this.docZoomScale.update((s) => Math.min(4, +(s + 0.4).toFixed(1)));
+  }
+
+  zoomDocOut(): void {
+    this.docZoomScale.update((s) => {
+      const ns = Math.max(1, +(s - 0.4).toFixed(1));
+      if (ns === 1) {
+        this.docPanX.set(0);
+        this.docPanY.set(0);
+      }
+      return ns;
+    });
+  }
+
+  resetDocZoom(): void {
+    this.docZoomScale.set(1);
+    this.docPanX.set(0);
+    this.docPanY.set(0);
+  }
+
+  openInExternalBrowser(url?: string, event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    const targetUrl = url || this.previewDocUrl();
+    if (!targetUrl) return;
+    try {
+      const win = window.open(targetUrl, '_system');
+      if (!win) {
+        window.open(targetUrl, '_blank', 'noopener,noreferrer');
+      }
+    } catch {
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
+    }
+  }
+
+  downloadDoc(): void {
+    const url = this.previewDocUrl();
+    if (!url) return;
+    try {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${this.previewDocTitle().replace(/\s+/g, '_')}_document.png`;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch {
+      window.open(url, '_blank');
+    }
+  }
+
+  printDoc(): void {
+    const url = this.previewDocUrl();
+    if (!url) return;
+    try {
+      const win = window.open('', '_blank');
+      if (win) {
+        win.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>${this.previewDocTitle() || 'Official Document'}</title>
+              <style>
+                body { margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 95vh; font-family: sans-serif; }
+                .title { font-size: 18px; font-weight: bold; margin-bottom: 12px; }
+                img { max-width: 100%; max-height: 85vh; object-fit: contain; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+              </style>
+            </head>
+            <body>
+              <div class="title">${this.previewDocTitle()}</div>
+              <img src="${url}" onload="setTimeout(() => { window.print(); window.close(); }, 300);" />
+            </body>
+          </html>
+        `);
+        win.document.close();
+      }
+    } catch {
+      window.print();
+    }
+  }
+
+  onImageTouchStart(e: TouchEvent): void {
+    if (e.touches.length === 2) {
+      this.initialPinchDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      this.initialScale = this.docZoomScale();
+    } else if (e.touches.length === 1) {
+      const now = Date.now();
+      if (now - this.lastTapTime < 300) {
+        if (this.docZoomScale() > 1) {
+          this.resetDocZoom();
+        } else {
+          this.docZoomScale.set(2.2);
+        }
+      }
+      this.lastTapTime = now;
+      this.touchStartX = e.touches[0].clientX;
+      this.touchStartY = e.touches[0].clientY;
+      this.initialPanX = this.docPanX();
+      this.initialPanY = this.docPanY();
+    }
+  }
+
+  onImageTouchMove(e: TouchEvent): void {
+    if (e.touches.length === 2 && this.initialPinchDist > 0) {
+      if (e.cancelable) e.preventDefault();
+      const curDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const scale = Math.max(1, Math.min(4, +(this.initialScale * (curDist / this.initialPinchDist)).toFixed(2)));
+      this.docZoomScale.set(scale);
+      if (scale <= 1) {
+        this.docPanX.set(0);
+        this.docPanY.set(0);
+      }
+    } else if (e.touches.length === 1 && this.docZoomScale() > 1) {
+      if (e.cancelable) e.preventDefault();
+      const dx = e.touches[0].clientX - this.touchStartX;
+      const dy = e.touches[0].clientY - this.touchStartY;
+      this.docPanX.set(this.initialPanX + dx);
+      this.docPanY.set(this.initialPanY + dy);
+    }
+  }
+
+  onImageTouchEnd(): void {
+    this.initialPinchDist = 0;
+  }
+
+  onWheelZoom(e: WheelEvent): void {
+    if (e.cancelable) e.preventDefault();
+    if (e.deltaY < 0) {
+      this.zoomDocIn();
+    } else {
+      this.zoomDocOut();
+    }
+  }
 
   // Print Modal State
   isPrintModalOpen = signal<boolean>(false);
@@ -161,6 +340,8 @@ export class AdminPage implements OnInit {
       warningOutline,
       documentAttachOutline,
       openOutline,
+      eyeOutline,
+      imageOutline,
       checkmarkOutline,
       banOutline,
       swapVerticalOutline,
@@ -177,11 +358,39 @@ export class AdminPage implements OnInit {
       downloadOutline,
       logOutOutline,
       trashOutline,
+      addOutline,
+      removeOutline,
+      arrowBackOutline,
+    });
+
+    // Real-time live queue and driver sync listener for instantaneous updates
+    effect(() => {
+      const _ = this.driverService.syncTrigger();
+      untracked(() => {
+        this.loadAdminDataSilently();
+      });
     });
   }
 
   ngOnInit(): void {
     this.loadAdminData();
+  }
+
+  loadAdminDataSilently(): void {
+    this.dashboardService.getAdminOverview().subscribe({
+      next: (res: AdminOverviewResponse) => {
+        if (res?.summary) {
+          this.summary.set(res.summary);
+          this.drivers.set(res.drivers || []);
+          this.queue.set(res.queue || []);
+          this.reports.set(res.reports || []);
+          this.announcements.set(res.announcements || []);
+        }
+      },
+      error: (err) => {
+        console.warn('Admin overview live sync notice:', err?.status);
+      },
+    });
   }
 
   loadAdminData(event?: any): void {
@@ -365,7 +574,7 @@ export class AdminPage implements OnInit {
           text: 'Remove & Offline',
           role: 'destructive',
           handler: () => {
-            this.removeDriverFromQueue(item.driver_id);
+            this.removeDriverFromQueue(item.driver_id || item.id);
           },
         },
       ],

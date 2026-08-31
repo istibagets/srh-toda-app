@@ -1,240 +1,384 @@
 <ion-content [fullscreen]="true" class="srh-driver-content" [scrollY]="false">
-  <!-- ========================================== -->
-  <!-- STATE 1: APPROVED DRIVER HUB (FULL ACCESS) -->
-  <!-- ========================================== -->
-  @if (driverService.driver().complianceStatus === 'Approved') {
-    <!-- 1. DRIVER FLOATING HEADER (Life360 Zoom-in & Fade-away Motion) -->
-    <div
-      id="driver-header-motion-wrapper"
-      class="driver-header-motion-wrapper"
-    >
-      <app-driver-header></app-driver-header>
-    </div>
-
-    <!-- 2. FULL BLEED MAPLIBRE GL VIEWPORT -->
-    <div
-      #mapContainer
-      id="grab-home-map"
-      class="grab-fullscreen-map"
-    ></div>
-
-    <!-- 3. FLOATING POWER TOGGLE BUTTON (Bottom Left - Hidden during active trip and returning to terminal) -->
-    <div
-      id="floating-power-container"
-      class="floating-power-container"
-      [class.hidden-action]="driverService.activeTrip() || driverService.isReturning()"
-    >
-      <app-duty-button (dutyToggled)="onDutyToggled($event)"></app-duty-button>
-    </div>
-
-    <!-- 4. FLOATING MAP CONTROLS STACK (Bottom Right - Life360 Downward Tuck & Fade) -->
-    <div
-      id="floating-map-controls-container"
-      class="floating-map-controls-container"
-    >
-      <button
-        type="button"
-        id="unified-map-control-btn"
-        class="unified-map-btn"
-        [class.btn-state-panned]="isUserPanned()"
-        (click)="handleUnifiedMapButtonClick()"
-        title="Toggle 2D / 3D Map View"
-      >
-        <!-- When navigated/dragged away from driver: Show Blue Recenter Target Crosshair Icon -->
-        @if (isUserPanned()) {
-          <svg class="control-svg recenter-svg" [class.is-spinning]="isGpsFetching()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <circle cx="12" cy="12" r="7"/>
-            <line x1="12" y1="1" x2="12" y2="4"/>
-            <line x1="12" y1="20" x2="12" y2="23"/>
-            <line x1="1" y1="12" x2="4" y2="12"/>
-            <line x1="20" y1="12" x2="23" y2="12"/>
-            <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
-          </svg>
-        } @else if (mapControlState() === 2) {
-          <!-- 2D Top View Active: Shows 2D Icon -->
-          <div class="map-btn-2d-view">
-            <span class="label-2d">2D</span>
-          </div>
-        } @else if (mapControlState() === 3) {
-          <!-- 3D Tilted View Active: Shows Compass Needle Icon -->
-          <svg class="control-svg compass-svg" viewBox="0 0 24 24" fill="currentColor">
-            <polygon points="12,2 16,12 12,9 8,12" fill="#ef4444"/>
-            <polygon points="12,22 8,12 12,15 16,12" fill="#94a3b8"/>
-            <circle cx="12" cy="12" r="1.5" fill="#0f172a"/>
-          </svg>
-        }
-      </button>
-    </div>
-
-    <!-- 5. BOTTOM SHEET: LIVE QUEUE, DROP-OFF & RETURNING (Smooth On-Sync Drag) -->
-    <app-queue-card
-      (startWalkIn)="onStartTerminalRide()"
-      (addWayside)="onAddWaysideRide()"
-      (toggleDutyClick)="onDutyToggled(!driverService.isOnline())"
-      (dropOffClick)="onDropOffClicked()"
-      (snapChange)="onSnapChange($event)"
-      (dragSync)="onSheetDragSync($event)"
-      (dragStart)="onSheetDragStart()"
-      (dragEnd)="onSheetDragEnd()"
-    ></app-queue-card>
-
-    <!-- 6. TERMINAL WALK-IN & WAYSIDE MODAL (Fresh High Frame Rate Slide-Up Sheet) -->
-    <app-terminal-ride-modal
-      [isOpen]="showTerminalModal()"
-      [isWayside]="isWaysideModal()"
-      (closeModal)="closeTerminalModal()"
-      (confirmRide)="onTerminalRideConfirmed($event)"
-    ></app-terminal-ride-modal>
-  }
 
   <!-- ========================================== -->
-  <!-- STATE 2: PENDING APPROVAL VIEW             -->
+  <!-- ROLE: PASSENGER COMMUTE HUB                -->
   <!-- ========================================== -->
-  @if (driverService.driver().complianceStatus === 'Pending') {
-    <div class="compliance-screen-wrap pending-bg">
-      <div class="compliance-card">
-        <div class="illustration-wrap">
-          <div class="pending-icon-circle">
-            <ion-icon name="shield-checkmark-outline"></ion-icon>
-          </div>
-        </div>
+  @if (authService.isPassenger()) {
+  <!-- 1. FLOATING HEADER (Avatar & Notification Bell) -->
+  <div id="driver-header-motion-wrapper" class="driver-header-motion-wrapper">
+    <app-driver-header></app-driver-header>
+  </div>
 
-        <div class="text-block">
-          <span class="status-pill pending">
-            <span class="pulse-dot"></span>
-            VERIFICATION IN PROGRESS
-          </span>
-          <h2 class="title">Your Profile is Under Review</h2>
-          <p class="desc">
-            Your SRH LINK-TODA driver credentials and MTOP permit #{{ driverService.driver().mtopNumber }} have been submitted and are currently being verified by TODA Admin.
-          </p>
-        </div>
+  <!-- 2. FULL BLEED MAPLIBRE GL VIEWPORT -->
+  <div #mapContainer id="grab-home-map" class="grab-fullscreen-map"></div>
 
-        <div class="info-box">
-          <span class="info-lbl">Application Status:</span>
-          <span class="info-val">Submitted • Awaiting Administrator Review</span>
-        </div>
+  <!-- 3. FLOATING MAP CONTROLS STACK (Bottom Right) -->
+  <div id="floating-map-controls-container" class="floating-map-controls-container">
+    <button type="button" id="unified-map-control-btn" class="unified-map-btn" [class.btn-state-panned]="isUserPanned()"
+      (click)="handleUnifiedMapButtonClick()" title="Toggle 2D / 3D Map View">
+      @if (isUserPanned()) {
+      <svg class="control-svg recenter-svg" [class.is-spinning]="isGpsFetching()" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2.5">
+        <circle cx="12" cy="12" r="7" />
+        <line x1="12" y1="1" x2="12" y2="4" />
+        <line x1="12" y1="20" x2="12" y2="23" />
+        <line x1="1" y1="12" x2="4" y2="12" />
+        <line x1="20" y1="12" x2="23" y2="12" />
+        <circle cx="12" cy="12" r="2.5" fill="currentColor" />
+      </svg>
+      } @else if (mapControlState() === 2) {
+      <div class="map-btn-2d-view">
+        <span class="label-2d">2D</span>
       </div>
-    </div>
-  }
+      } @else if (mapControlState() === 3) {
+      <svg class="control-svg compass-svg" viewBox="0 0 24 24" fill="currentColor">
+        <polygon points="12,2 16,12 12,9 8,12" fill="#ef4444" />
+        <polygon points="12,22 8,12 12,15 16,12" fill="#94a3b8" />
+        <circle cx="12" cy="12" r="1.5" fill="#0f172a" />
+      </svg>
+      }
+    </button>
+  </div>
 
-  <!-- ========================================== -->
-  <!-- STATE 3: SUSPENDED / REJECTED VIEW         -->
-  <!-- ========================================== -->
-  @if (driverService.driver().complianceStatus === 'Suspended' || driverService.driver().complianceStatus === 'Rejected') {
-    <div class="compliance-screen-wrap suspended-bg">
-      <div class="compliance-card">
-        <div class="suspension-banner">
-          <div class="warning-icon-wrap">
-            <ion-icon name="warning-outline"></ion-icon>
+  <!-- 4. PASSENGER COMMUTER BOTTOM SHEET (1:1 Hardware Drag Engine) -->
+  <app-passenger-sheet [activeRide]="activePassengerRide()" [unreadChatCount]="unreadChatCount()" [popularLandmarks]="popularLandmarks"
+    (dragSync)="onSheetDragSync($event)" (snapChange)="onSnapChange($event)" (dragStart)="onSheetDragStart()"
+    (dragEnd)="onSheetDragEnd()" (openBooking)="openBookingModal($event)" (acceptFare)="acceptPassengerFare()"
+    (openChat)="openTripChat()" (cancelRide)="cancelPassengerRide()"></app-passenger-sheet>
+
+
+
+  <!-- ============================================== -->
+  <!-- 5. INTERACTIVE PASSENGER BOOKING MODAL         -->
+  <!-- ============================================== -->
+  <ion-modal [isOpen]="showBookingModal()" (didDismiss)="closeBookingModal()" class="srh-booking-sheet-modal"
+    [initialBreakpoint]="0.54" [breakpoints]="[0, 0.54]">
+    <ng-template>
+      <div class="booking-modal-container">
+        <!-- Modal Header -->
+        <div class="modal-top-bar">
+          <div class="modal-title-meta">
+            <span class="modal-eyebrow">SRH TODA RIDE DISPATCH</span>
+            <h2 class="modal-heading">Request a Tricycle</h2>
           </div>
-          <div>
-            <span class="status-pill error">
-              {{ driverService.driver().complianceStatus === 'Rejected' ? 'APPLICATION DECLINED' : 'ACCOUNT SUSPENDED' }}
-            </span>
-            <h2 class="title mt-2">
-              {{ driverService.driver().complianceStatus === 'Rejected' ? 'Application Needs Review' : 'Account Temporarily Suspended' }}
-            </h2>
-          </div>
+          <button type="button" class="modal-close-btn" (click)="closeBookingModal()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
         </div>
 
-        <!-- Official Notice Card -->
-        <div class="notice-card">
-          <span class="notice-title">OFFICIAL NOTICE</span>
-          <p class="notice-msg">
-            "{{ driverService.driver().suspensionReason || 'Compliance documentation requires updated verification. Please submit an appeal below or visit the TODA office.' }}"
-          </p>
-        </div>
-
-        <!-- Appeal Form Section -->
-        <div class="appeal-card">
-          <h3 class="appeal-title">Submit a Reinstatement Appeal</h3>
-          <p class="appeal-sub">Provide explanation or attach supporting proof for TODA Admin review.</p>
-
-          @if (driverService.driver().appealStatus === 'Pending') {
-            <div class="appeal-pending-box">
-              <div class="pending-head">
-                <span class="dot"></span>
-                <span>APPEAL PENDING REVIEW</span>
+        <!-- Modal Scrollable Content -->
+        <div class="modal-body-scroller">
+          <!-- 1. PICKUP ADDRESS (REQUIRED) -->
+          <div class="srh-input-box pickup-box"
+            [class.is-required-warning]="!bookingPickup() || !bookingPickup().trim()">
+            <div class="input-box-left">
+              <div class="box-icon-circle blue" [class.red]="!bookingPickup() || !bookingPickup().trim()">
+                <ion-icon name="location"></ion-icon>
               </div>
-              <p class="appeal-text">"{{ driverService.driver().appealMessage }}"</p>
-              <span class="appeal-time">Submitted {{ driverService.driver().appealedAt }}. Admin will evaluate shortly.</span>
-            </div>
-          } @else {
-            <div class="appeal-form-box">
-              <textarea
-                class="appeal-textarea"
-                rows="3"
-                placeholder="Explain why your account should be reinstated or detail corrected details..."
-                [ngModel]="appealText()"
-                (ngModelChange)="appealText.set($event)"
-              ></textarea>
-
-              <!-- Attached file chips -->
-              @if (appealFiles().length > 0) {
-                <div class="file-chips-row">
-                  @for (file of appealFiles(); track file.name; let idx = $index) {
-                    <div class="file-chip">
-                      <ion-icon name="document-attach-outline"></ion-icon>
-                      <span class="fname">{{ file.name }}</span>
-                      <button type="button" class="del-btn" (click)="removeAppealFile(idx)">&times;</button>
-                    </div>
+              <div class="box-text-content">
+                <span class="box-eyebrow blue" [class.red]="!bookingPickup() || !bookingPickup().trim()">
+                  @if (!bookingPickup() || !bookingPickup().trim()) {
+                  PICKUP ADDRESS REQUIRED (ENTER YOUR BLOCK &amp; LOT)
+                  } @else {
+                  PICKUP ADDRESS (REQUIRED)
                   }
-                </div>
-              }
-
-              <div class="appeal-form-footer">
-                <label class="attach-btn">
-                  <ion-icon name="document-attach-outline"></ion-icon>
-                  <span>Attach Proof</span>
-                  <input type="file" multiple class="hidden-input" (change)="handleAppealFileUpload($event)" />
-                </label>
-                <span class="size-hint">Max 10MB</span>
+                </span>
+                <input type="text" class="box-native-input" [ngModel]="bookingPickup()"
+                  (ngModelChange)="bookingPickup.set($event)" placeholder="Enter Block &amp; Lot" />
               </div>
+            </div>
+            <div class="input-box-right">
+              <span class="gps-auto-pill">
+                <span class="gps-dot"></span>
+                <span>GPS Auto</span>
+              </span>
+            </div>
+          </div>
 
-              <button type="button" class="submit-appeal-btn" (click)="submitAppealForm()">
-                Submit Appeal to TODA Admin
+          <!-- 2. DROP-OFF DESTINATION NAME (REQUIRED) -->
+          <div class="srh-input-box dropoff-box"
+            [class.is-required-warning]="!bookingDestination() || !bookingDestination().trim()">
+            <div class="input-box-left">
+              <div class="box-icon-circle green" [class.red]="!bookingDestination() || !bookingDestination().trim()">
+                <ion-icon name="location"></ion-icon>
+              </div>
+              <div class="box-text-content">
+                <span class="box-eyebrow green" [class.red]="!bookingDestination() || !bookingDestination().trim()">
+                  @if (!bookingDestination() || !bookingDestination().trim()) {
+                  DROP-OFF NAME (REQUIRED)
+                  } @else {
+                  DROP-OFF NAME (REQUIRED)
+                  }
+                </span>
+                <input type="text" class="box-native-input" [ngModel]="bookingDestination()"
+                  (ngModelChange)="onDestinationInputChange($event)" placeholder="Enter Drop off name" />
+              </div>
+            </div>
+            <div class="input-box-right">
+              <button type="button" class="pin-map-trigger-btn" (click)="startManualPinning()">
+                <ion-icon name="location"></ion-icon>
+                <span>Pin</span>
               </button>
             </div>
+          </div>
+
+          <!-- Passengers Counter -->
+          <div class="form-field-group">
+            <div class="pax-counter-box">
+              <div class="pax-meta">
+                <span class="pax-title">Number of Passengers</span>
+                <span class="pax-sub">Standard fare covers up to 2 pax (+₱5 beyond 2)</span>
+              </div>
+              <div class="pax-controls">
+                <button type="button" class="pax-btn" (click)="decrementPax()" [disabled]="bookingPax() <= 1">
+                  <ion-icon name="remove-outline"></ion-icon>
+                </button>
+                <span class="pax-val">{{ bookingPax() }} Pax</span>
+                <button type="button" class="pax-btn" (click)="incrementPax()" [disabled]="bookingPax() >= 4">
+                  <ion-icon name="add-outline"></ion-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fare Matrix Summary Card -->
+          <div class="fare-breakdown-card">
+            <div class="fare-row main-fare-row">
+              <div class="fare-type-meta">
+                <span class="fare-title">Barangay Regulated Fare</span>
+                <span class="fare-desc">Official TODA &amp; HOA rate schedule</span>
+              </div>
+              <span class="fare-amount-large">₱{{ bookingFare() | number:'1.2-2' }}</span>
+            </div>
+            <div class="fare-notice">
+              <ion-icon name="shield-checkmark-outline"></ion-icon>
+              <span>Payment is made in Cash or GCash upon arrival at destination.</span>
+            </div>
+          </div>
+
+          <!-- Modal Footer CTA (Directly below fare summary) -->
+          <div class="modal-footer-cta">
+            <button type="button" class="confirm-dispatch-btn" [disabled]="isSubmittingBooking()"
+              (click)="submitPassengerBooking()">
+              @if (isSubmittingBooking()) {
+              <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
+              <span>Connecting to TODA Queue...</span>
+              } @else {
+              <span>Confirm &amp; Request Tricycle</span>
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+  } @else {
+  <!-- ========================================== -->
+  <!-- ROLE: DRIVER / ADMIN HUB                   -->
+  <!-- ========================================== -->
+
+  <!-- STATE 1: APPROVED DRIVER HUB (FULL ACCESS) -->
+  @if (driverService.driver().complianceStatus === 'Approved') {
+  <!-- 1. DRIVER FLOATING HEADER -->
+  <div id="driver-header-motion-wrapper" class="driver-header-motion-wrapper">
+    <app-driver-header></app-driver-header>
+  </div>
+
+  <!-- 2. FULL BLEED MAPLIBRE GL VIEWPORT -->
+  <div #mapContainer id="grab-home-map" class="grab-fullscreen-map"></div>
+
+  <!-- 3. FLOATING POWER TOGGLE BUTTON (Bottom Left) -->
+  <div id="floating-power-container" class="floating-power-container"
+    [class.hidden-action]="driverService.activeTrip() || driverService.isReturning()">
+    <app-duty-button (dutyToggled)="onDutyToggled($event)"></app-duty-button>
+  </div>
+
+  <!-- 4. FLOATING MAP CONTROLS STACK (Bottom Right) -->
+  <div id="floating-map-controls-container" class="floating-map-controls-container">
+    <button type="button" id="unified-map-control-btn" class="unified-map-btn" [class.btn-state-panned]="isUserPanned()"
+      (click)="handleUnifiedMapButtonClick()" title="Toggle 2D / 3D Map View">
+      @if (isUserPanned()) {
+      <svg class="control-svg recenter-svg" [class.is-spinning]="isGpsFetching()" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2.5">
+        <circle cx="12" cy="12" r="7" />
+        <line x1="12" y1="1" x2="12" y2="4" />
+        <line x1="12" y1="20" x2="12" y2="23" />
+        <line x1="1" y1="12" x2="4" y2="12" />
+        <line x1="20" y1="12" x2="23" y2="12" />
+        <circle cx="12" cy="12" r="2.5" fill="currentColor" />
+      </svg>
+      } @else if (mapControlState() === 2) {
+      <div class="map-btn-2d-view">
+        <span class="label-2d">2D</span>
+      </div>
+      } @else if (mapControlState() === 3) {
+      <svg class="control-svg compass-svg" viewBox="0 0 24 24" fill="currentColor">
+        <polygon points="12,2 16,12 12,9 8,12" fill="#ef4444" />
+        <polygon points="12,22 8,12 12,15 16,12" fill="#94a3b8" />
+        <circle cx="12" cy="12" r="1.5" fill="#0f172a" />
+      </svg>
+      }
+    </button>
+  </div>
+
+  <!-- 5. BOTTOM SHEET: LIVE QUEUE, DROP-OFF & RETURNING -->
+  <app-queue-card [unreadChatCount]="unreadChatCount()" (startWalkIn)="onStartTerminalRide()" (addWayside)="onAddWaysideRide()"
+    (toggleDutyClick)="onDutyToggled(!driverService.isOnline())" (dropOffClick)="onDropOffClicked()"
+    (openChat)="openTripChat()" (snapChange)="onSnapChange($event)" (dragSync)="onSheetDragSync($event)"
+    (dragStart)="onSheetDragStart()" (dragEnd)="onSheetDragEnd()"></app-queue-card>
+
+  <!-- 6. TERMINAL WALK-IN & WAYSIDE MODAL -->
+  <app-terminal-ride-modal [isOpen]="showTerminalModal()" [isWayside]="isWaysideModal()"
+    (closeModal)="closeTerminalModal()" (confirmRide)="onTerminalRideConfirmed($event)"></app-terminal-ride-modal>
+  }
+
+  <!-- STATE 2: PENDING APPROVAL VIEW -->
+  @if (driverService.driver().complianceStatus === 'Pending') {
+  <div class="compliance-screen-wrap pending-bg">
+    <div class="compliance-card">
+      <div class="illustration-wrap">
+        <div class="pending-icon-circle">
+          <ion-icon name="shield-checkmark-outline"></ion-icon>
+        </div>
+      </div>
+
+      <div class="text-block">
+        <span class="status-pill pending">
+          <span class="pulse-dot"></span>
+          VERIFICATION IN PROGRESS
+        </span>
+        <h2 class="title">Your Profile is Under Review</h2>
+        <p class="desc">
+          Your SRH LINK-TODA driver credentials and MTOP permit #{{ driverService.driver().mtopNumber }} have been
+          submitted and are currently being verified by TODA Admin.
+        </p>
+      </div>
+
+      <div class="info-box">
+        <span class="info-lbl">Application Status:</span>
+        <span class="info-val">Submitted • Awaiting Administrator Review</span>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- STATE 3: SUSPENDED / REJECTED VIEW -->
+  @if (driverService.driver().complianceStatus === 'Suspended' || driverService.driver().complianceStatus ===
+  'Rejected') {
+  <div class="compliance-screen-wrap suspended-bg">
+    <div class="compliance-card">
+      <div class="suspension-banner">
+        <div class="warning-icon-wrap">
+          <ion-icon name="warning-outline"></ion-icon>
+        </div>
+        <div>
+          <span class="status-pill error">
+            {{ driverService.driver().complianceStatus === 'Rejected' ? 'APPLICATION DECLINED' : 'ACCOUNT SUSPENDED' }}
+          </span>
+          <h2 class="title mt-2">
+            {{ driverService.driver().complianceStatus === 'Rejected' ? 'Application Needs Review' : 'Account
+            Temporarily Suspended' }}
+          </h2>
+        </div>
+      </div>
+
+      <!-- Official Notice Card -->
+      <div class="notice-card">
+        <span class="notice-title">OFFICIAL NOTICE</span>
+        <p class="notice-msg">
+          "{{ driverService.driver().suspensionReason || 'Compliance documentation requires updated verification. Please
+          submit an appeal below or visit the TODA office.' }}"
+        </p>
+      </div>
+
+      <!-- Appeal Form Section -->
+      <div class="appeal-card">
+        <h3 class="appeal-title">Submit a Reinstatement Appeal</h3>
+        <p class="appeal-sub">Provide explanation or attach supporting proof for TODA Admin review.</p>
+
+        @if (driverService.driver().appealStatus === 'Pending') {
+        <div class="appeal-pending-box">
+          <div class="pending-head">
+            <span class="dot"></span>
+            <span>APPEAL PENDING REVIEW</span>
+          </div>
+          <p class="appeal-text">"{{ driverService.driver().appealMessage }}"</p>
+          <span class="appeal-time">Submitted {{ driverService.driver().appealedAt }}. Admin will evaluate
+            shortly.</span>
+        </div>
+        } @else {
+        <div class="appeal-form-box">
+          <textarea class="appeal-textarea" rows="3"
+            placeholder="Explain why your account should be reinstated or detail corrected details..."
+            [ngModel]="appealText()" (ngModelChange)="appealText.set($event)"></textarea>
+
+          @if (appealFiles().length > 0) {
+          <div class="file-chips-row">
+            @for (file of appealFiles(); track file.name; let idx = $index) {
+            <div class="file-chip">
+              <ion-icon name="document-attach-outline"></ion-icon>
+              <span class="fname">{{ file.name }}</span>
+              <button type="button" class="del-btn" (click)="removeAppealFile(idx)">&times;</button>
+            </div>
+            }
+          </div>
           }
+
+          <div class="appeal-form-footer">
+            <label class="attach-btn">
+              <ion-icon name="document-attach-outline"></ion-icon>
+              <span>Attach Proof</span>
+              <input type="file" multiple class="hidden-input" (change)="handleAppealFileUpload($event)" />
+            </label>
+            <span class="size-hint">Max 10MB</span>
+          </div>
+
+          <button type="button" class="submit-appeal-btn" (click)="submitAppealForm()">
+            Submit Appeal to TODA Admin
+          </button>
         </div>
+        }
       </div>
     </div>
+  </div>
   }
 
-  <!-- ========================================== -->
-  <!-- STATE 4: PERMANENTLY REMOVED LOCKOUT VIEW  -->
-  <!-- ========================================== -->
+  <!-- STATE 4: PERMANENTLY REMOVED LOCKOUT VIEW -->
   @if (driverService.driver().complianceStatus === 'Removed') {
-    <div class="compliance-screen-wrap removed-bg">
-      <div class="compliance-card dark-card">
-        <div class="lock-icon-wrap">
-          <ion-icon name="lock-closed-outline"></ion-icon>
-        </div>
+  <div class="compliance-screen-wrap removed-bg">
+    <div class="compliance-card dark-card">
+      <div class="lock-icon-wrap">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+      </div>
 
-        <div class="text-block">
-          <span class="status-pill removed">APPLICATION REMOVED</span>
-          <h2 class="title text-white">You Can No Longer Apply</h2>
-          <p class="desc text-slate-300">
-            Your driver application has been permanently removed from the SRH LINK-TODA system.
-          </p>
-        </div>
+      <div class="text-block">
+        <span class="status-pill removed">APPLICATION REMOVED</span>
+        <h2 class="title text-white">You Can No Longer Apply</h2>
+        <p class="desc text-slate-300">
+          Your driver application has been permanently removed from the SRH LINK-TODA system.
+        </p>
+      </div>
 
-        <div class="contact-admin-box">
-          <h4>Need Assistance?</h4>
-          <p>Please visit or contact the <strong>SRH TODA Administration</strong> office directly regarding your account.</p>
-        </div>
+      <div class="contact-admin-box">
+        <h4>Need Assistance?</h4>
+        <p>Please visit or contact the <strong>SRH TODA Administration</strong> office directly regarding your account.
+        </p>
       </div>
     </div>
+  </div>
   }
+  }
+
+  <!-- 7. IN-APP TRIP CHAT MODAL -->
+  <app-trip-chat [rideId]="chatRideId()" [targetName]="chatTargetName()" [targetSub]="chatTargetSub()"
+    [targetAvatar]="chatTargetAvatar()" [isOpen]="showChatModal()" (closeChat)="closeTripChat()"
+    (newMessageReceived)="onNewChatMessage($event)"></app-trip-chat>
+
+  <!-- 8. PASSENGER RIDE COMPLETION & RATING MODAL -->
+  <app-passenger-rating-modal [ride]="completedRideForRating()" [isOpen]="showRatingModal()"
+    (closeModal)="showRatingModal.set(false)" (submitted)="onRatingSubmitted()"></app-passenger-rating-modal>
 
   <!-- TOAST NOTIFICATIONS -->
-  <ion-toast
-    [isOpen]="showToast()"
-    [message]="toastMessage()"
-    [duration]="3000"
-    (didDismiss)="showToast.set(false)"
-    position="top"
-    class="srh-custom-toast"
-  ></ion-toast>
+  <ion-toast [isOpen]="showToast()" [message]="toastMessage()" [color]="toastColor()" [duration]="3000" (didDismiss)="showToast.set(false)"
+    position="top" class="srh-custom-toast"></ion-toast>
 </ion-content>

@@ -33,28 +33,77 @@
   </ion-refresher>
 
   <div class="history-layout-container">
-    <!-- ── 1. SUMMARY KPI METRIC DECK ──────────────────────── -->
-    <div class="summary-metric-deck">
-      <div class="metric-card">
-        <div class="metric-data">
-          <span class="metric-label">{{ authService.isPassenger() ? 'TOTAL RIDES' : 'TRIPS COMPLETED' }}</span>
-          <span class="metric-value">{{ totalCompletedCount() }}</span>
+    <!-- ── 1. EXECUTIVE HERO DECK WITH ANIMATED RADIAL RATING GRAPH ── -->
+    <div class="history-hero-deck">
+      <!-- Left: Animated Radial Progress Ring with Profile Avatar -->
+      <div class="radial-score-container">
+        <div class="radial-ring-wrapper">
+          <svg class="radial-svg" viewBox="0 0 100 100">
+            <defs>
+              <mask id="scoreArcMask">
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="42"
+                  fill="none"
+                  stroke="#ffffff"
+                  stroke-width="7.5"
+                  stroke-linecap="round"
+                  stroke-dasharray="263.89"
+                  [style.strokeDashoffset]="animatedDashoffset()"
+                  transform="rotate(-90 50 50)"
+                />
+              </mask>
+            </defs>
+
+            <!-- Background Track Circle -->
+            <circle class="ring-bg" cx="50" cy="50" r="42" />
+
+            <!-- Conic Gradient Fill Masked by Arc Stroke -->
+            <g mask="url(#scoreArcMask)">
+              <foreignObject x="0" y="0" width="100" height="100">
+                <div class="conic-ring-gradient"></div>
+              </foreignObject>
+            </g>
+          </svg>
+
+          <!-- Center Profile Avatar / Fallback Initials -->
+          <div class="radial-avatar-center">
+            @if (userAvatarUrl()) {
+              <img [src]="userAvatarUrl()" alt="User Profile" class="radial-avatar-img" />
+            } @else {
+              <div class="radial-avatar-fallback">
+                {{ userInitials() }}
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Rating Score Badge -->
+        <div class="radial-score-badge">
+          <span class="score-num">{{ displayRatingNumber().toFixed(1) }}</span>
+          <ion-icon name="star" class="star-gold"></ion-icon>
         </div>
       </div>
 
-      <div class="metric-card">
-        <div class="metric-data">
-          <span class="metric-label">{{ authService.isPassenger() ? 'TOTAL FARES' : 'TOTAL EARNINGS' }}</span>
-          <span class="metric-value text-emerald">₱{{ totalRevenue().toFixed(2) }}</span>
+      <!-- Right: Performance Metrics & User Bio Stack -->
+      <div class="hero-metrics-column">
+        <div class="user-greeting-row">
+          <span class="user-role-label">{{ authService.isPassenger() ? 'PASSENGER RATING' : 'OVERALL RATING' }}</span>
+          <h2 class="user-display-name">{{ userName() }}</h2>
         </div>
-      </div>
 
-      <div class="metric-card">
-        <div class="metric-data">
-          <span class="metric-label">RATING</span>
-          <div class="rating-val-wrap">
-            <span class="metric-value text-amber">{{ averageRating().toFixed(1) }}</span>
-            <span class="metric-sub-label">★</span>
+        <div class="metric-tiles-row">
+          <div class="tile-box">
+            <span class="tile-lbl">{{ authService.isPassenger() ? 'TOTAL RIDES' : 'TRIPS DONE' }}</span>
+            <span class="tile-val">{{ totalCompletedCount() }}</span>
+          </div>
+
+          <div class="tile-divider"></div>
+
+          <div class="tile-box">
+            <span class="tile-lbl">{{ authService.isPassenger() ? 'TOTAL SPENT' : 'REVENUE' }}</span>
+            <span class="tile-val text-emerald">₱{{ totalRevenue().toFixed(0) }}</span>
           </div>
         </div>
       </div>
@@ -180,15 +229,7 @@
               </div>
 
               <div class="trip-status-badge" [class.completed]="trip.status === 'completed'" [class.cancelled]="trip.status === 'cancelled'">
-                @if (trip.status === 'completed') {
-                  <ion-icon name="checkmark-circle-outline"></ion-icon>
-                  <span>COMPLETED</span>
-                } @else if (trip.status === 'cancelled') {
-                  <ion-icon name="close-circle-outline"></ion-icon>
-                  <span>CANCELLED</span>
-                } @else {
-                  <span>{{ trip.status | uppercase }}</span>
-                }
+                <span>{{ trip.status | uppercase }}</span>
               </div>
             </div>
 
@@ -218,12 +259,18 @@
               </div>
             </div>
 
-            <!-- Card Bottom Strip: Passenger/Type + Rating + Fare -->
+            <!-- Card Bottom Strip: Driver/Passenger/Type + Rating + Fare -->
             <div class="trip-card-footer">
               <div class="footer-left-info">
                 <div class="passenger-row">
-                  <ion-icon name="person-outline" class="footer-icon"></ion-icon>
-                  <span class="passenger-name">{{ trip.passenger_name }}</span>
+                  <ion-icon [name]="authService.isPassenger() ? 'car-outline' : 'person-outline'" class="footer-icon"></ion-icon>
+                  <span class="passenger-name">
+                    @if (authService.isPassenger()) {
+                      {{ trip.driver_name || 'TODA Driver' }} (MTOP #{{ trip.mtop_number || 'N/A' }})
+                    } @else {
+                      {{ trip.passenger_name }}
+                    }
+                  </span>
                 </div>
 
                 <div class="tag-row">
@@ -234,7 +281,7 @@
                   @if (trip.rating) {
                     <span class="rating-badge">
                       <ion-icon name="star" class="star-icon"></ion-icon>
-                      {{ trip.rating.toFixed(1) }}
+                      {{ authService.isPassenger() ? 'You rated: ' : '' }}{{ trip.rating.toFixed(1) }}
                     </span>
                   }
                 </div>
@@ -355,7 +402,7 @@
             <!-- Customer Review & Rating if present -->
             @if (trip.rating) {
               <div class="receipt-section review-section">
-                <span class="section-title">CUSTOMER RATING &amp; FEEDBACK</span>
+                <span class="section-title">{{ authService.isPassenger() ? 'YOUR RATING &amp; FEEDBACK' : 'CUSTOMER RATING &amp; FEEDBACK' }}</span>
                 <div class="receipt-rating-card">
                   <div class="rating-stars-row">
                     @for (star of getRatingStars(trip.rating); track $index) {

@@ -47,10 +47,13 @@ export class AuthService {
         this.tokenSignal.set(savedToken);
         this.currentUserSignal.set(user);
 
-        // Refresh profile in background but don't aggressively logout on transient server restarts
+        // Refresh profile in background and cleanly logout if token is invalidated
         this.fetchProfile().subscribe({
           error: (err) => {
-            console.warn('Background profile refresh notice:', err?.status);
+            if (err?.status === 401) {
+              console.warn('Session invalidated or database refreshed. Clearing stale session.');
+              this.logout();
+            }
           },
         });
       }

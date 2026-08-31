@@ -1,45 +1,202 @@
-<div class="dropoff-content-wrapper">
-  <!-- Trip Destination Overview -->
-  <div class="destination-overview-row">
-    <div class="dest-pin-col">
-      <span class="dest-indicator-dot"></span>
-    </div>
-    <div class="dest-text-col">
-      <div class="dest-label-line">
-        <span class="dest-eyebrow">DROP-OFF LOCATION</span>
-        @if (driverService.activeTrip()?.fare) {
-          <span class="fare-pill">₱{{ driverService.activeTrip()?.fare | number:'1.2-2' }}</span>
+@if (driverService.activeTrip(); as trip) {
+  <div class="dropoff-content-wrapper" [attr.data-status]="trip.status">
+
+    <!-- 1. BARGAINING STATE: Incoming Offer with Countdown & Fare Adjuster -->
+    @if (trip.status === 'bargaining') {
+      <!-- COUNTDOWN LINE -->
+      <div class="countdown-bar-wrap">
+        <div class="countdown-progress-bar" [style.width.%]="(countdownSeconds() / 20) * 100"></div>
+      </div>
+
+      <div class="bargain-header-row">
+        <div class="eyebrow-badge pulse-tag">
+          <ion-icon name="flash-outline"></ion-icon>
+          <span>#1 IN QUEUE • INCOMING OFFER ({{ countdownSeconds() }}s)</span>
+        </div>
+        <button type="button" class="decline-link-btn" (click)="onDecline()">
+          <ion-icon name="close-outline"></ion-icon>
+          Decline
+        </button>
+      </div>
+
+      <!-- ROUTE PREVIEW -->
+      <div class="bargain-route-card">
+        <div class="route-node">
+          <div class="node-dot pickup-dot"></div>
+          <div class="node-details">
+            <span class="node-lbl">PICKUP PASSENGER</span>
+            <span class="node-val">{{ trip.pickupLocation }}</span>
+          </div>
+        </div>
+        <div class="route-connector-line"></div>
+        <div class="route-node">
+          <div class="node-dot dropoff-dot"></div>
+          <div class="node-details">
+            <span class="node-lbl">DROP-OFF DESTINATION</span>
+            <span class="node-val">{{ trip.dropoffLocation }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FARE PROPOSAL ADJUSTER -->
+      <div class="fare-adjuster-section">
+        <span class="fare-adj-title">SET YOUR PROPOSED FARE:</span>
+        <div class="fare-stepper-row">
+          <button type="button" class="step-btn" (click)="adjustFare(-5)">
+            <ion-icon name="remove-outline"></ion-icon>
+          </button>
+          <div class="fare-display-pill">
+            <span class="currency">₱</span>
+            <span class="amount">{{ proposedFare() }}</span>
+          </div>
+          <button type="button" class="step-btn" (click)="adjustFare(5)">
+            <ion-icon name="add-outline"></ion-icon>
+          </button>
+        </div>
+
+        <div class="preset-chips-row">
+          <button type="button" class="preset-pill" [class.is-active]="proposedFare() === 20" (click)="setPresetFare(20)">₱20</button>
+          <button type="button" class="preset-pill" [class.is-active]="proposedFare() === 25" (click)="setPresetFare(25)">₱25</button>
+          <button type="button" class="preset-pill" [class.is-active]="proposedFare() === 30" (click)="setPresetFare(30)">₱30</button>
+          <button type="button" class="preset-pill" [class.is-active]="proposedFare() === 35" (click)="setPresetFare(35)">₱35</button>
+          <button type="button" class="preset-pill" [class.is-active]="proposedFare() === 40" (click)="setPresetFare(40)">₱40</button>
+        </div>
+      </div>
+
+      <!-- SEND PROPOSAL BUTTON -->
+      <button type="button" class="primary-action-btn bargain-send-btn" (click)="onSendProposal()">
+        <ion-icon name="navigate-outline"></ion-icon>
+        <span>Send Fare Proposal (₱{{ proposedFare() }}.00)</span>
+      </button>
+    }
+
+    <!-- 2. FARE PROPOSED WAITING STATE -->
+    @else if (trip.status === 'fare_proposed') {
+      <div class="waiting-proposal-box">
+        <div class="pulsing-spinner"></div>
+        <h3 class="waiting-title">Fare Proposal Sent (₱{{ trip.fare | number:'1.2-2' }})</h3>
+        <p class="waiting-sub">Waiting for passenger to accept your proposed fare...</p>
+        <button type="button" class="cancel-proposal-btn" (click)="onCancelTrip()">
+          Cancel Ride Request
+        </button>
+      </div>
+    }
+
+    <!-- 3. EN ROUTE TO PICKUP PASSENGER -->
+    @else if (trip.status === 'en_route') {
+      <div class="active-status-bar en-route-bar">
+        <div class="status-left-group">
+          <span class="status-dot en-route-pulse"></span>
+          <span class="status-title">PICKUP: {{ trip.pickupLocation }}</span>
+        </div>
+        <span class="fare-pill">₱{{ trip.fare | number:'1.2-2' }}</span>
+      </div>
+
+      <div class="passenger-overview-card">
+        <div class="pax-meta">
+          <div class="avatar-circle">
+            <ion-icon name="person-outline"></ion-icon>
+          </div>
+          <div class="pax-text">
+            <h3 class="pax-name">{{ trip.passengerName || 'Passenger' }}</h3>
+            <p class="pickup-address">{{ trip.pickupLocation }}</p>
+          </div>
+        </div>
+        @if (trip.passengerPhone) {
+          <a [href]="'tel:' + trip.passengerPhone" class="call-btn" title="Call Passenger">
+            <ion-icon name="call-outline"></ion-icon>
+          </a>
         }
       </div>
-      <h2 class="dest-title">
-        {{ driverService.activeTrip()?.dropoffLocation || 'Destination' }}
-      </h2>
-      <div class="trip-meta-line">
-        <span class="meta-item">
-          <svg class="meta-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-          </svg>
-          {{ driverService.activeTrip()?.passengerCount || 1 }} Pax
-        </span>
-        <span class="meta-dot">•</span>
-        <span class="meta-item">Terminal Walk-In</span>
-      </div>
-    </div>
-  </div>
 
-  <!-- Primary Drop Off Action Button -->
-  <button
-    type="button"
-    id="primary-dropoff-btn"
-    class="primary-dropoff-btn"
-    (click)="onDropOff()"
-  >
-    <div class="btn-inner">
-      <svg class="dropoff-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-      <span>Drop Off Passenger</span>
-    </div>
-  </button>
-</div>
+      <div class="action-buttons-grid">
+        <button type="button" class="chat-secondary-btn" (click)="onOpenChat()">
+          <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+          <span>Chat</span>
+          @if (unreadChatCount() > 0) {
+            <span class="chat-badge-corner">{{ unreadChatCount() > 9 ? '9+' : unreadChatCount() }}</span>
+          }
+        </button>
+        <button type="button" class="primary-action-btn arrive-btn" (click)="onArrived()">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          <span>I Have Arrived</span>
+        </button>
+      </div>
+    }
+
+    <!-- 4. ARRIVED AT PICKUP POINT -->
+    @else if (trip.status === 'arrived') {
+      <div class="active-status-bar arrived-bar">
+        <div class="status-left-group">
+          <span class="status-dot arrived-dot"></span>
+          <span class="status-title">PASSENGER BOARDING</span>
+        </div>
+        <span class="fare-pill">₱{{ trip.fare | number:'1.2-2' }}</span>
+      </div>
+
+      <div class="destination-overview-row compact">
+        <div class="dest-text-col">
+          <span class="dest-eyebrow">HEADING TO DESTINATION</span>
+          <h2 class="dest-title">{{ trip.dropoffLocation }}</h2>
+        </div>
+      </div>
+
+      <div class="action-buttons-grid">
+        <button type="button" class="chat-secondary-btn" (click)="onOpenChat()">
+          <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+          <span>Chat</span>
+          @if (unreadChatCount() > 0) {
+            <span class="chat-badge-corner">{{ unreadChatCount() > 9 ? '9+' : unreadChatCount() }}</span>
+          }
+        </button>
+        <button type="button" class="primary-action-btn depart-btn" (click)="onStartTrip()">
+          <ion-icon name="navigate-outline"></ion-icon>
+          <span>Start Trip / Depart</span>
+        </button>
+      </div>
+    }
+
+    <!-- 5. IN TRANSIT / COMPLETED RIDE -->
+    @else {
+      <!-- Trip Destination Overview -->
+      <div class="destination-overview-row">
+        <div class="dest-pin-col">
+          <span class="dest-indicator-dot"></span>
+        </div>
+        <div class="dest-text-col">
+          <div class="dest-label-line">
+            <span class="dest-eyebrow">DROP-OFF LOCATION</span>
+            @if (trip.fare) {
+              <span class="fare-pill">₱{{ trip.fare | number:'1.2-2' }}</span>
+            }
+          </div>
+          <h2 class="dest-title">
+            {{ trip.dropoffLocation || 'Destination' }}
+          </h2>
+          <div class="trip-meta-line">
+            <span class="meta-item">
+              <ion-icon name="person-outline" class="meta-icon"></ion-icon>
+              {{ trip.passengerCount || 1 }} Pax
+            </span>
+            <span class="meta-dot">•</span>
+            <span class="meta-item">{{ trip.tripType === 'terminal_walk_in' ? 'Terminal Walk-In' : 'Online Dispatch' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Primary Drop Off Action Button -->
+      <button
+        type="button"
+        id="primary-dropoff-btn"
+        class="primary-dropoff-btn"
+        (click)="onDropOff()"
+      >
+        <div class="btn-inner">
+          <ion-icon name="checkmark-circle-outline" class="dropoff-svg-icon"></ion-icon>
+          <span>Complete Drop Off</span>
+        </div>
+      </button>
+    }
+
+  </div>
+}

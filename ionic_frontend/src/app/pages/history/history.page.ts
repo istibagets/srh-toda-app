@@ -73,7 +73,6 @@ export class HistoryPage implements OnInit {
   activeRangeFilter = signal<'all' | 'today' | 'week' | 'month'>('all');
   searchQuery = signal<string>('');
 
-  // Summary Metrics from Server / Computed
   serverSummary = signal<{
     total_trips: number;
     total_earnings: number;
@@ -87,6 +86,73 @@ export class HistoryPage implements OnInit {
     total_reviews: 0,
     five_star_count: 0,
   });
+
+  lifetimeOverallRating = signal<number>(5.0);
+  displayRatingNumber = signal<number>(0.0);
+  animatedDashoffset = signal<number>(263.89);
+  private ratingAnimFrameId: number | null = null;
+
+  // User Avatar & Performance Computed Signals
+  userName = computed(() => {
+    const u = this.authService.currentUser();
+    return u?.name || 'SRH TODA Member';
+  });
+
+  userAvatarUrl = computed(() => {
+    const u = this.authService.currentUser();
+    return (u as any)?.profile_picture_url || u?.avatar_url || null;
+  });
+
+  userInitials = computed(() => {
+    const name = this.userName();
+    if (!name) return 'SR';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return name.substring(0, 2).toUpperCase();
+  });
+
+  // Fixed Overall Lifetime Driver Rating (Does NOT change on date filter)
+  overallRating = computed(() => {
+    return this.lifetimeOverallRating() || 5.0;
+  });
+
+  triggerRatingAnimation(): void {
+    if (this.ratingAnimFrameId) {
+      cancelAnimationFrame(this.ratingAnimFrameId);
+    }
+
+    const targetRating = this.overallRating();
+    const circumference = 263.89; // 2 * PI * 42
+    const pct = Math.min(Math.max(targetRating / 5.0, 0), 1);
+    const targetOffset = circumference * (1 - pct);
+
+    const duration = 1200; // 1.2s duration
+    const startTime = performance.now();
+
+    this.displayRatingNumber.set(0.0);
+    this.animatedDashoffset.set(circumference);
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 3); // Cubic ease-out
+
+      const currentNum = ease * targetRating;
+      const currentOffset = circumference - (circumference - targetOffset) * ease;
+
+      this.displayRatingNumber.set(Math.round(currentNum * 10) / 10);
+      this.animatedDashoffset.set(currentOffset);
+
+      if (progress < 1) {
+        this.ratingAnimFrameId = requestAnimationFrame(animate);
+      } else {
+        this.displayRatingNumber.set(targetRating);
+        this.animatedDashoffset.set(targetOffset);
+      }
+    };
+
+    this.ratingAnimFrameId = requestAnimationFrame(animate);
+  }
 
   // Filtered Rides Signal
   filteredRides = computed(() => {
@@ -162,6 +228,9 @@ export class HistoryPage implements OnInit {
     this.loadHistory();
   }
 
+  private hasCapturedLifetimeRating = false;
+  private hasAnimatedOnce = false;
+
   loadHistory(event?: any): void {
     if (!event) {
       this.isLoading.set(true);
@@ -179,9 +248,21 @@ export class HistoryPage implements OnInit {
           this.rawRides.set(res.rides);
           if (res.summary) {
             this.serverSummary.set(res.summary);
+            // Lock lifetime rating on first load or when viewing all time range
+            if (res.summary.avg_rating && (!this.hasCapturedLifetimeRating || filters.range === 'all')) {
+              this.lifetimeOverallRating.set(res.summary.avg_rating);
+              this.hasCapturedLifetimeRating = true;
+            }
           }
         }
         this.isLoading.set(false);
+
+        // Animate rating count-up & arc sweep on initial load or pull-to-refresh
+        if (!this.hasAnimatedOnce || event) {
+          this.triggerRatingAnimation();
+          this.hasAnimatedOnce = true;
+        }
+
         if (event) {
           event.target.complete();
         }

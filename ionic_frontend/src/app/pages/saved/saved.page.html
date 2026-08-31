@@ -1,0 +1,241 @@
+<ion-header class="ion-no-border srh-saved-header">
+  <ion-toolbar class="header-toolbar">
+    <div class="header-main-row">
+      <div class="header-title-group">
+        <h1 class="header-title">Saved Places &amp; Landmarks</h1>
+        <p class="header-sub">Quick destinations with official TODA regulated fares</p>
+      </div>
+
+      <button type="button" class="header-add-btn" (click)="openAddModal()" title="Add Custom Place">
+        <ion-icon name="add-outline"></ion-icon>
+        <span>Add Place</span>
+      </button>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="srh-saved-content" [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content pullingIcon="chevron-down-circle-outline"></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="saved-layout-container">
+
+    <!-- ── 1. HERO FARE GUARANTEE DECK ──────────────────────── -->
+    <div class="fare-banner-card">
+      <div class="banner-icon-box">
+        <ion-icon name="shield-outline"></ion-icon>
+      </div>
+      <div class="banner-text">
+        <span class="banner-tag">BARANGAY &amp; HOA REGULATED</span>
+        <h3 class="banner-title">Standard Neighborhood Fares</h3>
+        <p class="banner-desc">Santa Rosa Homes TODA drivers are required to follow standardized rates per destination.</p>
+      </div>
+    </div>
+
+    <!-- ── 2. MY PERSONAL SAVED PLACES ──────────────────────── -->
+    <div class="section-container">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <ion-icon name="bookmark-outline" class="sec-icon text-blue"></ion-icon>
+          <h2 class="section-title">My Saved Places</h2>
+        </div>
+        <span class="count-pill">{{ savedService.locations().length }} places</span>
+      </div>
+
+      @if (savedService.isLoading()) {
+        <div class="loading-wrap">
+          <ion-spinner name="crescent"></ion-spinner>
+          <span>Loading your places...</span>
+        </div>
+      } @else if (savedService.locations().length === 0) {
+        <div class="empty-places-card">
+          <div class="empty-icon-wrap">
+            <ion-icon name="location-outline"></ion-icon>
+          </div>
+          <h4 class="empty-title">No Saved Places Yet</h4>
+          <p class="empty-desc">Save your home, work, or favorite neighborhood drop-offs for fast booking!</p>
+          <button type="button" class="empty-action-btn" (click)="openAddModal('home')">
+            <ion-icon name="add-outline"></ion-icon>
+            <span>Add Your Home Address</span>
+          </button>
+        </div>
+      } @else {
+        <div class="places-grid">
+          @for (place of savedService.locations(); track place.id) {
+            <div class="place-card clickable" (click)="bookRideTo(place)">
+              <div class="place-icon-wrap" [attr.data-type]="place.type">
+                <ion-icon [name]="getTypeIcon(place.type)"></ion-icon>
+              </div>
+
+              <div class="place-info">
+                <div class="place-title-row">
+                  <h4 class="place-name">{{ place.name }}</h4>
+                  <span class="place-type-tag">{{ place.type | uppercase }}</span>
+                </div>
+                <p class="place-address">{{ place.address }}</p>
+              </div>
+
+              <button type="button" class="place-delete-btn" (click)="deletePlace(place, $event)" title="Remove Place">
+                <ion-icon name="trash-outline"></ion-icon>
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- ── 3. SANTA ROSA HOMES NEIGHBORHOOD LANDMARKS ───────── -->
+    <div class="section-container">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <ion-icon name="navigate-outline" class="sec-icon text-emerald"></ion-icon>
+          <h2 class="section-title">Popular TODA Landmarks</h2>
+        </div>
+        <span class="count-pill">Standard Fare Matrix</span>
+      </div>
+
+      <div class="landmarks-grid">
+        @for (landmark of savedService.neighborhoodLandmarks; track landmark.name) {
+          <div class="landmark-card clickable" (click)="bookRideTo(landmark)">
+            <div class="landmark-top-row">
+              <div class="landmark-icon-wrap" [attr.data-type]="landmark.type">
+                <ion-icon [name]="landmark.icon"></ion-icon>
+              </div>
+              <div class="fare-badge">
+                <span class="fare-currency">₱</span>
+                <span class="fare-amount">{{ landmark.fare }}</span>
+              </div>
+            </div>
+
+            <div class="landmark-body">
+              <h4 class="landmark-name">{{ landmark.name }}</h4>
+              <p class="landmark-desc">{{ landmark.desc }}</p>
+            </div>
+
+            <div class="landmark-footer">
+              <button type="button" class="quick-save-btn" (click)="quickSaveLandmark(landmark); $event.stopPropagation()">
+                <ion-icon name="bookmark-outline"></ion-icon>
+                <span>Save to My Places</span>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- ── 4. COMMUTER ASSISTANCE BANNER ────────────────────── -->
+    <div class="assistance-card">
+      <div class="assist-left">
+        <ion-icon name="information-circle-outline"></ion-icon>
+      </div>
+      <div class="assist-right">
+        <h4>Need Dispatch Assistance?</h4>
+        <p>You can hail available tricycles at the <strong>Main Gate Terminal</strong> or report fare discrepancies directly through your Ride History.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── 5. ADD PLACE MODAL ─────────────────────────────────── -->
+  <ion-modal [isOpen]="showAddModal()" (didDismiss)="closeAddModal()" class="srh-modal-sheet">
+    <ng-template>
+      <div class="modal-wrapper">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <h3 class="modal-title">Add Saved Place</h3>
+            <p class="modal-subtitle">Save a frequent neighborhood destination</p>
+          </div>
+          <button type="button" class="modal-close-btn" (click)="closeAddModal()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        <form [formGroup]="placeForm" (ngSubmit)="savePlace()" class="modal-form">
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <div class="category-pill-row">
+              <button
+                type="button"
+                class="category-pill"
+                [class.active]="placeForm.get('type')?.value === 'home'"
+                (click)="placeForm.patchValue({ type: 'home' })"
+              >
+                <ion-icon name="home-outline"></ion-icon>
+                <span>Home</span>
+              </button>
+              <button
+                type="button"
+                class="category-pill"
+                [class.active]="placeForm.get('type')?.value === 'work'"
+                (click)="placeForm.patchValue({ type: 'work' })"
+              >
+                <ion-icon name="business-outline"></ion-icon>
+                <span>Work</span>
+              </button>
+              <button
+                type="button"
+                class="category-pill"
+                [class.active]="placeForm.get('type')?.value === 'school'"
+                (click)="placeForm.patchValue({ type: 'school' })"
+              >
+                <ion-icon name="school-outline"></ion-icon>
+                <span>School</span>
+              </button>
+              <button
+                type="button"
+                class="category-pill"
+                [class.active]="placeForm.get('type')?.value === 'shopping'"
+                (click)="placeForm.patchValue({ type: 'shopping' })"
+              >
+                <ion-icon name="cart-outline"></ion-icon>
+                <span>Store</span>
+              </button>
+              <button
+                type="button"
+                class="category-pill"
+                [class.active]="placeForm.get('type')?.value === 'favorite'"
+                (click)="placeForm.patchValue({ type: 'favorite' })"
+              >
+                <ion-icon name="sparkles-outline"></ion-icon>
+                <span>Favorite</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Place Label / Name</label>
+            <input
+              type="text"
+              formControlName="name"
+              placeholder="e.g. My House, Lola's Place, Gate Bay"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Address / Landmark Note</label>
+            <input
+              type="text"
+              formControlName="address"
+              placeholder="e.g. Blk 12 Lot 4, Phase 2, Santa Rosa Homes"
+              class="form-input"
+            />
+          </div>
+
+          <div class="modal-footer">
+            <button type="submit" class="save-submit-btn" [disabled]="isSaving()">
+              @if (isSaving()) {
+                <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
+                <span>Saving Place...</span>
+              } @else {
+                <ion-icon name="checkmark-circle-outline"></ion-icon>
+                <span>Save Place</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </ng-template>
+  </ion-modal>
+</ion-content>

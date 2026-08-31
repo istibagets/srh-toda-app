@@ -4,6 +4,9 @@ import Pusher from 'pusher-js';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
 import { DriverService } from './driver.service';
+import { NotificationService } from './notification.service';
+import { SoundService } from './sound.service';
+import { PushService } from './push.service';
 
 declare global {
   interface Window {
@@ -18,10 +21,17 @@ declare global {
 export class RealtimeService {
   private authService = inject(AuthService);
   private driverService = inject(DriverService);
+  private notificationService = inject(NotificationService);
+  private soundService = inject(SoundService);
+  private pushService = inject(PushService);
 
   private echoInstance: Echo<any> | null = null;
   private isConnectedSignal = signal<boolean>(false);
   readonly isConnected = computed(() => this.isConnectedSignal());
+
+  get echo(): Echo<any> | null {
+    return this.echoInstance;
+  }
 
   constructor() {
     this.initEcho();
@@ -108,13 +118,50 @@ export class RealtimeService {
         .listen('tricycle.location', handleGpsEvent)
         .listen('TricycleLocationUpdated', handleGpsEvent);
 
+      // Listen on public announcements channel
+      const handleAnnouncementEvent = (e: any) => {
+        if (e && e.announcement) {
+          const ann = e.announcement;
+          const role = this.authService.userRole() || 'passenger';
+          const target = (ann.target_audience || 'ALL').toUpperCase();
+          const matches =
+            target === 'ALL' ||
+            (target === 'DRIVERS' && (role === 'driver' || role === 'admin' || role === 'superadmin')) ||
+            (target === 'PASSENGERS' && (role === 'passenger' || role === 'admin' || role === 'superadmin')) ||
+            (target === 'ADMIN' && (role === 'admin' || role === 'superadmin'));
+
+          if (matches) {
+            this.notificationService.addAnnouncement({
+              id: ann.id,
+              title: ann.title,
+              message: ann.message,
+              targetAudience: ann.target_audience || 'ALL',
+              createdAt: 'Just now',
+              isRead: false,
+              actionUrl: ann.action_url,
+            });
+
+            try {
+              this.soundService.playBookingAlert();
+            } catch {}
+          }
+        }
+      };
+
+      this.echoInstance
+        .channel('srh-toda-announcements')
+        .listen('.AnnouncementCreated', handleAnnouncementEvent)
+        .listen('AnnouncementCreated', handleAnnouncementEvent);
+
       // Listen on admin channel
       this.echoInstance
         .channel('srh-toda-admin')
         .listen('.driver.applicant.updated', () => this.driverService.triggerLiveSync())
         .listen('driver.applicant.updated', () => this.driverService.triggerLiveSync())
         .listen('.report.updated', () => this.driverService.triggerLiveSync())
-        .listen('report.updated', () => this.driverService.triggerLiveSync());
+        .listen('report.updated', () => this.driverService.triggerLiveSync())
+        .listen('.AnnouncementCreated', handleAnnouncementEvent)
+        .listen('AnnouncementCreated', handleAnnouncementEvent);
 
       this.isConnectedSignal.set(true);
     } catch (err) {

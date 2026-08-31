@@ -3,29 +3,67 @@
 namespace App\Http\Controllers;
 
 use App\Models\SavedLocation;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class SavedLocationController extends Controller
 {
     /**
+     * Resolve authenticated user from Bearer token or web session.
+     */
+    private function resolveUser(Request $request): ?User
+    {
+        if (Auth::check()) {
+            return Auth::user();
+        }
+
+        $token = $request->bearerToken();
+        if (!$token) return null;
+
+        $userId = Cache::get('api_token_' . $token);
+        if ($userId) {
+            $user = User::find($userId);
+            if ($user) return $user;
+        }
+
+        $user = User::where('remember_token', $token)->first();
+        if ($user) {
+            Cache::put('api_token_' . $token, $user->id, now()->addDays(60));
+            return $user;
+        }
+
+        return null;
+    }
+
+    /**
      * Display the passenger's saved locations management page.
      */
-    public function index(): View
+    public function index(Request $request): View|JsonResponse
     {
-        $user = Auth::user();
+        $user = $this->resolveUser($request);
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
+
         $savedLocations = SavedLocation::where('user_id', $user->id)
             ->orderByRaw("CASE 
-                WHEN type = 'school' THEN 1 
-                WHEN type = 'work' THEN 2 
-                WHEN type = 'shopping' THEN 3 
-                WHEN type = 'favorite' THEN 4 
-                ELSE 5 END")
+                WHEN type = 'home' THEN 1 
+                WHEN type = 'school' THEN 2 
+                WHEN type = 'work' THEN 3 
+                WHEN type = 'shopping' THEN 4 
+                WHEN type = 'favorite' THEN 5 
+                ELSE 6 END")
             ->latest()
             ->get();
+
+        if ($request->wantsJson()) {
+            return response()->json(['status' => 'success', 'locations' => $savedLocations]);
+        }
 
         return view('passenger.saved-locations', compact('savedLocations'));
     }
@@ -35,6 +73,11 @@ class SavedLocationController extends Controller
      */
     public function store(Request $request): JsonResponse|RedirectResponse
     {
+        $user = $this->resolveUser($request);
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:100',
             'address' => 'required|string|max:255',
@@ -45,7 +88,7 @@ class SavedLocationController extends Controller
             'is_default_dropoff' => 'nullable|boolean',
         ]);
 
-        $userId = Auth::id();
+        $userId = $user->id;
         $type = $validated['type'] ?? 'custom';
 
         // If setting as school/work, replace existing ones with the same type if user already has one
@@ -98,7 +141,10 @@ class SavedLocationController extends Controller
      */
     public function update(Request $request, SavedLocation $savedLocation): JsonResponse|RedirectResponse
     {
-        abort_unless($savedLocation->user_id === Auth::id(), 403, 'Unauthorized.');
+        $user = $this->resolveUser($request);
+        if (!$user || $savedLocation->user_id !== $user->id) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized.'], 403);
+        }
 
         $validated = $request->validate([
             'name' => 'required|string|max:100',
@@ -136,7 +182,10 @@ class SavedLocationController extends Controller
      */
     public function destroy(Request $request, SavedLocation $savedLocation): JsonResponse|RedirectResponse
     {
-        abort_unless($savedLocation->user_id === Auth::id(), 403, 'Unauthorized.');
+        $user = $this->resolveUser($request);
+        if (!$user || $savedLocation->user_id !== $user->id) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized.'], 403);
+        }
 
         $savedLocation->delete();
 
@@ -153,19 +202,26 @@ class SavedLocationController extends Controller
     /**
      * Return JSON list of user's saved locations.
      */
-    public function apiList(): JsonResponse
+    public function apiList(Request $request): JsonResponse
     {
-        $locations = SavedLocation::where('user_id', Auth::id())
+        $user = $this->resolveUser($request);
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $locations = SavedLocation::where('user_id', $user->id)
             ->orderByRaw("CASE 
                 WHEN type = 'home' THEN 1 
                 WHEN type = 'work' THEN 2 
                 WHEN type = 'school' THEN 3 
-                WHEN type = 'favorite' THEN 4 
-                ELSE 5 END")
+                WHEN type = 'shopping' THEN 4
+                WHEN type = 'favorite' THEN 5 
+                ELSE 6 END")
             ->latest()
             ->get();
 
         return response()->json([
+            'status' => 'success',
             'locations' => $locations,
         ]);
     }
@@ -175,6 +231,11 @@ class SavedLocationController extends Controller
      */
     public function quickSave(Request $request): JsonResponse
     {
+        $user = $this->resolveUser($request);
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:100',
             'address' => 'required|string|max:255',
@@ -184,7 +245,7 @@ class SavedLocationController extends Controller
         ]);
 
         $location = SavedLocation::create([
-            'user_id' => Auth::id(),
+            'user_id' => $user->id,
             'name' => $validated['name'],
             'address' => $validated['address'],
             'latitude' => $validated['latitude'],

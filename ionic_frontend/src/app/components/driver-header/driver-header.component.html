@@ -12,20 +12,24 @@
         </svg>
       }
     </div>
-    <span
-      class="status-indicator"
-      [class.online]="driverService.isOnline()"
-      [class.offline]="!driverService.isOnline()"
-    ></span>
+    @if (!authService.isPassenger()) {
+      <span
+        class="status-indicator"
+        [class.online]="driverService.isOnline()"
+        [class.offline]="!driverService.isOnline()"
+      ></span>
+    }
   </a>
 
   <!-- Right Group: Rating Pill & Notification Bell -->
   <div class="right-action-group">
-    <!-- Driver Rating Pill -->
-    <a [routerLink]="['/tabs/profile']" class="rating-pill" title="Driver Rating">
-      <span class="rating-num">{{ driverService.driver().rating | number:'1.1-1' }}</span>
-      <ion-icon name="star" class="star-icon"></ion-icon>
-    </a>
+    <!-- Driver Rating Pill (Drivers only) -->
+    @if (!authService.isPassenger()) {
+      <a [routerLink]="['/tabs/profile']" class="rating-pill" title="Driver Rating">
+        <span class="rating-num">{{ driverService.driver().rating | number:'1.1-1' }}</span>
+        <ion-icon name="star" class="star-icon"></ion-icon>
+      </a>
+    }
 
     <!-- Notification Bell Button -->
     <button

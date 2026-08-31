@@ -6,9 +6,19 @@
     <!-- CONCISE COLLAPSED STATUS HEADER ROW -->
     <div class="sheet-status-row">
       <div class="status-left">
-        @if (driverService.activeTrip()) {
+        @if (driverService.activeTrip(); as trip) {
           <span class="status-dot online active-pulse"></span>
-          <span class="status-label active-trip-label">ON TRIP • IN TRANSIT</span>
+          @if (trip.status === 'bargaining') {
+            <span class="status-label text-amber-600 font-bold">INCOMING BOOKING • BARGAINING</span>
+          } @else if (trip.status === 'fare_proposed') {
+            <span class="status-label text-amber-600 font-bold">FARE PROPOSAL SENT</span>
+          } @else if (trip.status === 'en_route') {
+            <span class="status-label text-blue-600 font-bold">EN ROUTE TO PICKUP</span>
+          } @else if (trip.status === 'arrived') {
+            <span class="status-label text-emerald-600 font-bold">ARRIVED AT PICKUP</span>
+          } @else {
+            <span class="status-label active-trip-label">ON TRIP • IN TRANSIT</span>
+          }
         } @else if (driverService.isReturning()) {
           <span class="status-dot online active-pulse"></span>
           <span class="status-label text-emerald-700 font-bold">RETURNING TO TERMINAL</span>
@@ -22,11 +32,20 @@
       </div>
 
       <div class="status-right">
-        @if (driverService.isReturning()) {
+        @if (driverService.activeTrip(); as trip) {
+          <span
+            class="compact-badge"
+            [class.offer-badge]="trip.status === 'bargaining' || trip.status === 'fare_proposed'"
+            [class.enroute-badge]="trip.status === 'en_route'"
+            [class.active-badge]="trip.status === 'arrived' || trip.status === 'in_transit'"
+          >
+            {{ trip.status === 'bargaining' ? 'OFFER' : (trip.status === 'fare_proposed' ? 'PROPOSAL' : (trip.status === 'en_route' ? 'EN ROUTE' : (trip.status === 'arrived' ? 'ARRIVED' : 'IN TRANSIT'))) }}
+          </span>
+        } @else if (driverService.isReturning()) {
           <span class="compact-badge bg-emerald-600 text-white font-bold">
             RETURNING
           </span>
-        } @else if (!driverService.activeTrip()) {
+        } @else {
           <span class="compact-badge" [class.queue-gradient]="driverService.isOnline()"
             [class.first-queue-badge]="driverService.isOnline() && driverService.getDisplayQueuePosition() === 1"
             [class.off-duty]="!driverService.isOnline()">
@@ -41,7 +60,15 @@
   <div #scrollContentElement id="sheet-details-content" class="sheet-details-content" [class.is-dropoff-sheet]="driverService.activeTrip() || driverService.isReturning()">
     @if (driverService.activeTrip()) {
       <!-- DROP-OFF STATE: Modular Drop Off Component -->
-      <app-drop-off-card (dropOffClick)="onDropOff()"></app-drop-off-card>
+      <app-drop-off-card
+        [unreadChatCount]="unreadChatCount()"
+        (dropOffClick)="onDropOff()"
+        (openChatClick)="onOpenChat()"
+        (proposeFareClick)="onProposeFare($event)"
+        (driverArrivedClick)="onDriverArrived()"
+        (startTripClick)="onStartTrip()"
+        (cancelTripClick)="onCancelTrip()"
+      ></app-drop-off-card>
     } @else if (driverService.isReturning()) {
       <!-- RETURNING TO TERMINAL STATE: Modular Returning Card (Image 2) -->
       <app-returning-card (addWaysideClick)="onAddWayside()"></app-returning-card>
@@ -136,19 +163,14 @@
             }
           </div>
 
-          <!-- Unsaved Queue Order Changes Fixed Action Bar (Admin only) -->
-          @if (authService.isAdmin() && (hasPendingChanges() || driverService.hasUnsavedQueueOrder())) {
-          <div class="fixed-unsaved-order-bar">
-            <div class="bar-info">
-              <p class="bar-title">Unsaved Changes</p>
-              <p class="bar-sub">Save to apply new order</p>
-            </div>
-            <div class="bar-actions">
-              <button type="button" class="btn-cancel" (click)="cancelAdminQueue()">Cancel</button>
-              <button type="button" class="btn-save" (click)="saveAdminQueue()">Save</button>
-            </div>
-          </div>
-          }
+          <!-- Unsaved Queue Order Changes Toast (Admin only) -->
+          <ion-toast
+            [isOpen]="authService.isAdmin() && (hasPendingChanges() || driverService.hasUnsavedQueueOrder())"
+            message="Unsaved queue order changes."
+            position="top"
+            [buttons]="unsavedToastButtons"
+            class="srh-custom-toast queue-override-toast"
+          ></ion-toast>
         </div>
 
         <div class="section-separator"></div>

@@ -17,6 +17,11 @@ export const routes: Routes = [
           import('../pages/history/history.page').then((m) => m.HistoryPage),
       },
       {
+        path: 'saved',
+        loadComponent: () =>
+          import('../pages/saved/saved.page').then((m) => m.SavedPage),
+      },
+      {
         path: 'earnings',
         loadComponent: () =>
           import('../pages/earnings/earnings.page').then((m) => m.EarningsPage),

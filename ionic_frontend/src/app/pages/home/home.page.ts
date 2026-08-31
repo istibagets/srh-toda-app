@@ -2,6 +2,7 @@ import {
   Component,
   inject,
   signal,
+  computed,
   AfterViewInit,
   OnDestroy,
   ElementRef,
@@ -11,7 +12,8 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonToast, IonIcon } from '@ionic/angular';
+import { RouterModule, ActivatedRoute } from '@angular/router';
+import { IonContent, IonToast, IonIcon, IonModal, IonSpinner } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   shieldCheckmarkOutline,
@@ -21,15 +23,45 @@ import {
   sendOutline,
   closeOutline,
   refreshOutline,
+  bookmarkOutline,
+  location,
+  locationOutline,
+  navigate,
+  navigateOutline,
+  pin,
+  sparklesOutline,
+  cartOutline,
+  footballOutline,
+  timeOutline,
+  personOutline,
+  shieldOutline,
+  callOutline,
+  carOutline,
+  star,
+  cashOutline,
+  peopleOutline,
+  radioOutline,
+  checkmarkCircleOutline,
+  chevronForwardOutline,
+  addOutline,
+  removeOutline,
+  pricetagOutline,
+  storefrontOutline,
+  businessOutline,
 } from 'ionicons/icons';
 import { DriverService } from '../../services/driver.service';
 import { DriverHeaderComponent } from '../../components/driver-header/driver-header.component';
 import { DutyButtonComponent } from '../../components/duty-button/duty-button.component';
 import { QueueCardComponent, SheetSnap } from '../../components/queue-card/queue-card.component';
+import { PassengerSheetComponent } from '../../components/passenger-sheet/passenger-sheet.component';
 import { TerminalRideModalComponent } from '../../components/terminal-ride-modal/terminal-ride-modal.component';
+import { TripChatComponent } from '../../components/trip-chat/trip-chat.component';
+import { PassengerRatingModalComponent } from '../../components/passenger-rating-modal/passenger-rating-modal.component';
 
 import { AuthService } from '../../services/auth.service';
 import { DashboardService } from '../../services/dashboard.service';
+import { SoundService } from '../../services/sound.service';
+import { PushService } from '../../services/push.service';
 
 declare const maplibregl: any;
 
@@ -39,13 +71,19 @@ declare const maplibregl: any;
   imports: [
     CommonModule,
     FormsModule,
+    RouterModule,
     IonContent,
     IonToast,
     IonIcon,
+    IonModal,
+    IonSpinner,
     DriverHeaderComponent,
     DutyButtonComponent,
     QueueCardComponent,
+    PassengerSheetComponent,
     TerminalRideModalComponent,
+    TripChatComponent,
+    PassengerRatingModalComponent,
   ],
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
@@ -54,20 +92,25 @@ export class HomePage implements AfterViewInit, OnDestroy {
   driverService = inject(DriverService);
   authService = inject(AuthService);
   dashboardService = inject(DashboardService);
+  soundService = inject(SoundService);
+  pushService = inject(PushService);
+  route = inject(ActivatedRoute);
 
   mapContainer = viewChild<ElementRef<HTMLDivElement>>('mapContainer');
   queueCard = viewChild<QueueCardComponent>(QueueCardComponent);
+  passengerSheet = viewChild<PassengerSheetComponent>(PassengerSheetComponent);
 
   map: any = null;
   driverMarker: any = null;
   terminalMarker: any = null;
   terminalGroundDot: any = null;
 
-  currentSnap = signal<SheetSnap>('mid');
+  currentSnap = signal<SheetSnap>('min');
   showTerminalModal = signal<boolean>(false);
 
   showToast = signal<boolean>(false);
   toastMessage = signal<string>('');
+  toastColor = signal<string | undefined>(undefined);
 
   // Appeal form state for suspended / rejected screen
   appealText = signal<string>('');
@@ -92,6 +135,569 @@ export class HomePage implements AfterViewInit, OnDestroy {
   isGpsFetching = signal<boolean>(false);
   isUserPanned = signal<boolean>(false);
   isWaysideModal = signal<boolean>(false);
+  private lastDriverTripStatus: string | null = null;
+  private cachedPowerEl: HTMLElement | null = null;
+  private cachedMapControlsEl: HTMLElement | null = null;
+  private cachedHeaderEl: HTMLElement | null = null;
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // PASSENGER BOOKING STATE & REGULATED LANDMARKS
+  // ══════════════════════════════════════════════════════════════════════════
+  readonly popularLandmarks = [
+    { name: 'Main Gate Guard House', fare: 20, icon: 'shield-outline', color: 'blue', desc: 'Main Entrance & Central Bay', lat: 15.42955, lng: 120.92240 },
+    { name: 'Phase 1 Clubhouse', fare: 25, icon: 'business-outline', color: 'emerald', desc: 'Recreation Center & Pool', lat: 15.42780, lng: 120.92410 },
+    { name: 'Phase 2 Community Park', fare: 30, icon: 'football-outline', color: 'amber', desc: 'Playground & Court', lat: 15.43120, lng: 120.92050 },
+    { name: 'Commercial Plaza Strip', fare: 20, icon: 'cart-outline', color: 'cyan', desc: 'Groceries, Bakeries & Eateries', lat: 15.42990, lng: 120.92380 },
+    { name: 'Santa Rosa Public Market', fare: 35, icon: 'storefront-outline', color: 'purple', desc: 'Town Center Terminal', lat: 15.43550, lng: 120.92640 },
+  ];
+
+  private readonly PASSENGER_RIDE_KEY = 'srh_passenger_active_ride';
+  showBookingModal = signal<boolean>(false);
+  isSubmittingBooking = signal<boolean>(false);
+  activePassengerRide = signal<any>(this.getStoredPassengerRide());
+  showChatModal = signal<boolean>(false);
+  unreadChatCount = signal<number>(0);
+  showRatingModal = signal<boolean>(false);
+  completedRideForRating = signal<any>(null);
+  isPinningMode = signal<boolean>(false);
+  destinationPinMarker: any = null;
+  pickupPinMarker: any = null;
+
+  private getStoredPassengerRide(): any {
+    try {
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem(this.PASSENGER_RIDE_KEY);
+        return saved ? JSON.parse(saved) : null;
+      }
+    } catch { }
+    return null;
+  }
+
+  chatRideId = computed<number>(() => {
+    if (this.authService.isPassenger()) {
+      return Number(this.activePassengerRide()?.id || 0);
+    }
+    const trip = this.driverService.activeTrip();
+    return Number(String(trip?.id || '').replace(/\D/g, '')) || 0;
+  });
+
+  chatTargetName = computed<string>(() => {
+    if (this.authService.isPassenger()) {
+      return this.activePassengerRide()?.driver?.name || 'TODA Driver';
+    }
+    return this.driverService.activeTrip()?.passengerName || 'Passenger';
+  });
+
+  chatTargetSub = computed<string>(() => {
+    if (this.authService.isPassenger()) {
+      const mtop = this.activePassengerRide()?.driver?.mtop_number;
+      return mtop ? `MTOP #${mtop}` : 'TODA Tricycle';
+    }
+    return 'Passenger Commuter';
+  });
+
+  chatTargetAvatar = computed<string | null>(() => {
+    if (this.authService.isPassenger()) {
+      return this.activePassengerRide()?.driver?.avatar_url || null;
+    }
+    return null;
+  });
+
+  bookingPickup = signal<string>('');
+  bookingDestination = signal<string>('');
+  bookingPax = signal<number>(1);
+  bookingFare = signal<number>(20);
+  bookingNotes = signal<string>('');
+  selectedLandmarkLat = signal<number | null>(null);
+  selectedLandmarkLng = signal<number | null>(null);
+
+  openBookingModal(landmark?: any): void {
+    if (this.driverService.totalQueueCount() <= 0) {
+      this.displayToast('No TODA drivers currently available on queue. Please try again later.');
+      return;
+    }
+
+    if (landmark) {
+      this.selectDestination(landmark);
+    } else if (!this.selectedLandmarkLat() && !this.bookingDestination()) {
+      this.bookingPickup.set('');
+      this.bookingDestination.set('');
+      this.bookingFare.set(20);
+      if (this.destinationPinMarker) {
+        this.destinationPinMarker.remove();
+        this.destinationPinMarker = null;
+      }
+    }
+    this.showBookingModal.set(true);
+  }
+
+  closeBookingModal(): void {
+    this.showBookingModal.set(false);
+  }
+
+  selectDestination(lm: any): void {
+    this.bookingDestination.set(lm.name);
+    this.selectedLandmarkLat.set(lm.lat);
+    this.selectedLandmarkLng.set(lm.lng);
+    this.calculateFare();
+    this.setDestinationPin(lm.lng, lm.lat, true);
+  }
+
+  onDestinationInputChange(val: string): void {
+    this.bookingDestination.set(val);
+    const matched = this.popularLandmarks.find(l => l.name.toLowerCase() === val.trim().toLowerCase());
+    if (matched) {
+      this.selectedLandmarkLat.set(matched.lat);
+      this.selectedLandmarkLng.set(matched.lng);
+      this.setDestinationPin(matched.lng, matched.lat, true);
+      this.calculateFare();
+    } else {
+      this.calculateFare();
+    }
+  }
+
+  startManualPinning(): void {
+    this.showBookingModal.set(false);
+    this.isPinningMode.set(true);
+    this.passengerSheet()?.setSnap('min');
+    this.displayToast('📍 Tap anywhere on the map to pin drop-off location');
+  }
+
+  cancelManualPinning(): void {
+    this.isPinningMode.set(false);
+    this.showBookingModal.set(true);
+  }
+
+
+
+  private currentPickupPinCoords: string | null = null;
+  private currentDestPinCoords: string | null = null;
+
+  setPickupPin(lng: number, lat: number, label?: string): void {
+    if (!this.map) return;
+    if (isNaN(lng) || isNaN(lat) || !lng || !lat) return;
+
+    const coordsKey = `${lng.toFixed(5)},${lat.toFixed(5)}_${label || ''}`;
+    if (this.pickupPinMarker && this.currentPickupPinCoords === coordsKey) {
+      return; // Pin is already placed at exact location
+    }
+
+    try {
+      if (this.pickupPinMarker) {
+        try {
+          this.pickupPinMarker.remove();
+        } catch { }
+        this.pickupPinMarker = null;
+      }
+      this.currentPickupPinCoords = coordsKey;
+
+      const pinEl = document.createElement('div');
+      pinEl.className = 'srh-pickup-marker-pin';
+      pinEl.innerHTML = `
+        <div class="pickup-blue-pin">
+          <div class="pin-bubble">
+            <span class="pickup-dot"></span>
+            <span class="pickup-txt">${label || 'Pickup Location'}</span>
+          </div>
+          <div class="pin-pointer"></div>
+        </div>
+      `;
+
+      this.pickupPinMarker = new maplibregl.Marker({
+        element: pinEl,
+        anchor: 'bottom',
+        offset: [0, 0],
+        pitchAlignment: 'viewport',
+        rotationAlignment: 'viewport',
+      })
+        .setLngLat([lng, lat])
+        .addTo(this.map);
+    } catch (err) {
+      console.warn('Pickup pin notice:', err);
+    }
+  }
+
+  clearPickupPin(): void {
+    this.currentPickupPinCoords = null;
+    if (this.pickupPinMarker) {
+      try {
+        this.pickupPinMarker.remove();
+      } catch { }
+      this.pickupPinMarker = null;
+    }
+  }
+
+  setDestinationPin(lng: number, lat: number, autoPan = false): void {
+    if (!this.map) return;
+    if (isNaN(lng) || isNaN(lat) || !lng || !lat) return;
+
+    const coordsKey = `${lng.toFixed(5)},${lat.toFixed(5)}`;
+    if (this.destinationPinMarker && this.currentDestPinCoords === coordsKey) {
+      return; // Destination pin is already placed at exact location
+    }
+
+    try {
+      if (this.destinationPinMarker) {
+        try {
+          this.destinationPinMarker.remove();
+        } catch { }
+        this.destinationPinMarker = null;
+      }
+      this.currentDestPinCoords = coordsKey;
+
+      const pinEl = document.createElement('div');
+      pinEl.className = 'srh-destination-marker-pin';
+      pinEl.innerHTML = `
+        <div class="dest-green-pin">
+          <svg viewBox="0 0 24 24" width="30" height="38" class="dest-pin-svg">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" fill="#059669"/>
+          </svg>
+        </div>
+      `;
+
+      this.destinationPinMarker = new maplibregl.Marker({
+        element: pinEl,
+        anchor: 'bottom',
+        offset: [0, 0],
+        pitchAlignment: 'viewport',
+        rotationAlignment: 'viewport',
+      })
+        .setLngLat([lng, lat])
+        .addTo(this.map);
+
+      if (autoPan && !this.isUserPanned()) {
+        this.map.flyTo({
+          center: [lng, lat],
+          zoom: 17.2,
+          duration: 650,
+          essential: true,
+        });
+      }
+    } catch (err) {
+      console.warn('Destination pin notice:', err);
+    }
+  }
+
+  clearDestinationPin(): void {
+    this.currentDestPinCoords = null;
+    if (this.destinationPinMarker) {
+      try {
+        this.destinationPinMarker.remove();
+      } catch { }
+      this.destinationPinMarker = null;
+    }
+  }
+
+  incrementPax(): void {
+    if (this.bookingPax() < 4) {
+      this.bookingPax.update(p => p + 1);
+      this.calculateFare();
+    }
+  }
+
+  decrementPax(): void {
+    if (this.bookingPax() > 1) {
+      this.bookingPax.update(p => p - 1);
+      this.calculateFare();
+    }
+  }
+
+  calculateFare(): void {
+    const dest = this.bookingDestination();
+    const matched = this.popularLandmarks.find(l => l.name === dest);
+    const base = matched ? matched.fare : 25;
+    const extraPax = Math.max(0, this.bookingPax() - 2);
+    this.bookingFare.set(base + extraPax * 5);
+  }
+
+  calculateCustomFare(lat: number, lng: number): void {
+    let closestFare = 25;
+    let minDist = 999999;
+    for (const lm of this.popularLandmarks) {
+      const dist = this.calculateDistanceMeters(lat, lng, lm.lat, lm.lng);
+      if (dist < minDist) {
+        minDist = dist;
+        closestFare = lm.fare;
+      }
+    }
+    const extraPax = Math.max(0, this.bookingPax() - 2);
+    this.bookingFare.set(closestFare + extraPax * 5);
+  }
+
+  submitPassengerBooking(): void {
+    if (this.driverService.totalQueueCount() <= 0) {
+      this.displayToast('No TODA drivers currently available on queue. Please try again later.');
+      this.showBookingModal.set(false);
+      return;
+    }
+
+    const pickup = this.bookingPickup()?.trim();
+    const destination = this.bookingDestination()?.trim();
+
+    if (!pickup) {
+      this.displayToast('Please enter your pickup location (Block & Lot).');
+      return;
+    }
+
+    if (!destination) {
+      this.displayToast('Please enter or pin your drop-off destination.');
+      return;
+    }
+
+    this.isSubmittingBooking.set(true);
+
+    this.dashboardService.requestPassengerRide({
+      pickup_location: pickup,
+      destination: destination,
+      fare: this.bookingFare(),
+      passenger_count: this.bookingPax(),
+      notes: this.bookingNotes(),
+      pickup_lat: this.driverLat(),
+      pickup_lng: this.driverLng(),
+      destination_lat: this.selectedLandmarkLat() ?? undefined,
+      destination_lng: this.selectedLandmarkLng() ?? undefined,
+    }).subscribe({
+      next: (res) => {
+        this.isSubmittingBooking.set(false);
+        this.showBookingModal.set(false);
+        if (res?.ride) {
+          this.activePassengerRide.set(res.ride);
+          this.displayToast('🚖 Tricycle requested! Dispatching nearest driver.');
+        }
+      },
+      error: (err) => {
+        this.isSubmittingBooking.set(false);
+        this.displayToast(err?.error?.message || 'Unable to request tricycle. Please try again.');
+      }
+    });
+  }
+
+  cancelPassengerRide(): void {
+    const ride = this.activePassengerRide();
+    if (!ride?.id) return;
+
+    this.driverService.broadcastRideCancelled(ride.id, ride.passenger_id, ride.driver_id || ride.driver?.id);
+    this.dashboardService.cancelActiveRide(ride.id).subscribe({
+      next: () => {
+        this.activePassengerRide.set(null);
+        if (this.destinationPinMarker) {
+          this.destinationPinMarker.remove();
+          this.destinationPinMarker = null;
+        }
+        this.displayToast('❌ Ride request cancelled.');
+      },
+      error: () => {
+        this.activePassengerRide.set(null);
+      }
+    });
+  }
+
+  acceptPassengerFare(): void {
+    const ride = this.activePassengerRide();
+    if (!ride?.id) return;
+
+    this.dashboardService.acceptFare(ride.id).subscribe({
+      next: (res) => {
+        if (res?.ride) {
+          this.activePassengerRide.set(res.ride);
+        } else {
+          this.activePassengerRide.update((r) => r ? { ...r, status: 'en_route' } : null);
+        }
+        this.displayToast('🎉 Proposed fare accepted! Tricycle is en route.');
+        this.refreshDashboard();
+      },
+      error: (err) => {
+        this.displayToast(err?.error?.message || 'Unable to accept proposed fare.');
+      },
+    });
+  }
+
+  openTripChat(): void {
+    this.unreadChatCount.set(0);
+    this.showChatModal.set(true);
+  }
+
+  closeTripChat(): void {
+    this.showChatModal.set(false);
+  }
+
+  onNewChatMessage(msg: any): void {
+    if (!this.showChatModal()) {
+      this.unreadChatCount.update((c) => c + 1);
+      const sender = msg.sender_name || (this.authService.isPassenger() ? 'Driver' : 'Passenger');
+      this.displayToast(`💬 ${sender}: "${msg.message}"`);
+      try {
+        this.soundService.playBookingAlert();
+      } catch {}
+    }
+  }
+
+  onRatingSubmitted(): void {
+    this.showRatingModal.set(false);
+    this.completedRideForRating.set(null);
+    this.displayToast('⭐ Thank you for your feedback! Ride completed.');
+    this.refreshDashboard();
+  }
+
+  // ==========================================
+  // MAP 3D HIGHWAY ROUTE LINE ENGINE (GeoJSON Layers)
+  // ==========================================
+  private applyRouteLineCoordinates(coordinates: [number, number][], color = '#2563eb'): void {
+    if (!this.map) return;
+    try {
+      if (!Array.isArray(coordinates) || coordinates.length < 2) return;
+      if (coordinates.some(([lng, lat]) => isNaN(lng) || isNaN(lat) || !lng || !lat)) return;
+
+      const isEmerald = color === '#059669';
+      const glowColor = isEmerald ? '#059669' : '#1d4ed8';
+      const casingColor = isEmerald ? '#34d399' : '#60a5fa';
+      const lineColor = isEmerald ? '#059669' : '#2563eb';
+      const coreColor = isEmerald ? '#a7f3d0' : '#93c5fd';
+
+      if (this.map.getLayer('terminal-return-route-glow')) {
+        this.map.setPaintProperty('terminal-return-route-glow', 'line-color', glowColor);
+      }
+      if (this.map.getLayer('terminal-return-route-casing')) {
+        this.map.setPaintProperty('terminal-return-route-casing', 'line-color', casingColor);
+      }
+      if (this.map.getLayer('terminal-return-route-line')) {
+        this.map.setPaintProperty('terminal-return-route-line', 'line-color', lineColor);
+      }
+      if (this.map.getLayer('terminal-return-route-core')) {
+        this.map.setPaintProperty('terminal-return-route-core', 'line-color', coreColor);
+      }
+
+      const source: any = this.map.getSource('terminal-return-route-source');
+      if (source) {
+        source.setData({
+          type: 'Feature',
+          geometry: {
+            type: 'LineString',
+            coordinates: coordinates,
+          },
+          properties: {},
+        });
+      }
+    } catch (e) {
+      console.warn('Map route line notice:', e);
+    }
+  }
+
+  private routeBetweenAbortController: AbortController | null = null;
+  private roadRouteCache = new Map<string, [number, number][]>();
+
+  async drawRoadRouteLine(
+    fromLng: number,
+    fromLat: number,
+    toLng: number,
+    toLat: number,
+    color = '#2563eb',
+    lockCamera = true
+  ): Promise<void> {
+    if (!this.map) return;
+    if (isNaN(fromLng) || isNaN(fromLat) || isNaN(toLng) || isNaN(toLat) || !fromLng || !fromLat || !toLng || !toLat) return;
+
+    // Fetch the actual road trace without flashing straight lines
+    const detailedCoords = await this.fetchRoadRouteBetweenPoints(fromLng, fromLat, toLng, toLat);
+    if (!detailedCoords || detailedCoords.length < 2 || !this.map) return;
+
+    // Apply the real road curve geometry directly
+    this.applyRouteLineCoordinates(detailedCoords, color);
+
+    // 3D Locked Road View centered along pathway with smooth 900ms cubic easing (matching Returning to Terminal)
+    if (lockCamera && !this.isUserPanned() && detailedCoords.length >= 2) {
+      const [roadLng, roadLat] = detailedCoords[0];
+      const [nextLng, nextLat] = detailedCoords[1];
+      const roadBearing = Math.round(this.calculateBearing(roadLat, roadLng, nextLat, nextLng));
+      if (!isNaN(roadBearing)) {
+        this.driverHeading.set(roadBearing);
+        this.updateDriverHeadingCone(roadBearing);
+        this.updateDriverLocationWebGL(roadLng, roadLat, roadBearing);
+        this.map.easeTo({
+          center: [roadLng, roadLat],
+          bearing: roadBearing,
+          pitch: 60,
+          zoom: 16.5,
+          duration: 900,
+          easing: (t: number) => 1 - Math.pow(1 - t, 3),
+          essential: true,
+        });
+      }
+    }
+  }
+
+  private async fetchRoadRouteBetweenPoints(
+    fromLng: number,
+    fromLat: number,
+    toLng: number,
+    toLat: number
+  ): Promise<[number, number][]> {
+    if (this.calculateDistanceMeters(fromLat, fromLng, toLat, toLng) <= 10) {
+      return [[fromLng, fromLat], [toLng, toLat]];
+    }
+
+    const cacheKey = `${fromLng.toFixed(5)},${fromLat.toFixed(5)}_${toLng.toFixed(5)},${toLat.toFixed(5)}`;
+    if (this.roadRouteCache.has(cacheKey)) {
+      return this.roadRouteCache.get(cacheKey)!;
+    }
+
+    try {
+      if (this.routeBetweenAbortController) {
+        this.routeBetweenAbortController.abort();
+      }
+      this.routeBetweenAbortController = new AbortController();
+
+      const url = `https://router.project-osrm.org/route/v1/driving/${fromLng},${fromLat};${toLng},${toLat}?overview=full&geometries=geojson&steps=false`;
+      const response = await fetch(url, { signal: this.routeBetweenAbortController.signal });
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.routes && data.routes.length > 0 && data.routes[0].geometry?.coordinates?.length > 1) {
+          const coords = data.routes[0].geometry.coordinates as [number, number][];
+          if (this.roadRouteCache.size > 150) this.roadRouteCache.clear();
+          this.roadRouteCache.set(cacheKey, coords);
+          return coords;
+        }
+      }
+    } catch (e: any) {
+      if (e?.name !== 'AbortError') {
+        console.warn('OSRM route fetch notice:', e);
+      }
+    }
+
+    return this.buildFallbackRoadRoute(fromLng, fromLat, toLng, toLat);
+  }
+
+  clearRouteLine(): void {
+    this.clearReturnRoutePolyline();
+    this.clearPickupPin();
+    this.clearDestinationPin();
+  }
+
+  checkPassengerActiveRide(): void {
+    this.dashboardService.getActiveRide().subscribe({
+      next: (res) => {
+        const ride = res?.active_ride || res?.ride;
+        if (ride) {
+          this.activePassengerRide.set(ride);
+          if (ride.driver_lat && ride.driver_lng) {
+            this.driverLat.set(Number(ride.driver_lat));
+            this.driverLng.set(Number(ride.driver_lng));
+            if (ride.driver_heading !== undefined && ride.driver_heading !== null) {
+              this.driverHeading.set(Number(ride.driver_heading));
+            }
+            this.updateDriverLocationWebGL(Number(ride.driver_lng), Number(ride.driver_lat), Number(ride.driver_heading || 0));
+          }
+        } else {
+          this.activePassengerRide.set(null);
+        }
+      },
+      error: () => {}
+    });
+  }
+
+  togglePassengerSheet(): void {
+    this.passengerSheet()?.toggleSnap();
+  }
 
   // Santa Rosa Roadway Network for Centerline Locking
   private readonly ROAD_NETWORKS: [number, number][][] = [
@@ -106,14 +712,6 @@ export class HomePage implements AfterViewInit, OnDestroy {
       [120.9380, 15.42980],
     ],
     // Maharlika Highway (North-South National Highway)
-    [
-      [120.9260, 15.4180],
-      [120.9260, 15.4240],
-      [120.9260, 15.42960],
-      [120.9262, 15.4350],
-      [120.9264, 15.4420],
-    ],
-    // Rizal Street / Central Poblacion thoroughfare
     [
       [120.9224, 15.4230],
       [120.9224, 15.4270],
@@ -154,6 +752,46 @@ export class HomePage implements AfterViewInit, OnDestroy {
       documentAttachOutline,
       sendOutline,
       closeOutline,
+      refreshOutline,
+      bookmarkOutline,
+      location,
+      locationOutline,
+      navigate,
+      navigateOutline,
+      pin,
+      sparklesOutline,
+      cartOutline,
+      footballOutline,
+      timeOutline,
+      personOutline,
+      shieldOutline,
+      callOutline,
+      carOutline,
+      star,
+      cashOutline,
+      peopleOutline,
+      radioOutline,
+      checkmarkCircleOutline,
+      chevronForwardOutline,
+      addOutline,
+      removeOutline,
+      pricetagOutline,
+      storefrontOutline,
+      businessOutline,
+    });
+
+    // Auto-persist active passenger ride to localStorage for 0ms instant reload restoration
+    effect(() => {
+      const ride = this.activePassengerRide();
+      if (typeof window !== 'undefined') {
+        try {
+          if (ride) {
+            localStorage.setItem(this.PASSENGER_RIDE_KEY, JSON.stringify(ride));
+          } else {
+            localStorage.removeItem(this.PASSENGER_RIDE_KEY);
+          }
+        } catch { }
+      }
     });
 
     // Real-time inter-tab & cross-device event driven sync listener
@@ -164,15 +802,152 @@ export class HomePage implements AfterViewInit, OnDestroy {
       });
     });
 
-    // Real-time location broadcast listener across multi-devices (ignores self-echoes to prevent rubber-banding)
+    // Toast notification when a ride is cancelled on either driver or passenger
+    effect(() => {
+      const notice = this.driverService.rideCancelledNotice();
+      if (notice && notice.message) {
+        untracked(() => {
+          this.displayToast(notice.message);
+          this.clearRouteLine();
+          if (this.authService.isPassenger()) {
+            this.activePassengerRide.set(null);
+            if (this.destinationPinMarker) {
+              this.destinationPinMarker.remove();
+              this.destinationPinMarker = null;
+            }
+          }
+        });
+      }
+    });
+
+    // Reactive Road-Tracing Route Line Sync for Passenger & Driver (Locked 3D Navigation)
+    effect(() => {
+      const isPassenger = this.authService.isPassenger();
+      const pRide = this.activePassengerRide();
+      const dTrip = this.driverService.activeTrip();
+      const dLat = this.driverLat();
+      const dLng = this.driverLng();
+
+      untracked(() => {
+        if (isPassenger && pRide) {
+          const status = String(pRide.status || '').toLowerCase().trim();
+          if (status === 'en_route' || status === 'accepted') {
+            const pLat = Number(pRide.pickup_lat);
+            const pLng = Number(pRide.pickup_lng);
+            const drvLat = Number(pRide.driver_lat || dLat);
+            const drvLng = Number(pRide.driver_lng || dLng);
+            if (pLat && pLng && drvLat && drvLng) {
+              this.clearDestinationPin();
+              this.setPickupPin(pLng, pLat, pRide.pickup_location);
+              this.drawRoadRouteLine(drvLng, drvLat, pLng, pLat, '#2563eb', true);
+            }
+          } else if (status === 'arrived') {
+            this.clearDestinationPin();
+            const pLat = Number(pRide.pickup_lat);
+            const pLng = Number(pRide.pickup_lng);
+            if (pLat && pLng) {
+              this.setPickupPin(pLng, pLat, pRide.pickup_location);
+            }
+          } else if (status === 'in_transit') {
+            this.clearPickupPin();
+            const drvLat = Number(pRide.driver_lat || dLat);
+            const drvLng = Number(pRide.driver_lng || dLng);
+            const dLat2 = Number(pRide.destination_lat || pRide.dest_lat);
+            const dLng2 = Number(pRide.destination_lng || pRide.dest_lng);
+            if (drvLat && drvLng && dLat2 && dLng2) {
+              this.setDestinationPin(dLng2, dLat2);
+              this.drawRoadRouteLine(drvLng, drvLat, dLng2, dLat2, '#059669', true);
+            }
+          } else {
+            this.clearRouteLine();
+          }
+        } else if (!isPassenger && dTrip) {
+          const status = String(dTrip.status || '').toLowerCase().trim();
+          if (status && this.lastDriverTripStatus !== status) {
+            if (status === 'bargaining' || status === 'fare_proposed') {
+              this.soundService.playBookingAlert();
+            } else if (status === 'arrived') {
+              this.soundService.playArrived();
+            } else if (status === 'in_transit') {
+              this.soundService.playNotificationChime();
+            }
+            this.lastDriverTripStatus = status;
+          }
+          if (status === 'en_route') {
+            const pLat = Number(dTrip.pickupLat);
+            const pLng = Number(dTrip.pickupLng);
+            if (pLat && pLng && dLat && dLng) {
+              this.clearDestinationPin();
+              this.setPickupPin(pLng, pLat, dTrip.pickupLocation);
+              this.drawRoadRouteLine(dLng, dLat, pLng, pLat, '#2563eb', true);
+            }
+          } else if (status === 'arrived') {
+            this.clearDestinationPin();
+            const pLat = Number(dTrip.pickupLat);
+            const pLng = Number(dTrip.pickupLng);
+            if (pLat && pLng) {
+              this.setPickupPin(pLng, pLat, dTrip.pickupLocation);
+            }
+          } else if (status === 'in_transit') {
+            const isWalkInOrWayside = dTrip.tripType === 'terminal_walk_in' || dTrip.tripType === 'wayside_pickup' || !dTrip.dropoffLat;
+            if (isWalkInOrWayside) {
+              this.clearRouteLine();
+            } else {
+              this.clearPickupPin();
+              const dLat2 = Number(dTrip.dropoffLat);
+              const dLng2 = Number(dTrip.dropoffLng);
+              if (dLat && dLng && dLat2 && dLng2) {
+                this.setDestinationPin(dLng2, dLat2);
+                this.drawRoadRouteLine(dLng, dLat, dLng2, dLat2, '#059669', true);
+              }
+            }
+          } else {
+            this.clearRouteLine();
+          }
+        } else {
+          this.clearDestinationPin();
+          this.clearPickupPin();
+          if (!this.driverService.isReturning()) {
+            this.clearReturnRoutePolyline();
+          }
+        }
+      });
+    });
+
+    // Real-time location broadcast listener across multi-devices (updates passenger map live ONLY when on an active trip with the driver)
     effect(() => {
       const loc = this.driverService.locationBroadcast();
       if (loc) {
         untracked(() => {
           const currentUserId = this.authService.currentUser()?.id;
-          // Self-echo suppression: the active device is already locally authoritative for its own GPS/overridden position
           if (loc.driverId === currentUserId) {
             return;
+          }
+
+          const isPassenger = this.authService.isPassenger();
+          if (isPassenger) {
+            const pRide = this.activePassengerRide();
+            // ONLY sync driver location if passenger has an active ongoing trip with THIS driver
+            if (pRide && (pRide.status === 'en_route' || pRide.status === 'accepted' || pRide.status === 'arrived' || pRide.status === 'in_transit')) {
+              const driverId = pRide.driver?.id || pRide.driver_id;
+              if (loc.driverId && driverId && Number(loc.driverId) !== Number(driverId)) {
+                return;
+              }
+              if (loc.rideId && pRide.id && Number(loc.rideId) !== Number(pRide.id)) {
+                return;
+              }
+
+              this.driverLat.set(loc.lat);
+              this.driverLng.set(loc.lng);
+              if (loc.heading !== undefined) {
+                this.driverHeading.set(loc.heading);
+              }
+              this.updateDriverLocationWebGL(loc.lng, loc.lat, loc.heading || 0);
+
+              this.activePassengerRide.update((r) =>
+                r ? { ...r, driver_lat: loc.lat, driver_lng: loc.lng } : null
+              );
+            }
           }
         });
       }
@@ -183,14 +958,39 @@ export class HomePage implements AfterViewInit, OnDestroy {
       const isRet = this.driverService.isReturning();
       const hasTrip = !!this.driverService.activeTrip();
       const isOnline = this.driverService.driver().isOnline;
+      const ride = this.activePassengerRide();
       untracked(() => {
         setTimeout(() => {
           const card = this.queueCard();
           if (card) {
             this.onSheetDragSync(card.activeTranslateY || card.MID_TRANSLATE_Y);
+          } else {
+            const pSheet = this.passengerSheet();
+            if (pSheet) {
+              this.onSheetDragSync(pSheet.activeTranslateY || (ride ? pSheet.MID_TRANSLATE_Y : pSheet.MAX_TRANSLATE_Y));
+            }
           }
         }, 50);
       });
+    });
+
+    // Check if routed from Saved Places or external link with destination query param
+    this.route.queryParams.subscribe(params => {
+      if (params && params['destination']) {
+        const dest = params['destination'];
+        const lat = params['destLat'] ? parseFloat(params['destLat']) : 15.42955;
+        const lng = params['destLng'] ? parseFloat(params['destLng']) : 120.92240;
+        this.bookingDestination.set(dest);
+        this.selectedLandmarkLat.set(lat);
+        this.selectedLandmarkLng.set(lng);
+        this.calculateFare();
+        setTimeout(() => {
+          this.setDestinationPin(lng, lat);
+          if (params['book'] === 'true') {
+            this.showBookingModal.set(true);
+          }
+        }, 400);
+      }
     });
   }
 
@@ -232,6 +1032,9 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
     // Initial full dashboard fetch on startup
     this.refreshDashboard();
+    if (this.authService.isPassenger()) {
+      this.checkPassengerActiveRide();
+    }
 
     // Initial high-accuracy GPS position fetch on startup
     if (typeof navigator !== 'undefined' && navigator.geolocation) {
@@ -259,6 +1062,8 @@ export class HomePage implements AfterViewInit, OnDestroy {
     }
   }
 
+
+
   refreshDashboard(): void {
     if (!this.authService.token()) return;
     if (this.driverService.hasUnsavedQueueOrder() || this.queueCard()?.hasPendingChanges()) {
@@ -267,10 +1072,74 @@ export class HomePage implements AfterViewInit, OnDestroy {
     this.dashboardService.getDashboardData().subscribe({
       next: (data) => {
         this.driverService.syncFromDashboard(data);
+
+        if (this.authService.isPassenger()) {
+          const prev = this.activePassengerRide();
+          if (data?.passenger?.active_ride) {
+            const ar = data.passenger.active_ride;
+            const prevStatus = prev?.status;
+            const newStatus = ar.status;
+            this.activePassengerRide.set(ar);
+
+            if (ar.driver_lat && ar.driver_lng) {
+              const dLat = Number(ar.driver_lat);
+              const dLng = Number(ar.driver_lng);
+              const dHeading = Number(ar.driver_heading || 0);
+              this.driverLat.set(dLat);
+              this.driverLng.set(dLng);
+              this.driverHeading.set(dHeading);
+              this.updateDriverLocationWebGL(dLng, dLat, dHeading);
+            }
+
+            if (prevStatus && prevStatus !== newStatus) {
+              if (newStatus === 'fare_proposed') {
+                this.soundService.playBookingAlert();
+                this.displayToast(`💰 Driver proposed a fare of ₱${Number(data.passenger.active_ride.fare || 0).toFixed(2)}`);
+              } else if (newStatus === 'en_route' || newStatus === 'accepted') {
+                this.soundService.playNotificationChime();
+                this.displayToast('🚖 Driver is on the way to pick you up!');
+              } else if (newStatus === 'arrived') {
+                this.soundService.playArrived();
+                this.displayToast('📍 Your driver has arrived at the pickup location!');
+              } else if (newStatus === 'in_transit') {
+                this.soundService.playNotificationChime();
+                this.displayToast('🚀 Trip started! On the way to your destination.');
+              } else if (newStatus === 'completed') {
+                this.soundService.playDropoffSuccess();
+                this.displayToast('🏁 You have arrived at your destination!');
+                this.completedRideForRating.set(data.passenger.active_ride);
+                this.showRatingModal.set(true);
+                this.showChatModal.set(false);
+                this.clearRouteLine();
+              } else if (newStatus === 'cancelled') {
+                this.soundService.playOffDuty();
+                this.displayToast('❌ Ride request was cancelled.');
+                this.activePassengerRide.set(null);
+                this.clearRouteLine();
+              }
+            }
+          } else if (prev && prev.status !== 'cancelled' && prev.status !== 'completed') {
+            if (prev.status === 'in_transit' || prev.status === 'arrived') {
+              this.displayToast('🏁 You have arrived at your destination!');
+              this.completedRideForRating.set(prev);
+              this.showRatingModal.set(true);
+              this.showChatModal.set(false);
+            } else {
+              this.displayToast('❌ Ride request was cancelled.');
+            }
+            this.activePassengerRide.set(null);
+            this.clearRouteLine();
+          }
+        }
       },
       error: (err) => {
-        console.warn('Dashboard sync transient notice:', err?.status);
-      }
+        if (err?.status === 401) {
+          console.warn('Authentication expired or invalidated. Redirecting to login.');
+          this.authService.logout();
+        } else {
+          console.warn('Dashboard sync transient notice:', err?.status);
+        }
+      },
     });
   }
 
@@ -296,6 +1165,24 @@ export class HomePage implements AfterViewInit, OnDestroy {
     }, durationMs);
   }
 
+  onSnapChange(snap: SheetSnap): void {
+    this.currentSnap.set(snap);
+    this.wakeMapRenderLoop(450);
+    if (snap === 'max') return;
+
+    if (this.map && !this.isUserPanned()) {
+      try {
+        this.map.easeTo({
+          center: [this.driverLng(), this.driverLat()],
+          padding: this.getVisibleMapPadding(),
+          duration: 380,
+          essential: true,
+          easing: (t: number) => 1 - Math.pow(1 - t, 3),
+        });
+      } catch { }
+    }
+  }
+
   onSheetDragStart(): void {
     // Lightweight drag start - DOM elements glide with 0ms lag
   }
@@ -319,7 +1206,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
   // Strict 1:1 real-time on-sync calculation for floating buttons, Stage 1 tuck/hide, Stage 2 header zoom/fade & map parallax
   onSheetDragSync(currentTranslateY: number): void {
     const sheetTopFromBottom = window.innerHeight - 56 - currentTranslateY;
-    const normalPos = Math.round(sheetTopFromBottom + 65);
+    const normalPos = Math.round(sheetTopFromBottom + 72);
 
     // Stage 1 Trigger: Starts across center pin (~52% from top / 48% sheet height)
     const buttonHideStart = Math.round(window.innerHeight * 0.52);
@@ -357,9 +1244,13 @@ export class HomePage implements AfterViewInit, OnDestroy {
     }
 
     // Direct DOM Writes for Instantaneous Zero-Lag 120fps Rendering
-    const powerEl = document.getElementById('floating-power-container');
-    const mapControlsEl = document.getElementById('floating-map-controls-container');
-    const headerEl = document.getElementById('driver-header-motion-wrapper');
+    if (!this.cachedPowerEl) this.cachedPowerEl = document.getElementById('floating-power-container');
+    if (!this.cachedMapControlsEl) this.cachedMapControlsEl = document.getElementById('floating-map-controls-container');
+    if (!this.cachedHeaderEl) this.cachedHeaderEl = document.getElementById('driver-header-motion-wrapper');
+
+    const powerEl = this.cachedPowerEl;
+    const mapControlsEl = this.cachedMapControlsEl;
+    const headerEl = this.cachedHeaderEl;
 
     if (powerEl) {
       powerEl.style.transform = btnTransform;
@@ -386,18 +1277,18 @@ export class HomePage implements AfterViewInit, OnDestroy {
     const snap = this.currentSnap();
     const h = typeof window !== 'undefined' ? window.innerHeight : 800;
     const card = this.queueCard();
-    let currentY = card?.activeTranslateY || card?.MID_TRANSLATE_Y || Math.round(h * 0.48);
+    const pSheet = this.passengerSheet();
+    let currentY = card?.activeTranslateY || card?.MID_TRANSLATE_Y || pSheet?.activeTranslateY || pSheet?.MID_TRANSLATE_Y || Math.round(h * 0.48);
 
-    if (snap === 'min' && card) {
-      currentY = card.MAX_TRANSLATE_Y;
-    } else if (snap === 'max' && card) {
-      // Third state (full screen): keep mid resting padding, do NOT push map
-      currentY = card.MID_TRANSLATE_Y;
-    } else if (snap === 'mid' && card) {
-      currentY = card.MID_TRANSLATE_Y;
+    if (snap === 'min') {
+      currentY = card ? card.MAX_TRANSLATE_Y : (pSheet ? pSheet.MAX_TRANSLATE_Y : Math.round(h * 0.88));
+    } else if (snap === 'max') {
+      currentY = card ? card.MID_TRANSLATE_Y : (pSheet ? pSheet.MIN_TRANSLATE_Y : Math.round(h * 0.5));
+    } else if (snap === 'mid') {
+      currentY = card ? card.MID_TRANSLATE_Y : (pSheet ? pSheet.MID_TRANSLATE_Y : Math.round(h * 0.65));
     }
 
-    const bottomCovered = Math.max(90, Math.min(Math.round(h * 0.55), Math.round(h - currentY)));
+    const bottomCovered = Math.max(75, Math.min(Math.round(h * 0.55), Math.round(h - currentY)));
 
     return {
       top: 55,
@@ -405,24 +1296,6 @@ export class HomePage implements AfterViewInit, OnDestroy {
       left: 0,
       right: 0,
     };
-  }
-
-  onSnapChange(snap: SheetSnap): void {
-    this.currentSnap.set(snap);
-    // When fully pulled to top (third state / max), do NOT push the map
-    if (snap === 'max') return;
-
-    if (this.map && !this.isUserPanned()) {
-      try {
-        this.map.easeTo({
-          center: [this.driverLng(), this.driverLat()],
-          padding: this.getVisibleMapPadding(),
-          duration: 380,
-          essential: true,
-          easing: (t: number) => 1 - Math.pow(1 - t, 3),
-        });
-      } catch { }
-    }
   }
 
   // --- 1. MAP INITIALIZATION ---
@@ -460,21 +1333,115 @@ export class HomePage implements AfterViewInit, OnDestroy {
       // Disable double click zoom as requested
       mapInstance.doubleClickZoom.disable();
 
-      // On map click/tap GPS override
+      // On map click/tap GPS override or Drop-Off Destination Pinning
       mapInstance.on('click', async (e: any) => {
         const lng = e.lngLat.lng;
         const lat = e.lngLat.lat;
 
+        // Manual drop-off pin mode for passenger
+        if (this.isPinningMode()) {
+          this.selectedLandmarkLat.set(lat);
+          this.selectedLandmarkLng.set(lng);
+          this.setDestinationPin(lng, lat);
+          this.isPinningMode.set(false);
+          this.bookingDestination.set('');
+          this.calculateCustomFare(lat, lng);
+          setTimeout(() => {
+            this.showBookingModal.set(true);
+          }, 200);
+          return;
+        }
+
         this.isLocationOverridden.set(true);
         this.isUserPanned.set(false);
 
-        // ONLY when returning: snap marker to road route line and orient along road segment
+        // 1. When returning: snap marker to road route line and orient along road segment
         if (this.driverService.isReturning()) {
           await this.applyRoadRouteAndSnap(lng, lat);
           return;
         }
 
-        // Standard 2D/3D map click when NOT returning (no road snapping, standard behaviour)
+        // 2. When in active trip (en_route or in_transit):
+        const dTrip = this.driverService.activeTrip();
+        if (dTrip && (dTrip.status === 'en_route' || dTrip.status === 'in_transit')) {
+          const isWalkInOrWayside = dTrip.tripType === 'terminal_walk_in' || dTrip.tripType === 'wayside_pickup' || !dTrip.dropoffLat;
+
+          if (isWalkInOrWayside) {
+            let newHeading = this.driverHeading();
+            if (this.driverLat() && this.driverLng()) {
+              newHeading = Math.round(this.calculateBearing(this.driverLat(), this.driverLng(), lat, lng));
+            }
+            this.hasGpsFix.set(true);
+            this.driverLat.set(lat);
+            this.driverLng.set(lng);
+            this.driverHeading.set(newHeading);
+            this.updateDriverLocationWebGL(lng, lat, newHeading);
+            this.clearRouteLine();
+
+            if (this.map && !this.isUserPanned()) {
+              this.map.easeTo({
+                center: [lng, lat],
+                pitch: 60,
+                bearing: newHeading,
+                zoom: 16.5,
+                duration: 650,
+                easing: (t: number) => 1 - Math.pow(1 - t, 3),
+                essential: true,
+              });
+            }
+
+            this.driverService.updateDriverLocation({
+              lat: lat,
+              lng: lng,
+              heading: newHeading,
+              ride_id: Number(dTrip.id),
+            });
+            return;
+          }
+
+          const targetLng = dTrip.status === 'en_route' ? Number(dTrip.pickupLng || 120.92240) : Number(dTrip.dropoffLng || 120.92240);
+          const targetLat = dTrip.status === 'en_route' ? Number(dTrip.pickupLat || 15.42955) : Number(dTrip.dropoffLat || 15.42955);
+          const color = dTrip.status === 'en_route' ? '#2563eb' : '#059669';
+
+          const coordinates = await this.fetchRoadRouteBetweenPoints(lng, lat, targetLng, targetLat);
+          const roadLng = coordinates && coordinates.length > 0 ? coordinates[0][0] : lng;
+          const roadLat = coordinates && coordinates.length > 0 ? coordinates[0][1] : lat;
+          const nextLng = coordinates && coordinates.length > 1 ? coordinates[1][0] : targetLng;
+          const nextLat = coordinates && coordinates.length > 1 ? coordinates[1][1] : targetLat;
+          const roadHeading = Math.round(this.calculateBearing(roadLat, roadLng, nextLat, nextLng)) || this.driverHeading();
+
+          this.hasGpsFix.set(true);
+          this.driverLat.set(roadLat);
+          this.driverLng.set(roadLng);
+          this.driverHeading.set(roadHeading);
+          this.updateDriverLocationWebGL(roadLng, roadLat, roadHeading);
+
+          if (coordinates) {
+            this.applyRouteLineCoordinates(coordinates, color);
+          }
+
+          if (this.map && !this.isUserPanned()) {
+            this.map.easeTo({
+              center: [roadLng, roadLat],
+              pitch: 60,
+              bearing: roadHeading,
+              zoom: 16.5,
+              duration: 900,
+              easing: (t: number) => 1 - Math.pow(1 - t, 3),
+              essential: true,
+            });
+          }
+
+          this.driverService.updateDriverLocation({
+            lat: roadLat,
+            lng: roadLng,
+            heading: roadHeading,
+            ride_id: Number(dTrip.id),
+          });
+          return;
+        }
+
+        // 3. Standard 2D/3D map click when NOT returning and NOT in active trip
         let newHeading = this.driverHeading();
         if (this.driverLat() && this.driverLng()) {
           newHeading = Math.round(this.calculateBearing(this.driverLat(), this.driverLng(), lat, lng));
@@ -503,17 +1470,49 @@ export class HomePage implements AfterViewInit, OnDestroy {
         try {
           const pad = this.getVisibleMapPadding();
           mapInstance.setPadding(pad);
-          // Immediately center on terminal/driver within the visible upper viewport!
-          mapInstance.jumpTo({
-            center: [this.driverLng(), this.driverLat()],
-            padding: pad,
-          });
+
+          const isPassenger = this.authService.isPassenger();
+          const pRide = this.activePassengerRide();
+          const dTrip = this.driverService.activeTrip();
+
+          if (isPassenger && pRide && (pRide.status === 'en_route' || pRide.status === 'in_transit')) {
+            const centerLng = Number(pRide.driver_lng || pRide.pickup_lng || this.driverLng());
+            const centerLat = Number(pRide.driver_lat || pRide.pickup_lat || this.driverLat());
+            mapInstance.jumpTo({
+              center: [centerLng, centerLat],
+              padding: pad,
+              pitch: 60,
+              zoom: 16.5,
+            });
+          } else if (!isPassenger && dTrip && (dTrip.status === 'en_route' || dTrip.status === 'in_transit')) {
+            mapInstance.jumpTo({
+              center: [this.driverLng(), this.driverLat()],
+              padding: pad,
+              pitch: 60,
+              zoom: 16.5,
+            });
+          } else if (!isPassenger && this.driverService.isReturning()) {
+            mapInstance.jumpTo({
+              center: [this.driverLng(), this.driverLat()],
+              padding: pad,
+              pitch: 60,
+              zoom: 16.2,
+            });
+          } else {
+            // Idle / Booking state: default to terminal or current location top view
+            mapInstance.jumpTo({
+              center: [this.driverLng(), this.driverLat()],
+              padding: pad,
+              pitch: 0,
+              zoom: 16.0,
+            });
+          }
         } catch { }
         this.initTerminalGeofence(mapInstance);
         this.initReturnRouteLayer(mapInstance);
         this.addMapMarkers(mapInstance);
 
-        if (this.driverService.isReturning()) {
+        if (!this.authService.isPassenger() && this.driverService.isReturning()) {
           this.updateReturnRoutePolyline(this.driverLng(), this.driverLat());
         }
       });
@@ -592,6 +1591,11 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
   // --- 2. 35m TERMINAL GEOFENCE ---
   private initTerminalGeofence(mapInstance: any): void {
+    if (this.authService.isPassenger()) {
+      // Passengers see a clean map without driver geofence radius circles
+      return;
+    }
+
     const circleGeoJSON = this.createTerminalGeoJSONCircle(
       this.TERMINAL_LNG,
       this.TERMINAL_LAT,
@@ -665,42 +1669,69 @@ export class HomePage implements AfterViewInit, OnDestroy {
   // --- 3. MODERN PROFESSIONAL MAP MARKERS (Google Maps / Apple Maps / Grab Style) ---
   private addMapMarkers(mapInstance: any): void {
     try {
-      // 1. Terminal Ground Dot Marker (Lies flat on ground, tilts with 3D map pitch)
-      if (!this.terminalGroundDot) {
-        const dotEl = document.createElement('div');
-        dotEl.className = 'srh-terminal-ground-dot';
-        this.terminalGroundDot = new maplibregl.Marker({
-          element: dotEl,
-          anchor: 'center',
-          pitchAlignment: 'map',
-          rotationAlignment: 'map',
-        })
-          .setLngLat([this.TERMINAL_LNG, this.TERMINAL_LAT])
-          .addTo(mapInstance);
-      }
+      const isPassenger = this.authService.isPassenger();
 
-      // 2. Terminal Billboard Pill Badge (Stands upright facing user, floats right above ground dot)
-      if (!this.terminalMarker) {
-        const terminalEl = document.createElement('div');
-        terminalEl.className = 'srh-terminal-marker-pin';
-        terminalEl.innerHTML = `
-          <div class="terminal-pill-badge">
-            <svg class="pin-icon" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
-            </svg>
-            <span>SRH TODA Terminal</span>
-          </div>
-        `;
+      if (isPassenger) {
+        // Passenger View: Clean modern terminal station pin without geofence clutter
+        if (!this.terminalMarker) {
+          const terminalEl = document.createElement('div');
+          terminalEl.className = 'srh-passenger-terminal-pin';
+          terminalEl.innerHTML = `
+            <div class="passenger-terminal-bubble">
+              <svg class="station-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
+              </svg>
+              <span>SRH TODA Terminal</span>
+            </div>
+            <div class="pin-tail"></div>
+          `;
 
-        this.terminalMarker = new maplibregl.Marker({
-          element: terminalEl,
-          anchor: 'bottom',
-          offset: [0, -8],
-          pitchAlignment: 'viewport',
-          rotationAlignment: 'viewport',
-        })
-          .setLngLat([this.TERMINAL_LNG, this.TERMINAL_LAT])
-          .addTo(mapInstance);
+          this.terminalMarker = new maplibregl.Marker({
+            element: terminalEl,
+            anchor: 'bottom',
+            pitchAlignment: 'viewport',
+            rotationAlignment: 'viewport',
+          })
+            .setLngLat([this.TERMINAL_LNG, this.TERMINAL_LAT])
+            .addTo(mapInstance);
+        }
+      } else {
+        // Driver View: Ground dot + upright billboard badge
+        if (!this.terminalGroundDot) {
+          const dotEl = document.createElement('div');
+          dotEl.className = 'srh-terminal-ground-dot';
+          this.terminalGroundDot = new maplibregl.Marker({
+            element: dotEl,
+            anchor: 'center',
+            pitchAlignment: 'map',
+            rotationAlignment: 'map',
+          })
+            .setLngLat([this.TERMINAL_LNG, this.TERMINAL_LAT])
+            .addTo(mapInstance);
+        }
+
+        if (!this.terminalMarker) {
+          const terminalEl = document.createElement('div');
+          terminalEl.className = 'srh-terminal-marker-pin';
+          terminalEl.innerHTML = `
+            <div class="terminal-pill-badge">
+              <svg class="pin-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
+              </svg>
+              <span>SRH TODA Terminal</span>
+            </div>
+          `;
+
+          this.terminalMarker = new maplibregl.Marker({
+            element: terminalEl,
+            anchor: 'bottom',
+            offset: [0, -8],
+            pitchAlignment: 'viewport',
+            rotationAlignment: 'viewport',
+          })
+            .setLngLat([this.TERMINAL_LNG, this.TERMINAL_LAT])
+            .addTo(mapInstance);
+        }
       }
 
       // 2. Driver Animated Location Puck (Google Maps / Apple Maps / Uber style)
@@ -1078,23 +2109,6 @@ export class HomePage implements AfterViewInit, OnDestroy {
     } catch { }
   }
 
-  private applyRouteLineCoordinates(coordinates: [number, number][]): void {
-    if (!this.map) return;
-    try {
-      const source = this.map.getSource('terminal-return-route-source');
-      if (source) {
-        source.setData({
-          type: 'Feature',
-          geometry: {
-            type: 'LineString',
-            coordinates: coordinates,
-          },
-          properties: {},
-        });
-      }
-    } catch { }
-  }
-
   private async applyRoadRouteAndSnap(inputLng: number, inputLat: number): Promise<boolean> {
     const coordinates = await this.fetchRoadRouteToTerminal(inputLng, inputLat);
     if (!coordinates || coordinates.length < 2) return false;
@@ -1142,7 +2156,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
     const distToTerminal = this.calculateDistanceMeters(roadLat, roadLng, this.TERMINAL_LAT, this.TERMINAL_LNG);
     this.isInsideTerminal.set(distToTerminal <= this.TERMINAL_RADIUS_METERS);
-    if (distToTerminal <= this.TERMINAL_RADIUS_METERS) {
+    if (this.driverService.isReturning() && distToTerminal <= this.TERMINAL_RADIUS_METERS) {
       this.handleTerminalArrival();
     }
 
@@ -1375,7 +2389,8 @@ export class HomePage implements AfterViewInit, OnDestroy {
         zoom: 17.2,
         pitch: 60,
         bearing: this.driverHeading(),
-        duration: 500,
+        duration: 650,
+        easing: (t: number) => 1 - Math.pow(1 - t, 3),
         essential: true,
       });
       this.displayToast('3D Compass View (Follows Device Orientation)');
@@ -1389,7 +2404,8 @@ export class HomePage implements AfterViewInit, OnDestroy {
         zoom: 16.6,
         pitch: 0,
         bearing: 0,
-        duration: 500,
+        duration: 650,
+        easing: (t: number) => 1 - Math.pow(1 - t, 3),
         essential: true,
       });
       this.displayToast('2D Top View (North-Up)');
@@ -1539,6 +2555,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
   async onDropOffClicked(): Promise<void> {
     const result = this.driverService.completeDropOff();
+    this.soundService.playDropoffSuccess();
     this.displayToast(result.message);
 
     this.mapControlState.set(3);
@@ -1577,19 +2594,24 @@ export class HomePage implements AfterViewInit, OnDestroy {
       : (isOnline ? 999999 : 0);
 
     const localResult = this.driverService.toggleDuty(isOnline, currentDist);
-    this.displayToast(localResult.message);
+    this.displayToast(localResult.message, isOnline && localResult.success ? 'success' : undefined);
     if (!localResult.success) {
       return;
     }
 
     if (isOnline) {
+      this.soundService.playOnDuty();
+      this.pushService.requestPermissionAndSubscribe();
       this.recenterToDriverOrTerminal();
       this.mapControlState.set(2);
+    } else {
+      this.soundService.playOffDuty();
     }
   }
 
-  displayToast(msg: string): void {
+  displayToast(msg: string, color?: string): void {
     this.toastMessage.set(msg);
+    this.toastColor.set(color);
     this.showToast.set(true);
   }
 

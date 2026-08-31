@@ -4,6 +4,7 @@ import { debounceTime, switchMap, tap, catchError, finalize } from 'rxjs/operato
 import { DriverProfile, QueueItem, DriverOnTrip, RideTrip } from '../models/driver.model';
 import { AuthService } from './auth.service';
 import { DashboardService } from './dashboard.service';
+import { NotificationService } from './notification.service';
 
 @Injectable({
   providedIn: 'root',
@@ -11,6 +12,7 @@ import { DashboardService } from './dashboard.service';
 export class DriverService {
   private authService = inject(AuthService);
   private dashboardService = inject(DashboardService);
+  private notificationService = inject(NotificationService);
 
   // Terminal Center Coordinates (Santa Rosa Central TODA)
   readonly TERMINAL_LNG = 120.92240292427664;
@@ -82,6 +84,9 @@ export class DriverService {
     rideId?: number;
     status?: string;
   } | null>(null);
+
+  // 10. Real-time cross-client ride cancellation notification signal
+  readonly rideCancelledNotice = signal<{ role: 'driver' | 'passenger'; message: string; timestamp: number } | null>(null);
 
   // Readonly Public Accessors
   driver = this.driverSignal.asReadonly();
@@ -161,12 +166,39 @@ export class DriverService {
           this.liveChannel.onmessage = (evt) => {
             if (evt.data?.type === 'QUEUE_UPDATED') {
               this.syncTriggerSignal.update((n) => n + 1);
+            } else if (evt.data?.type === 'TRICYCLE_LOCATION_UPDATED') {
+              this.handleLocationBroadcast(evt.data);
+            } else if (evt.data?.type === 'RIDE_CANCELLED') {
+              const currentUserId = this.authService.currentUser()?.id;
+              const isPassenger = this.authService.isPassenger();
+              const isDriver = this.authService.isDriver();
+
+              if (isPassenger && (evt.data.passengerId === currentUserId || !evt.data.passengerId)) {
+                this.rideCancelledNotice.set({
+                  role: 'passenger',
+                  message: '❌ Ride was cancelled.',
+                  timestamp: Date.now()
+                });
+              } else if (isDriver && (evt.data.driverId === currentUserId || !evt.data.driverId)) {
+                this.activeTripSignal.set(null);
+                this.rideCancelledNotice.set({
+                  role: 'driver',
+                  message: '❌ Passenger cancelled the ride request.',
+                  timestamp: Date.now()
+                });
+              }
+              this.syncTriggerSignal.update((n) => n + 1);
             }
           };
         }
         window.addEventListener('storage', (e) => {
-          if (e.key === 'srh_live_sync_pulse') {
+          if (e.key === 'srh_live_sync_pulse' || e.key === 'srh_ride_cancelled_pulse') {
             this.syncTriggerSignal.update((n) => n + 1);
+          } else if (e.key === 'srh_live_driver_loc' && e.newValue) {
+            try {
+              const loc = JSON.parse(e.newValue);
+              this.handleLocationBroadcast(loc);
+            } catch {}
           }
         });
       } catch (e) {
@@ -188,8 +220,9 @@ export class DriverService {
       if (savedHistory) {
         this.tripHistorySignal.set(JSON.parse(savedHistory));
       }
+      const isPassenger = this.authService.isPassenger();
       const savedProfile = localStorage.getItem(this.DRIVER_PROFILE_KEY);
-      if (savedProfile) {
+      if (savedProfile && !isPassenger) {
         const parsed = JSON.parse(savedProfile);
         this.driverSignal.update((d) => ({
           ...d,
@@ -197,9 +230,17 @@ export class DriverService {
           queuePosition: parsed.queuePosition ?? null,
           totalQueueCount: parsed.totalQueueCount ?? 0,
         }));
+      } else if (isPassenger) {
+        this.driverSignal.update((d) => ({
+          ...d,
+          isOnline: false,
+          queuePosition: null,
+          totalQueueCount: 0,
+        }));
       }
+
       const savedQueue = localStorage.getItem(this.QUEUE_CACHE_KEY);
-      if (savedQueue) {
+      if (savedQueue && !isPassenger) {
         const parsedQ: QueueItem[] = JSON.parse(savedQueue);
         const isRet = localStorage.getItem(this.RETURNING_KEY) === 'true';
         const hasActiveTrip = !!localStorage.getItem(this.ACTIVE_TRIP_KEY);
@@ -209,6 +250,8 @@ export class DriverService {
         } else {
           this.queueSignal.set(parsedQ);
         }
+      } else if (isPassenger) {
+        this.queueSignal.set([]);
       }
     } catch (e) {
       console.warn('Failed to parse persisted driver trip state:', e);
@@ -241,18 +284,64 @@ export class DriverService {
         });
       }
     });
+
+    // Auto-persist active trip state for 0ms instant reload restoration
+    effect(() => {
+      const trip = this.activeTripSignal();
+      if (typeof window !== 'undefined') {
+        try {
+          if (trip) {
+            localStorage.setItem(this.ACTIVE_TRIP_KEY, JSON.stringify(trip));
+          } else {
+            localStorage.removeItem(this.ACTIVE_TRIP_KEY);
+          }
+        } catch { }
+      }
+    });
+
+    // Auto-persist returning state
+    effect(() => {
+      const isRet = this.isReturningSignal();
+      if (typeof window !== 'undefined') {
+        try {
+          if (isRet) {
+            localStorage.setItem(this.RETURNING_KEY, 'true');
+          } else {
+            localStorage.removeItem(this.RETURNING_KEY);
+          }
+        } catch { }
+      }
+    });
+
+    // Auto-persist driver profile state (online duty / queue position)
+    effect(() => {
+      const d = this.driverSignal();
+      if (typeof window !== 'undefined' && !this.authService.isPassenger()) {
+        try {
+          localStorage.setItem(
+            this.DRIVER_PROFILE_KEY,
+            JSON.stringify({
+              isOnline: d.isOnline,
+              queuePosition: d.queuePosition,
+              totalQueueCount: d.totalQueueCount,
+            })
+          );
+        } catch { }
+      }
+    });
   }
 
   getDisplayQueuePosition(): number {
     const current = this.driverSignal();
-    if (current.queuePosition) return current.queuePosition;
-    const myItem = this.queueSignal().find((item) => item.isCurrentDriver);
-    if (myItem?.position) return myItem.position;
+    if (current.queuePosition && current.queuePosition > 0) return current.queuePosition;
+    const myItem = this.queueSignal().find((item) => item.isCurrentDriver || item.driverId === current.id);
+    if (myItem?.position && myItem.position > 0) return myItem.position;
+
     const queueList = this.queueSignal();
     const otherDrivers = queueList.filter(
       (item) => !item.isCurrentDriver && item.driverId !== current.id && item.driverName !== current.name && item.mtopNumber !== current.mtopNumber
     );
-    return Math.max(otherDrivers.length, current.totalQueueCount || 0) + 1;
+    return Math.max(1, otherDrivers.length + 1);
   }
 
   // ==========================================
@@ -639,6 +728,117 @@ export class DriverService {
       });
   }
 
+  proposeFare(proposedFare: number): void {
+    const trip = this.activeTrip();
+    if (!trip) return;
+    const numId = Number(String(trip.id).replace(/\D/g, ''));
+    if (!numId) return;
+
+    this.activeTripSignal.update((t) => t ? { ...t, fare: proposedFare, status: 'fare_proposed' } : null);
+    this.driversOnTripSignal.update((list) =>
+      list.map((d) => (d.rideId === trip.id || d.driverName === this.driverSignal().name) ? { ...d, fare: proposedFare, status: 'Bargaining' } : d)
+    );
+    this.broadcastLiveUpdate();
+
+    this.dashboardService.proposeFare(numId, proposedFare).subscribe({
+      next: () => this.broadcastLiveUpdate(),
+      error: (err) => console.warn('Propose fare notice:', err),
+    });
+  }
+
+  notifyDriverArrived(): void {
+    const trip = this.activeTrip();
+    if (!trip) return;
+    const numId = Number(String(trip.id).replace(/\D/g, ''));
+    if (!numId) return;
+
+    this.activeTripSignal.update((t) => t ? { ...t, status: 'arrived' } : null);
+    this.driversOnTripSignal.update((list) =>
+      list.map((d) => (d.rideId === trip.id || d.driverName === this.driverSignal().name) ? { ...d, status: 'At Pickup' } : d)
+    );
+    this.broadcastLiveUpdate();
+
+    this.dashboardService.driverArrived(numId).subscribe({
+      next: () => this.broadcastLiveUpdate(),
+      error: (err) => console.warn('Driver arrived notice:', err),
+    });
+  }
+
+  startDepartTrip(): void {
+    const trip = this.activeTrip();
+    if (!trip) return;
+    const numId = Number(String(trip.id).replace(/\D/g, ''));
+    if (!numId) return;
+
+    this.activeTripSignal.update((t) => t ? { ...t, status: 'in_transit' } : null);
+    this.driversOnTripSignal.update((list) =>
+      list.map((d) => (d.rideId === trip.id || d.driverName === this.driverSignal().name) ? { ...d, status: 'In Transit' } : d)
+    );
+    this.broadcastLiveUpdate();
+
+    this.dashboardService.startTrip(numId).subscribe({
+      next: () => this.broadcastLiveUpdate(),
+      error: (err) => console.warn('Start trip notice:', err),
+    });
+  }
+
+  cancelActiveTrip(): void {
+    const trip = this.activeTrip();
+    if (!trip) return;
+    const numId = Number(String(trip.id).replace(/\D/g, ''));
+    const wasPreTrip = trip.status === 'bargaining' || trip.status === 'fare_proposed' || trip.status === 'accepted' || trip.status === 'arrived';
+
+    this.activeTripSignal.set(null);
+    try {
+      localStorage.removeItem(this.ACTIVE_TRIP_KEY);
+    } catch {}
+
+    if (wasPreTrip) {
+      // Driver never left terminal - optimistically restore to #1 in queue instantly!
+      const current = this.driverSignal();
+      this.driverSignal.update((d) => ({
+        ...d,
+        isOnline: true,
+        queuePosition: 1,
+        totalQueueCount: Math.max(1, d.totalQueueCount || this.queueSignal().length + 1),
+      }));
+
+      // Re-insert self into queueSignal at position 1
+      this.queueSignal.update((list) => {
+        const filtered = list.filter((item) => !item.isCurrentDriver && item.driverId !== current.id);
+        const myItem: QueueItem = {
+          id: current.id || 999,
+          driverId: current.id,
+          driverName: current.name,
+          bodyNumber: current.mtopNumber,
+          mtopNumber: current.mtopNumber,
+          position: 1,
+          status: 'Ready',
+          isCurrentDriver: true,
+          timeJoined: 'Active',
+        };
+        const reindexed = filtered.map((item, idx) => ({
+          ...item,
+          position: idx + 2,
+          status: 'In Line' as const,
+        }));
+        return [myItem, ...reindexed];
+      });
+    }
+
+    if (numId) {
+      this.dashboardService.cancelActiveRide(numId).subscribe({
+        next: (res) => {
+          if (res?.active_queue) {
+            this.syncFromDashboard({ driver: { active_queue: res.active_queue, total_queue_count: res.total_queue_count } });
+          }
+          this.broadcastLiveUpdate();
+        },
+        error: (err) => console.warn('Cancel trip notice:', err),
+      });
+    }
+  }
+
   setReturning(isReturning: boolean): void {
     this.isReturningSignal.set(isReturning);
     try {
@@ -667,13 +867,13 @@ export class DriverService {
     const otherDrivers = queueList.filter(
       (item) => !item.isCurrentDriver && item.driverId !== current.id && item.driverName !== current.name && item.mtopNumber !== current.mtopNumber
     );
-    const nextPos = Math.max(otherDrivers.length, this.driverSignal().totalQueueCount) + 1;
+    const nextPos = Math.max(1, otherDrivers.length + 1);
 
     this.driverSignal.update((d) => ({
       ...d,
       isOnline: true,
       queuePosition: nextPos,
-      totalQueueCount: nextPos,
+      totalQueueCount: Math.max(d.totalQueueCount || 0, nextPos),
     }));
 
     const newItem: QueueItem = {
@@ -756,10 +956,21 @@ export class DriverService {
             isOnline: !!dData.profile.is_online,
             queuePosition: dData.profile.queue_position ?? null,
             suspensionReason: dData.profile.suspension_reason || null,
+            rating: dData.profile.rating !== undefined && dData.profile.rating !== null ? Number(dData.profile.rating) : d.rating,
+            ratingCount: dData.profile.rating_count !== undefined && dData.profile.rating_count !== null ? Number(dData.profile.rating_count) : d.ratingCount,
             todayEarnings: dData.today_earnings ?? 0,
             tripsTodayCount: dData.today_rides_count ?? 0,
             totalQueueCount: dData.total_queue_count ?? 0,
           }));
+
+          // If online with no active ride, sync returning state from queue_position
+          if (dData.profile.is_online && !dData.active_ride) {
+            if (dData.profile.queue_position === null || dData.profile.queue_position === undefined) {
+              this.isReturningSignal.set(true);
+            } else if (Number(dData.profile.queue_position) > 0) {
+              this.isReturningSignal.set(false);
+            }
+          }
         }
 
         try {
@@ -853,13 +1064,15 @@ export class DriverService {
           mtopNumber: t.mtop_number,
           status: (t.status === 'Returning' || t.status === 'returning')
             ? 'Returning'
-            : (t.status === 'in_transit' || t.status === 'In Transit')
-              ? 'In Transit'
-              : (t.status === 'accepted' || t.status === 'En Route')
-                ? 'En Route'
-                : (t.status === 'arrived' || t.status === 'At Pickup')
-                  ? 'At Pickup'
-                  : 'Returning',
+            : (t.status === 'bargaining' || t.status === 'Bargaining' || t.status === 'fare_proposed')
+              ? 'Bargaining'
+              : (t.status === 'in_transit' || t.status === 'In Transit')
+                ? 'In Transit'
+                : (t.status === 'en_route' || t.status === 'accepted' || t.status === 'En Route')
+                  ? 'En Route'
+                  : (t.status === 'arrived' || t.status === 'At Pickup')
+                    ? 'At Pickup'
+                    : 'Returning',
           pickupLocation: t.pickup || t.pickupLocation || 'Drop-off Point',
           destination: t.destination || 'TODA Terminal',
           fare: Number(t.fare) || 0,
@@ -869,18 +1082,35 @@ export class DriverService {
 
       if (dData.active_ride) {
         const r = dData.active_ride;
+        this.isReturningSignal.set(false);
         this.activeTripSignal.set({
           id: `TRIP-${r.id}`,
+          passengerId: r.passenger_id ?? (r.passenger?.id || null),
           passengerName: r.passenger?.name || 'Passenger',
           passengerPhone: r.passenger?.phone_number || '',
           pickupLocation: r.pickup_address || r.pickup_location || 'Pickup Point',
           dropoffLocation: r.destination_address || r.destination || 'Destination Point',
+          pickupLat: r.pickup_lat ? Number(r.pickup_lat) : undefined,
+          pickupLng: r.pickup_lng ? Number(r.pickup_lng) : undefined,
+          dropoffLat: (r.destination_lat || r.dest_lat) ? Number(r.destination_lat || r.dest_lat) : undefined,
+          dropoffLng: (r.destination_lng || r.dest_lng) ? Number(r.destination_lng || r.dest_lng) : undefined,
           passengerCount: r.passenger_count || 1,
-          fare: r.fare || 0,
+          fare: Number(r.fare) || 0,
+          originalFare: Number(r.original_fare || r.fare) || 0,
           status: r.status,
           tripType: r.trip_type || 'online_dispatch',
           startedAt: r.created_at ? new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
         });
+      } else if (dData.active_ride === null && this.activeTrip()) {
+        const prevTrip = this.activeTrip();
+        this.activeTripSignal.set(null);
+        if (prevTrip && (prevTrip.status === 'bargaining' || prevTrip.status === 'fare_proposed' || prevTrip.status === 'accepted' || prevTrip.status === 'arrived')) {
+          this.driverSignal.update((d) => ({
+            ...d,
+            isOnline: true,
+            queuePosition: 1,
+          }));
+        }
       }
     } else if (aData && Array.isArray(aData.active_queue)) {
       const currentUserId = user?.id;
@@ -896,6 +1126,45 @@ export class DriverService {
         timeJoined: 'Active',
       }));
       this.queueSignal.set(mappedQueue);
+    }
+
+    const pData = data.passenger;
+    if (pData) {
+      const queueCount = Number(pData.terminal_queue_count ?? pData.active_drivers_count ?? 0);
+      this.driverSignal.update((d) => ({
+        ...d,
+        totalQueueCount: queueCount,
+      }));
+
+      if (Array.isArray(pData.active_queue)) {
+        const mappedQueue: QueueItem[] = pData.active_queue.map((item: any, idx: number) => ({
+          id: item.id,
+          driverId: item.user_id || item.id,
+          driverName: item.full_name,
+          bodyNumber: item.mtop_number,
+          mtopNumber: item.mtop_number,
+          position: item.queue_position || idx + 1,
+          status: (item.queue_position === 1 || idx === 0) ? 'Ready' : 'In Line',
+          isCurrentDriver: false,
+          timeJoined: 'Active',
+        }));
+        this.queueSignal.set(mappedQueue);
+      } else {
+        this.queueSignal.set([]);
+      }
+    }
+
+    if (Array.isArray(data.announcements)) {
+      this.notificationService.setAnnouncements(
+        data.announcements.map((a: any) => ({
+          id: a.id,
+          title: a.title,
+          message: a.message,
+          targetAudience: a.target_audience || 'ALL',
+          createdAt: a.created_at || 'Just now',
+          isRead: false,
+        }))
+      );
     }
   }
 
@@ -965,7 +1234,7 @@ export class DriverService {
 
     const ids = (orderedIds && orderedIds.length > 0)
       ? orderedIds
-      : list.map((item) => item.driverId || item.id);
+      : list.map((item) => item.id || item.driverId);
 
     if (ids.length > 0) {
       this.dashboardService.reorderQueue(ids).subscribe({
@@ -985,6 +1254,19 @@ export class DriverService {
     try {
       this.liveChannel?.postMessage({ type: 'QUEUE_UPDATED', time: Date.now() });
       localStorage.setItem('srh_live_sync_pulse', String(Date.now()));
+    } catch {}
+  }
+
+  broadcastRideCancelled(rideId?: number, passengerId?: number, driverId?: number): void {
+    try {
+      this.liveChannel?.postMessage({
+        type: 'RIDE_CANCELLED',
+        rideId,
+        passengerId,
+        driverId,
+        time: Date.now(),
+      });
+      localStorage.setItem('srh_ride_cancelled_pulse', String(Date.now()));
     } catch {}
   }
 
@@ -1013,6 +1295,28 @@ export class DriverService {
     if (!event || !event.ride) return;
     const ride = event.ride;
     const currentUserId = this.authService.currentUser()?.id;
+    const isDriver = this.authService.isDriver();
+    const isPassenger = this.authService.isPassenger();
+
+    if (ride.status === 'cancelled') {
+      if (isDriver && Number(ride.driver_id) === Number(currentUserId)) {
+        this.activeTripSignal.set(null);
+        this.rideCancelledNotice.set({
+          role: 'driver',
+          message: '❌ Ride was cancelled by the passenger.',
+          timestamp: Date.now(),
+        });
+      } else if (isPassenger && Number(ride.passenger_id) === Number(currentUserId)) {
+        this.rideCancelledNotice.set({
+          role: 'passenger',
+          message: '❌ Ride request was cancelled.',
+          timestamp: Date.now(),
+        });
+      }
+      this.syncTriggerSignal.update((n) => n + 1);
+      return;
+    }
+
     if (currentUserId && Number(ride.driver_id) === Number(currentUserId)) {
       if (['in_transit', 'accepted', 'arrived'].includes(ride.status)) {
         this.activeTripSignal.set({
@@ -1030,13 +1334,37 @@ export class DriverService {
       } else if (ride.status === 'returning') {
         this.activeTripSignal.set(null);
         this.isReturningSignal.set(true);
-      } else if (['completed', 'cancelled'].includes(ride.status)) {
+      } else if (['completed'].includes(ride.status)) {
         this.activeTripSignal.set(null);
       }
     }
   }
 
   updateDriverLocation(coords: { lat: number; lng: number; heading?: number; speed?: number; ride_id?: number }): void {
+    const dId = this.driver()?.id || this.authService.currentUser()?.id;
+    try {
+      this.liveChannel?.postMessage({
+        type: 'TRICYCLE_LOCATION_UPDATED',
+        driverId: dId,
+        driver_id: dId,
+        lat: coords.lat,
+        lng: coords.lng,
+        heading: coords.heading,
+        speed: coords.speed,
+        rideId: coords.ride_id,
+      });
+      localStorage.setItem('srh_live_driver_loc', JSON.stringify({
+        driverId: dId,
+        driver_id: dId,
+        lat: coords.lat,
+        lng: coords.lng,
+        heading: coords.heading,
+        speed: coords.speed,
+        rideId: coords.ride_id,
+        time: Date.now(),
+      }));
+    } catch {}
+
     this.dashboardService.updateDriverLocation(coords).subscribe({
       next: () => {},
       error: (err) => console.warn('Location broadcast notice:', err?.status),

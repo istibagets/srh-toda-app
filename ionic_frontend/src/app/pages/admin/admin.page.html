@@ -333,6 +333,7 @@
     (didDismiss)="closeDriverModal()"
     [initialBreakpoint]="1"
     [breakpoints]="[0, 1]"
+    [handle]="false"
     class="admin-sheet-modal"
   >
     <ng-template>
@@ -364,27 +365,27 @@
               <span class="section-heading">UPLOADED VERIFICATION DOCUMENTS</span>
               <div class="docs-links-grid">
                 @if (driver.mtop_certificate_url) {
-                  <a [href]="driver.mtop_certificate_url" target="_blank" class="doc-link-card">
+                  <button type="button" (click)="openDocPreview('MTOP Franchise Permit', driver.mtop_certificate_url)" class="doc-link-card">
                     <ion-icon name="document-attach-outline"></ion-icon>
                     <div class="doc-meta">
                       <span class="doc-name">MTOP Franchise Permit</span>
                       <span class="doc-action">Click to inspect official permit</span>
                     </div>
-                    <ion-icon name="open-outline" class="open-icon"></ion-icon>
-                  </a>
+                    <ion-icon name="eye-outline" class="open-icon"></ion-icon>
+                  </button>
                 } @else {
                   <div class="doc-empty-pill">No MTOP permit document uploaded.</div>
                 }
 
                 @if (driver.drivers_license_url) {
-                  <a [href]="driver.drivers_license_url" target="_blank" class="doc-link-card">
+                  <button type="button" (click)="openDocPreview('Driver\'s License (LTO)', driver.drivers_license_url)" class="doc-link-card">
                     <ion-icon name="document-attach-outline"></ion-icon>
                     <div class="doc-meta">
                       <span class="doc-name">Driver's License (LTO)</span>
                       <span class="doc-action">Click to inspect official license</span>
                     </div>
-                    <ion-icon name="open-outline" class="open-icon"></ion-icon>
-                  </a>
+                    <ion-icon name="eye-outline" class="open-icon"></ion-icon>
+                  </button>
                 } @else {
                   <div class="doc-empty-pill">No Driver's License uploaded.</div>
                 }
@@ -453,6 +454,7 @@
     (didDismiss)="closeReportModal()"
     [initialBreakpoint]="1"
     [breakpoints]="[0, 1]"
+    [handle]="false"
     class="admin-sheet-modal"
   >
     <ng-template>
@@ -541,6 +543,7 @@
     (didDismiss)="closeBroadcastModal()"
     [initialBreakpoint]="1"
     [breakpoints]="[0, 1]"
+    [handle]="false"
     class="admin-sheet-modal"
   >
     <ng-template>
@@ -620,6 +623,92 @@
             (click)="submitBroadcast()"
           >
             Publish Broadcast
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- ── 10. IN-APP DOCUMENT PREVIEW MODAL ─────────────────── -->
+  <ion-modal
+    [isOpen]="isDocPreviewOpen()"
+    (didDismiss)="closeDocPreview()"
+    [initialBreakpoint]="1"
+    [breakpoints]="[0, 1]"
+    [handle]="false"
+    class="admin-sheet-modal doc-preview-modal"
+  >
+    <ng-template>
+      <div class="modal-sheet-container doc-preview-container">
+        <div class="modal-drag-handle"></div>
+
+        <div class="modal-sheet-header">
+          <div class="header-title-block">
+            <button type="button" class="back-pill-btn" (click)="closeDocPreview()" title="Back">
+              <ion-icon name="arrow-back-outline"></ion-icon>
+              <span>Back</span>
+            </button>
+            <div class="header-text-group">
+              <span class="kicker">OFFICIAL DOCUMENT INSPECTOR</span>
+              <h2 class="driver-title">{{ previewDocTitle() }}</h2>
+            </div>
+          </div>
+
+          <div class="header-action-group">
+            <button type="button" class="tool-circle-btn" (click)="downloadDoc()" title="Download Document">
+              <ion-icon name="download-outline"></ion-icon>
+            </button>
+            <button type="button" class="tool-circle-btn" (click)="printDoc()" title="Print Document">
+              <ion-icon name="print-outline"></ion-icon>
+            </button>
+            <button type="button" class="modal-close-btn" (click)="closeDocPreview()" title="Close">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Zoom & Inspection Controls Pill -->
+        <div class="doc-controls-floating-bar">
+          <button type="button" class="zoom-btn" (click)="zoomDocOut()" [disabled]="docZoomScale() <= 1" title="Zoom Out">
+            <ion-icon name="remove-outline"></ion-icon>
+          </button>
+          <span class="zoom-pct" (click)="resetDocZoom()" title="Click to reset zoom">{{ (docZoomScale() * 100) | number:'1.0-0' }}%</span>
+          <button type="button" class="zoom-btn" (click)="zoomDocIn()" [disabled]="docZoomScale() >= 4" title="Zoom In">
+            <ion-icon name="add-outline"></ion-icon>
+          </button>
+          <button type="button" class="zoom-reset-btn" (click)="resetDocZoom()" title="Reset Zoom">
+            <ion-icon name="refresh-outline"></ion-icon>
+          </button>
+          <span class="pinch-hint">Pinch or double-tap to zoom</span>
+        </div>
+
+        <div
+          class="modal-sheet-body doc-preview-body"
+          (wheel)="onWheelZoom($event)"
+          (touchstart)="onImageTouchStart($event)"
+          (touchmove)="onImageTouchMove($event)"
+          (touchend)="onImageTouchEnd()"
+        >
+          <div class="doc-image-frame">
+            <img
+              [src]="previewDocUrl()"
+              [alt]="previewDocTitle()"
+              class="doc-preview-img"
+              [style.transform]="'translate3d(' + docPanX() + 'px, ' + docPanY() + 'px, 0) scale(' + docZoomScale() + ')'"
+              [style.cursor]="docZoomScale() > 1 ? 'grab' : 'default'"
+              (error)="previewDocUrl.set('/assets/icon/srh-logo.png')"
+            />
+          </div>
+        </div>
+
+        <div class="modal-sheet-footer doc-preview-footer">
+          <button type="button" class="modal-btn outline" (click)="openInExternalBrowser(previewDocUrl(), $event)">
+            <ion-icon name="open-outline"></ion-icon>
+            <span>Open in Browser</span>
+          </button>
+          <button type="button" class="modal-btn approve" (click)="closeDocPreview()">
+            <ion-icon name="checkmark-outline"></ion-icon>
+            <span>Done Inspecting</span>
           </button>
         </div>
       </div>

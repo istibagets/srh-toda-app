@@ -1,0 +1,153 @@
+@if (isOpen()) {
+  <div class="rating-backdrop" (click)="handleClose()"></div>
+
+  <div class="rating-card-modal">
+    <!-- CLOSE BUTTON -->
+    <button type="button" class="modal-close-btn" (click)="handleClose()" title="Close">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+
+    @if (!isReportMode()) {
+      <!-- TRIP COMPLETED CELEBRATION HEADER -->
+      <div class="rating-header">
+        <div class="success-icon-badge">
+          <ion-icon name="checkmark-circle"></ion-icon>
+        </div>
+        <h3 class="modal-title">Trip Completed!</h3>
+        <p class="modal-sub">How was your ride with {{ ride()?.driver?.name || 'your driver' }}?</p>
+
+        <!-- SUMMARY PILL -->
+        <div class="trip-summary-pill">
+          <div class="summary-col">
+            <span class="col-lbl">Fare Paid</span>
+            <span class="col-val fare-val">₱{{ (ride()?.fare || 0) | number:'1.2-2' }}</span>
+          </div>
+          <div class="summary-divider"></div>
+          <div class="summary-col">
+            <span class="col-lbl">Driver MTOP</span>
+            <span class="col-val">{{ ride()?.driver?.mtop_number || '101' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAR RATING SELECTOR -->
+      <div class="stars-container">
+        <div class="stars-row">
+          @for (starNum of [1, 2, 3, 4, 5]; track starNum) {
+            <button
+              type="button"
+              class="star-btn"
+              [class.is-filled]="starNum <= rating()"
+              (click)="setRating(starNum)"
+            >
+              <ion-icon [name]="starNum <= rating() ? 'star' : 'star-outline'"></ion-icon>
+            </button>
+          }
+        </div>
+        <span class="rating-tag-label">{{ ratingLabels[rating()] }}</span>
+      </div>
+
+      <!-- COMPLIMENT TAG CHIPS -->
+      <div class="compliment-tags-section">
+        <span class="tags-title">What went well?</span>
+        <div class="tags-chips-wrap">
+          @for (tag of availableTags; track tag) {
+            <button
+              type="button"
+              class="tag-chip"
+              [class.is-selected]="selectedTags().includes(tag)"
+              (click)="toggleTag(tag)"
+            >
+              {{ tag }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- COMMENT BOX -->
+      <div class="comment-box-wrap">
+        <textarea
+          [ngModel]="comment()"
+          (ngModelChange)="comment.set($event)"
+          placeholder="Leave a polite note or feedback (optional)..."
+          rows="2"
+          maxlength="300"
+        ></textarea>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="modal-action-footer">
+        <button
+          type="button"
+          class="submit-rating-btn"
+          [disabled]="isSubmitting()"
+          (click)="submitRating()"
+        >
+          {{ isSubmitting() ? 'Submitting...' : 'Submit Review' }}
+        </button>
+
+        <button
+          type="button"
+          class="report-issue-link"
+          (click)="isReportMode.set(true)"
+        >
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          Report an issue with this trip
+        </button>
+      </div>
+    } @else {
+      <!-- REPORT INCIDENT MODE -->
+      <div class="report-header">
+        <div class="report-icon-badge">
+          <ion-icon name="shield-outline"></ion-icon>
+        </div>
+        <h3 class="modal-title">Report an Incident</h3>
+        <p class="modal-sub">Your report will be sent directly to TODA Administration.</p>
+      </div>
+
+      <div class="report-form-body">
+        <label class="form-field-lbl">Issue Category</label>
+        <div class="category-chips-grid">
+          @for (cat of reportCategories; track cat) {
+            <button
+              type="button"
+              class="cat-chip"
+              [class.is-selected]="reportCategory() === cat"
+              (click)="reportCategory.set(cat)"
+            >
+              {{ cat }}
+            </button>
+          }
+        </div>
+
+        <label class="form-field-lbl">Details & Description</label>
+        <textarea
+          [ngModel]="reportDescription()"
+          (ngModelChange)="reportDescription.set($event)"
+          placeholder="Please describe what happened in detail..."
+          rows="3"
+          maxlength="600"
+        ></textarea>
+      </div>
+
+      <div class="modal-action-footer">
+        <button
+          type="button"
+          class="submit-report-btn"
+          [disabled]="!reportDescription().trim() || isSubmitting()"
+          (click)="submitReport()"
+        >
+          {{ isSubmitting() ? 'Submitting Report...' : 'Submit Incident Report' }}
+        </button>
+
+        <button
+          type="button"
+          class="back-to-rating-btn"
+          (click)="isReportMode.set(false)"
+        >
+          Back to Rating
+        </button>
+      </div>
+    }
+  </div>
+}

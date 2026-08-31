@@ -250,6 +250,105 @@ body > .sortable-fallback,
 }
 
 /* ── MODERN MAP PINS & ANIMATED LOCATION MARKERS (Grab / Uber / Google Maps Style) ── */
+.srh-passenger-terminal-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: auto;
+  cursor: pointer;
+  user-select: none;
+
+  .passenger-terminal-bubble {
+    background: #0f172a;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 1.5px solid rgba(255, 255, 255, 0.9);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.35);
+    letter-spacing: -0.01em;
+    transition: transform 0.15s ease;
+
+    .station-icon {
+      width: 13px;
+      height: 13px;
+      fill: #38bdf8;
+      flex-shrink: 0;
+    }
+
+    span {
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: -0.2px;
+    }
+  }
+
+  .pin-tail {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #0f172a;
+    margin-top: -1px;
+  }
+}
+
+.srh-pickup-marker-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: auto;
+  user-select: none;
+
+  .pickup-blue-pin {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .pin-bubble {
+      background: #1e40af;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1.5px solid #60a5fa;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(30, 64, 175, 0.4);
+
+      .pickup-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #38bdf8;
+        box-shadow: 0 0 6px #38bdf8;
+      }
+
+      .pickup-txt {
+        font-weight: 800;
+        font-size: 11px;
+      }
+    }
+
+    .pin-pointer {
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 6px solid #1e40af;
+      margin-top: -1px;
+    }
+  }
+}
+
 .srh-terminal-marker-pin {
   display: flex;
   flex-direction: column;
@@ -414,6 +513,27 @@ body > .sortable-fallback,
     height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════ */
+/* GLOBAL CUSTOM TOAST STYLES                                   */
+/* ══════════════════════════════════════════════════════════════ */
+.srh-custom-toast,
+.queue-override-toast {
+  --background: #333333 !important; /* Neutral black-gray #333333 */
+  --color: #e4e4e7 !important; /* Soft off-white text */
+  --border-radius: 4px !important;
+  --box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+  --button-color: #38bdf8 !important;
+  font-weight: 500 !important;
+  z-index: 999999 !important;
+
+  &.ion-color-success,
+  &[color="success"] {
+    --background: #16a34a !important; /* Nice plain vibrant green */
+    --color: #f4f4f5 !important;
+    --box-shadow: 0 4px 16px rgba(22, 163, 74, 0.4) !important;
   }
 }
 
