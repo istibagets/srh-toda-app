@@ -67,6 +67,9 @@
       <!-- COMMENT BOX -->
       <div class="comment-box-wrap">
         <textarea
+          id="rating-comment-textarea"
+          name="rating_comment"
+          aria-label="Leave a polite note or feedback"
           [ngModel]="comment()"
           (ngModelChange)="comment.set($event)"
           placeholder="Leave a polite note or feedback (optional)..."
@@ -106,7 +109,7 @@
       </div>
 
       <div class="report-form-body">
-        <label class="form-field-lbl">Issue Category</label>
+        <span class="form-field-lbl">Issue Category</span>
         <div class="category-chips-grid">
           @for (cat of reportCategories; track cat) {
             <button
@@ -120,8 +123,10 @@
           }
         </div>
 
-        <label class="form-field-lbl">Details & Description</label>
+        <label class="form-field-lbl" for="incident-details-input">Details &amp; Description</label>
         <textarea
+          id="incident-details-input"
+          name="incident_description"
           [ngModel]="reportDescription()"
           (ngModelChange)="reportDescription.set($event)"
           placeholder="Please describe what happened in detail..."

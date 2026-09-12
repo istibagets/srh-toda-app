@@ -32,7 +32,11 @@ class DriverApplicantUpdated implements ShouldBroadcastNow
 
     public function broadcastOn(): array
     {
-        return [new Channel('srh-toda-admin')];
+        return [
+            new Channel('srh-toda-admin'),
+            new Channel('srh-toda-public'),
+            new Channel('srh-toda-queue'),
+        ];
     }
 
     public function broadcastAs(): string

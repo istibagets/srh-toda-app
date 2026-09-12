@@ -64,8 +64,10 @@
   --background: #f8fafc;
 
   .earnings-layout-container {
-    padding: 1rem;
-    max-width: 680px;
+    padding: 1rem 1.25rem 3rem;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -108,6 +110,37 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+
+    &.skeleton-hero-rating {
+      flex-direction: row;
+      align-items: center;
+      gap: 1.15rem;
+
+      .skeleton-circle {
+        width: 88px;
+        height: 88px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      .skeleton-hero-right {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+
+        .md-width {
+          width: 70%;
+          height: 20px;
+        }
+
+        .skeleton-box {
+          height: 48px;
+          border-radius: 12px;
+          width: 100%;
+        }
+      }
+    }
 
     .skeleton-line {
       height: 14px;
@@ -165,112 +198,197 @@
   }
 }
 
-// ── 4. EXECUTIVE FINANCIAL HERO DECK ───────────────────
-.earnings-hero-card {
+// ── 4. EXECUTIVE OVERALL RATING & PERFORMANCE HERO DECK ──────
+.driver-rating-hero-deck {
   background: #ffffff;
   border-radius: 20px;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
-  padding: 1.25rem;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+  padding: 1.15rem;
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 1.15rem;
+  overflow: hidden;
 
-  .hero-top-row {
+  /* Left: Radial Score Container */
+  .radial-score-container {
+    position: relative;
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 
-    .hero-label-group {
-      display: flex;
-      flex-direction: column;
-
-      .hero-eyebrow {
-        font-size: 0.68rem;
-        font-weight: 800;
-        letter-spacing: 0.06em;
-        color: #64748b;
-        margin-bottom: 0.2rem;
-      }
-
-      .hero-amount-block {
-        display: flex;
-        align-items: baseline;
-        gap: 0.2rem;
-
-        .currency-symbol {
-          font-size: 1.45rem;
-          font-weight: 800;
-          color: #059669;
-        }
-
-        .amount-number {
-          font-size: 2.1rem;
-          font-weight: 900;
-          color: #059669;
-          letter-spacing: -0.03em;
-          line-height: 1;
-        }
-      }
-    }
-
-    .hero-icon-pill {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      background: #ecfdf5;
-      color: #059669;
+    .radial-ring-wrapper {
+      position: relative;
+      width: 88px;
+      height: 88px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
 
-      .hero-tricycle-icon {
-        font-size: 1.5rem;
+    .radial-svg {
+      width: 100%;
+      height: 100%;
+
+      .ring-bg {
+        fill: none;
+        stroke: #f1f5f9;
+        stroke-width: 7;
+      }
+
+      .conic-ring-gradient {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: conic-gradient(
+          from -15deg at 50% 50%,
+          #2563eb 0deg,
+          #2563eb 35deg,
+          #3b82f6 90deg,
+          #0284c7 140deg,
+          #06b6d4 180deg,
+          #10b981 270deg,
+          #059669 340deg,
+          #2563eb 360deg
+        );
+      }
+    }
+
+    .radial-avatar-center {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #eff6ff;
+
+      .radial-avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .radial-avatar-fallback {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #1e40af, #3b82f6);
+        color: #ffffff;
+        font-size: 1.2rem;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        letter-spacing: -0.02em;
+      }
+    }
+
+    .radial-score-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+      border-radius: 99px;
+      padding: 2px 8px;
+      margin-top: -12px;
+      z-index: 5;
+
+      .score-num {
+        font-size: 0.78rem;
+        font-weight: 900;
+        color: #0f172a;
+      }
+
+      .star-gold {
+        font-size: 0.8rem;
+        color: #f59e0b;
       }
     }
   }
 
-  // 3-Column Metrics Strip
-  .hero-metrics-strip {
+  /* Right: Performance Metrics Column */
+  .hero-metrics-column {
+    flex: 1;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    padding: 0.65rem 0.5rem;
+    flex-direction: column;
+    gap: 0.65rem;
+    min-width: 0;
 
-    .metric-cell {
-      flex: 1;
+    .user-greeting-row {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      text-align: center;
 
-      .cell-label {
-        font-size: 0.6rem;
+      .user-role-label {
+        font-size: 0.62rem;
         font-weight: 800;
-        letter-spacing: 0.04em;
-        color: #64748b;
-        margin-bottom: 0.15rem;
+        letter-spacing: 0.06em;
+        color: #2563eb;
+        text-transform: uppercase;
+        margin-bottom: 2px;
       }
 
-      .cell-value {
-        font-size: 0.95rem;
-        font-weight: 800;
+      .user-display-name {
+        font-size: 1.15rem;
+        font-weight: 900;
         color: #0f172a;
-
-        &.text-emerald {
-          color: #059669;
-        }
+        margin: 0;
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
     }
 
-    .metric-cell-divider {
-      width: 1px;
-      height: 24px;
-      background: #e2e8f0;
+    .metric-tiles-row {
+      display: flex;
+      align-items: center;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 0.55rem 0.65rem;
+
+      .tile-box {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+
+        .tile-lbl {
+          font-size: 0.6rem;
+          font-weight: 800;
+          letter-spacing: 0.04em;
+          color: #64748b;
+          text-transform: uppercase;
+          margin-bottom: 1px;
+        }
+
+        .tile-val {
+          font-size: 1rem;
+          font-weight: 900;
+          color: #0f172a;
+
+          &.text-emerald {
+            color: #059669;
+          }
+        }
+      }
+
+      .tile-divider {
+        width: 1px;
+        height: 22px;
+        background: #cbd5e1;
+      }
     }
   }
 }
@@ -510,24 +628,26 @@
 
       .source-meta {
         display: flex;
-        align-items: center;
-        gap: 0.4rem;
-
-        .source-color-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-        }
+        align-items: baseline;
+        gap: 0.35rem;
+        flex: 1;
+        min-width: 0;
+        padding-right: 0.5rem;
 
         .source-title {
-          font-size: 0.82rem;
+          font-size: 0.8rem;
           font-weight: 700;
           color: #1e293b;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .source-trips-tag {
-          font-size: 0.72rem;
+          font-size: 0.7rem;
           color: #64748b;
+          white-space: nowrap;
+          flex-shrink: 0;
         }
       }
 

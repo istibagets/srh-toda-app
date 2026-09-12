@@ -16,6 +16,12 @@ export class PushService {
   permissionStatus = signal<NotificationPermission>('default');
   isSubscribed = signal<boolean>(false);
   swRegistration: ServiceWorkerRegistration | null = null;
+  private lastSyncedEndpoint: string | null = null;
+  private isSyncing = false;
+
+  isSubscribedToBackend(): boolean {
+    return this.isSubscribed() && !!this.lastSyncedEndpoint;
+  }
 
   constructor() {
     this.initServiceWorker();
@@ -114,9 +120,13 @@ export class PushService {
    * Send the PushSubscription JSON to Laravel Backend
    */
   private async sendSubscriptionToBackend(subscription: PushSubscription): Promise<void> {
+    if (this.lastSyncedEndpoint === subscription.endpoint || this.isSyncing) {
+      return;
+    }
     const token = this.authService.token() || localStorage.getItem('srh_auth_token') || localStorage.getItem('srh_toda_token');
     if (!token) return;
 
+    this.isSyncing = true;
     const subJson = subscription.toJSON();
     const keys = subJson.keys as Record<string, string> | undefined;
     const payload = {
@@ -134,9 +144,13 @@ export class PushService {
 
     this.http.post(url, payload, { headers }).subscribe({
       next: () => {
+        this.isSyncing = false;
+        this.lastSyncedEndpoint = subscription.endpoint;
+        this.isSubscribed.set(true);
         console.log('[PushService] Subscription registered with Laravel backend.');
       },
       error: (err) => {
+        this.isSyncing = false;
         console.warn('[PushService] Backend push subscription error:', err);
       },
     });
@@ -154,6 +168,7 @@ export class PushService {
         const endpoint = subscription.endpoint;
         await subscription.unsubscribe();
         this.isSubscribed.set(false);
+        this.lastSyncedEndpoint = null;
 
         const token = this.authService.token() || localStorage.getItem('srh_toda_token');
         if (token) {
@@ -181,7 +196,6 @@ export class PushService {
           body,
           icon: '/assets/icon/icon-192.png',
           badge: '/assets/icon/badge-192.png',
-          vibrate: [200, 100, 200, 100, 300],
           data: { url },
           tag: 'srh-toda-banner-' + Date.now(),
           renotify: true,
@@ -225,6 +239,64 @@ export class PushService {
   }
 
   /**
+   * Automatically prompt user for notification and location permissions
+   * if they are logged in and permissions are in default / ungranted state.
+   */
+  async promptAppPermissionsIfNecessary(): Promise<void> {
+    if (typeof window === 'undefined') return;
+
+    // 1. Notification Permission
+    try {
+      if ('Notification' in window) {
+        if (Notification.permission === 'default') {
+          console.log('[PushService] Prompting for notification permission...');
+          await this.requestPermissionAndSubscribe();
+        } else if (Notification.permission === 'granted') {
+          await this.syncExistingSubscription();
+        }
+      }
+    } catch (err) {
+      console.warn('[PushService] Notification permission prompt note:', err);
+    }
+
+    // 2. Geolocation Permission (staggered slightly to avoid native browser dialog collision)
+    if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
+      setTimeout(() => {
+        try {
+          if ('permissions' in navigator && (navigator.permissions as any).query) {
+            (navigator.permissions as any).query({ name: 'geolocation' })
+              .then((res: any) => {
+                if (res.state === 'prompt') {
+                  console.log('[PushService] Prompting for location permission...');
+                  navigator.geolocation.getCurrentPosition(
+                    (pos) => console.log('[PushService] Geolocation granted:', pos.coords.latitude, pos.coords.longitude),
+                    (err) => console.warn('[PushService] Geolocation dismissed/denied:', err),
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+                  );
+                }
+              })
+              .catch(() => {
+                navigator.geolocation.getCurrentPosition(
+                  () => {},
+                  () => {},
+                  { enableHighAccuracy: false, timeout: 5000, maximumAge: 120000 }
+                );
+              });
+          } else {
+            navigator.geolocation.getCurrentPosition(
+              () => {},
+              () => {},
+              { enableHighAccuracy: false, timeout: 5000, maximumAge: 120000 }
+            );
+          }
+        } catch (err) {
+          console.warn('[PushService] Geolocation prompt note:', err);
+        }
+      }, 600);
+    }
+  }
+
+  /**
    * Helper: Convert urlBase64 string to Uint8Array for applicationServerKey
    */
   private urlBase64ToUint8Array(base64String: string): Uint8Array {
@@ -238,3 +310,4 @@ export class PushService {
     return outputArray;
   }
 }
+

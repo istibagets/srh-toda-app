@@ -67,8 +67,48 @@ export class EarningsPage implements OnInit {
   activePeriod = signal<'today' | 'week' | 'month' | 'all'>('week');
   selectedBar = signal<DailyEarningsBar | null>(null);
 
+  // Lifetime Rating & Radial Animation State
+  lifetimeOverallRating = signal<number>(5.0);
+  displayRatingNumber = signal<number>(5.0);
+  animatedDashoffset = signal<number>(0);
+  private ratingAnimFrameId: number | null = null;
+  private hasAnimatedOnce = false;
+
+  // User Profile & Rating Computed Signals
+  userName = computed(() => {
+    const u = this.authService.currentUser();
+    return u?.name || 'SRH TODA Member';
+  });
+
+  userAvatarUrl = computed(() => {
+    const u = this.authService.currentUser();
+    return (u as any)?.profile_picture_url || u?.avatar_url || null;
+  });
+
+  userInitials = computed(() => {
+    const name = this.userName();
+    if (!name) return 'SR';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return name.substring(0, 2).toUpperCase();
+  });
+
+  overallRating = computed(() => {
+    return this.lifetimeOverallRating() || 5.0;
+  });
+
   // Financial Analytics State
-  summary = signal({
+  summary = signal<{
+    total_earnings: number;
+    total_trips: number;
+    avg_fare: number;
+    today_earnings: number;
+    today_trips_count: number;
+    peak_day_name: string;
+    peak_day_earnings: number;
+    avg_rating?: number;
+    rating_count?: number;
+  }>({
     total_earnings: 0,
     total_trips: 0,
     avg_fare: 0,
@@ -76,6 +116,8 @@ export class EarningsPage implements OnInit {
     today_trips_count: 0,
     peak_day_name: 'N/A',
     peak_day_earnings: 0,
+    avg_rating: 5.0,
+    rating_count: 0,
   });
 
   chartBars = signal<DailyEarningsBar[]>([]);
@@ -118,6 +160,44 @@ export class EarningsPage implements OnInit {
     this.loadEarningsData();
   }
 
+  triggerRatingAnimation(): void {
+    if (this.ratingAnimFrameId) {
+      cancelAnimationFrame(this.ratingAnimFrameId);
+    }
+
+    const targetRating = this.overallRating();
+    const circumference = 263.89; // 2 * PI * 42
+    const pct = Math.min(Math.max(targetRating / 5.0, 0), 1);
+    const targetOffset = circumference * (1 - pct);
+
+    const duration = 1200; // 1.2s duration
+    const startTime = performance.now();
+
+    this.displayRatingNumber.set(0.0);
+    this.animatedDashoffset.set(circumference);
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 3); // Cubic ease-out
+
+      const currentNum = ease * targetRating;
+      const currentOffset = circumference - (circumference - targetOffset) * ease;
+
+      this.displayRatingNumber.set(Math.round(currentNum * 10) / 10);
+      this.animatedDashoffset.set(currentOffset);
+
+      if (progress < 1) {
+        this.ratingAnimFrameId = requestAnimationFrame(animate);
+      } else {
+        this.displayRatingNumber.set(targetRating);
+        this.animatedDashoffset.set(targetOffset);
+      }
+    };
+
+    this.ratingAnimFrameId = requestAnimationFrame(animate);
+  }
+
   loadEarningsData(event?: any): void {
     if (!event) {
       this.isLoading.set(true);
@@ -128,6 +208,9 @@ export class EarningsPage implements OnInit {
       next: (res: EarningsSummaryResponse) => {
         if (res?.summary) {
           this.summary.set(res.summary);
+          if (res.summary.avg_rating !== undefined && res.summary.avg_rating !== null) {
+            this.lifetimeOverallRating.set(res.summary.avg_rating);
+          }
           this.chartBars.set(res.chart || []);
           this.sources.set(res.sources || []);
           this.recentLedger.set(res.ledger || []);
@@ -142,6 +225,13 @@ export class EarningsPage implements OnInit {
           }
         }
         this.isLoading.set(false);
+
+        // Animate radial rating ring on initial load or pull-to-refresh
+        if (!this.hasAnimatedOnce || event) {
+          this.triggerRatingAnimation();
+          this.hasAnimatedOnce = true;
+        }
+
         if (event) {
           event.target.complete();
         }
@@ -149,6 +239,7 @@ export class EarningsPage implements OnInit {
       error: (err) => {
         console.warn('Earnings load notice:', err?.status);
         this.isLoading.set(false);
+        this.triggerRatingAnimation();
         if (event) {
           event.target.complete();
         }

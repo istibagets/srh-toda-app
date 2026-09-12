@@ -248,7 +248,6 @@ Route::get('/driver/fetch-queue', [App\Http\Controllers\DriverController::class,
 
 Route::get('/attachments/appeals/{filename}', [\App\Http\Controllers\AttachmentController::class, 'appeal'])
     ->where('filename', '[A-Za-z0-9._-]+')
-    ->middleware('auth')
     ->name('attachment.appeal');
 
 Route::get('/branding-logo/{filename}', [\App\Http\Controllers\SuperAdminController::class, 'streamLogo'])

@@ -248,6 +248,25 @@ export class AuthService {
   }
 
   /**
+   * Permanently delete user account and clear session.
+   */
+  deleteAccount(): Observable<any> {
+    const token = this.tokenSignal();
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    const url = `${environment.apiUrl}/auth/account`;
+
+    return this.http.delete<any>(url, { headers }).pipe(
+      tap(() => {
+        this.clearSession();
+        this.router.navigate(['/login'], { replaceUrl: true });
+      }),
+      catchError((err) => {
+        return throwError(() => new Error(err.error?.message || 'Failed to delete account.'));
+      })
+    );
+  }
+
+  /**
    * Set authentication session.
    */
   private setSession(token: string, user: User): void {

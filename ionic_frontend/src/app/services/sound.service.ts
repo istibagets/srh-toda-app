@@ -5,59 +5,57 @@ import { Injectable } from '@angular/core';
 })
 export class SoundService {
   private audioCtx: AudioContext | null = null;
+  private isUnlocked = false;
 
   constructor() {
-    // Unlock AudioContext on first user interaction
+    // Register user gesture listener to unlock Web Audio state without eagerly instantiating
     if (typeof window !== 'undefined') {
       const unlockAudio = () => {
+        this.isUnlocked = true;
         try {
-          if (!this.audioCtx) {
-            const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-            if (AudioContextClass) {
-              this.audioCtx = new AudioContextClass();
-            }
-          }
           if (this.audioCtx && this.audioCtx.state === 'suspended') {
-            this.audioCtx.resume();
+            this.audioCtx.resume().catch(() => {});
           }
         } catch {}
       };
 
-      window.addEventListener('click', unlockAudio, { once: true });
-      window.addEventListener('touchstart', unlockAudio, { once: true });
+      ['click', 'touchend', 'keydown'].forEach((eventName) => {
+        window.addEventListener(eventName, unlockAudio, { once: true, passive: true });
+      });
     }
   }
 
   private getAudioContext(): AudioContext | null {
     try {
+      if (typeof window === 'undefined') return null;
+
+      // Ensure a genuine user activation gesture has occurred before creating AudioContext
+      const hasUserGesture = (navigator as any)?.userActivation?.hasBeenActive || this.isUnlocked;
+      if (!hasUserGesture) {
+        return null;
+      }
+
       if (!this.audioCtx) {
         const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
         if (AudioContextClass) {
           this.audioCtx = new AudioContextClass();
         }
       }
+
       if (this.audioCtx && this.audioCtx.state === 'suspended') {
-        this.audioCtx.resume();
+        this.audioCtx.resume().catch(() => {});
       }
-      return this.audioCtx;
+
+      return this.audioCtx?.state === 'running' ? this.audioCtx : null;
     } catch {
       return null;
     }
-  }
-
-  private vibrate(pattern: number | number[]): void {
-    try {
-      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-        navigator.vibrate(pattern);
-      }
-    } catch {}
   }
 
   /**
    * Sound: Going ON Duty (Bright ascending chime)
    */
   playOnDuty(): void {
-    this.vibrate([50, 30, 70]);
     const ctx = this.getAudioContext();
     if (!ctx) return;
 
@@ -93,7 +91,6 @@ export class SoundService {
    * Sound: Going OFF Duty (Soft descending chime)
    */
   playOffDuty(): void {
-    this.vibrate(50);
     const ctx = this.getAudioContext();
     if (!ctx) return;
 
@@ -129,7 +126,6 @@ export class SoundService {
    * Sound: New Incoming Booking / Offer Alert (Urgent Grab-style multi-tone chime)
    */
   playBookingAlert(): void {
-    this.vibrate([200, 100, 200, 100, 350]);
     const ctx = this.getAudioContext();
     if (!ctx) return;
 
@@ -155,7 +151,6 @@ export class SoundService {
    * Sound: Driver Arrived at Pickup (Upbeat notification chime)
    */
   playArrived(): void {
-    this.vibrate([100, 50, 150]);
     const ctx = this.getAudioContext();
     if (!ctx) return;
 
@@ -181,7 +176,6 @@ export class SoundService {
    * Sound: Drop-off Complete / Fare Paid (Success chord)
    */
   playDropoffSuccess(): void {
-    this.vibrate([100, 50, 100]);
     const ctx = this.getAudioContext();
     if (!ctx) return;
 
@@ -208,7 +202,6 @@ export class SoundService {
    * Sound: Chat Pop (Quick subtle pop)
    */
   playChatPop(): void {
-    this.vibrate(25);
     const ctx = this.getAudioContext();
     if (!ctx) return;
 
@@ -232,7 +225,6 @@ export class SoundService {
    * Sound: General Notification Chime
    */
   playNotificationChime(): void {
-    this.vibrate(80);
     const ctx = this.getAudioContext();
     if (!ctx) return;
 

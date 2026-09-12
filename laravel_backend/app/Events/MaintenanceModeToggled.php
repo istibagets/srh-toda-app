@@ -25,6 +25,7 @@ class MaintenanceModeToggled implements ShouldBroadcastNow
     {
         return [
             'active' => $this->active,
+            'is_maintenance' => $this->active,
             'message' => $this->message,
             'timestamp' => now()->toIso8601String(),
         ];
@@ -32,10 +33,12 @@ class MaintenanceModeToggled implements ShouldBroadcastNow
 
     public function broadcastOn(): array
     {
-        // Broadcast on both the public system channel and public queue channel
+        // Broadcast across all public client channels so all active users receive the event immediately
         return [
             new Channel('srh-system-status'),
             new Channel('srh-toda-queue'),
+            new Channel('srh-toda-rides'),
+            new Channel('srh-toda-announcements'),
         ];
     }
 

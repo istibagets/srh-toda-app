@@ -11,7 +11,7 @@ export interface SavedLocation {
   address: string;
   latitude: number;
   longitude: number;
-  type: 'home' | 'work' | 'school' | 'shopping' | 'favorite' | 'custom';
+  type: 'home' | 'work' | 'school' | 'shopping' | 'favorite' | 'custom' | 'market';
   is_default_pickup?: boolean;
   is_default_dropoff?: boolean;
   created_at?: string;
@@ -131,6 +131,23 @@ export class SavedLocationService {
   }): Observable<any> {
     const headers = this.getAuthHeaders();
     return this.http.post<any>(`${environment.apiUrl}/saved-locations`, data, { headers }).pipe(
+      tap(() => {
+        this.loadSavedLocations().subscribe();
+      })
+    );
+  }
+
+  updateLocation(id: number, data: {
+    name: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+    type?: string;
+    is_default_pickup?: boolean;
+    is_default_dropoff?: boolean;
+  }): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.put<any>(`${environment.apiUrl}/saved-locations/${id}`, data, { headers }).pipe(
       tap(() => {
         this.loadSavedLocations().subscribe();
       })

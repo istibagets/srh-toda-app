@@ -34,17 +34,50 @@ class DummyDataSeeder extends Seeder
             echo "Copied srh-logo.png to documents, drivers_license, and appeals storage." . PHP_EOL;
         }
 
-        // 1.5. Ensure Admin Account
-        User::updateOrCreate(
-            ['email' => 'admin@gmail.com'],
+        // 1.5. Ensure Admin & SuperAdmin Accounts
+        $superAdmin = User::updateOrCreate(
+            ['email' => 'superadmin@gmail.com'],
             [
-                'name' => 'TODA Administrator',
-                'password' => Hash::make('admin123'),
-                'role' => 'admin',
+                'name'              => 'Executive Super Administrator',
+                'password'          => Hash::make('admin123'),
+                'role'              => 'superadmin',
                 'email_verified_at' => now(),
             ]
         );
-        echo "Created/Updated Admin: TODA Administrator (admin@gmail.com)" . PHP_EOL;
+        Driver::updateOrCreate(
+            ['user_id' => $superAdmin->id],
+            [
+                'full_name'            => 'Executive Super Administrator',
+                'mtop_number'          => '128491',
+                'compliance_status'    => 'Approved',
+                'is_online'            => false,
+                'mtop_certificate_url' => 'documents/srh-logo.png',
+                'drivers_license_url'  => 'drivers_license/srh-logo.png',
+            ]
+        );
+        echo "Created/Updated SuperAdmin: superadmin@gmail.com (Password: admin123)" . PHP_EOL;
+
+        $adminUser = User::updateOrCreate(
+            ['email' => 'admin@gmail.com'],
+            [
+                'name'              => 'TODA Administrator',
+                'password'          => Hash::make('admin123'),
+                'role'              => 'admin',
+                'email_verified_at' => now(),
+            ]
+        );
+        Driver::updateOrCreate(
+            ['user_id' => $adminUser->id],
+            [
+                'full_name'            => 'TODA Administrator',
+                'mtop_number'          => '128491',
+                'compliance_status'    => 'Approved',
+                'is_online'            => false,
+                'mtop_certificate_url' => 'documents/srh-logo.png',
+                'drivers_license_url'  => 'drivers_license/srh-logo.png',
+            ]
+        );
+        echo "Created/Updated Admin: TODA Administrator (admin@gmail.com) | MTOP: 128491" . PHP_EOL;
 
         // 2. Seed 10 Passengers: passenger1@gmail.com -> passenger10@gmail.com
         $passengerNames = [

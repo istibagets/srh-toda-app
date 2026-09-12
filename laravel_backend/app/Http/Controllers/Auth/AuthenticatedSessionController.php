@@ -72,7 +72,8 @@ class AuthenticatedSessionController extends Controller
         // Set driver offline
         $driver->update([
             'is_online' => false,
-            'queue_position' => null
+            'queue_position' => null,
+            'queue_joined_at' => null,
         ]);
 
         // Only shift the queue if the driver actually had a position

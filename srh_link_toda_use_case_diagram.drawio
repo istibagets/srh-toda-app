@@ -1,0 +1,303 @@
+<mxfile host="app.diagrams.net" modified="2026-09-11T14:15:00.000Z" agent="Mozilla/5.0" etag="srh-toda-complete-ucd-v7" version="24.7.5" type="device">
+  <diagram id="agile_modeling_ucd" name="Agile Modeling Use Case Diagram">
+    <mxGraphModel dx="1422" dy="1700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="1850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ========================================================= -->
+        <!-- SYSTEM BOUNDARY BOX (Agile Modeling Guideline 4.1 & 4.2)  -->
+        <!-- ========================================================= -->
+        <mxCell id="boundary" value="SRH LINK-TODA System (PWA)" style="shape=rect;html=1;whiteSpace=wrap;strokeColor=#334155;strokeWidth=2;fillColor=#FFFFFF;fontStyle=1;fontSize=15;fontColor=#0F172A;align=center;verticalAlign=top;spacingTop=15;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="270" y="40" width="850" height="1750" as="geometry" />
+        </mxCell>
+
+        <!-- ========================================================= -->
+        <!-- ACTORS (Agile Modeling Guidelines 2.1 - 2.8 & 3.13)       -->
+        <!-- ========================================================= -->
+
+        <!-- 1. Primary Actor: Passenger (Top-Left) -->
+        <mxCell id="actor_passenger" value="Passenger" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;fontSize=13;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="70" y="290" width="60" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- 2. Operational Actor: Tricycle Driver (Middle-Left) -->
+        <mxCell id="actor_driver" value="Tricycle Driver" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;fontSize=13;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="70" y="860" width="60" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- 3. Specialized Administrative Actor: TODA Official (Bottom-Left, Inherits Driver) -->
+        <mxCell id="actor_admin" value="TODA Official&#xa;(Super Admin)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;fontSize=13;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="70" y="1460" width="60" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- ACTOR GENERALIZATION / INHERITANCE (Guideline 3.13 & 3.14) -->
+        <!-- Solid Line with Closed Triangle Arrowhead pointing up to Base Actor -->
+        <mxCell id="edge_actor_inheritance" value="&amp;lt;&amp;lt;inherits&amp;gt;&amp;gt;" style="endArrow=block;endFill=0;endSize=12;html=1;strokeColor=#000000;strokeWidth=1.5;rounded=0;fontStyle=2;fontSize=11;fontColor=#000000;align=center;verticalAlign=middle;" edge="1" parent="1" source="actor_admin" target="actor_driver">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================= -->
+        <!-- PASSENGER USE CASES (Stacked by Timing / Chronology)      -->
+        <!-- ========================================================= -->
+
+        <mxCell id="uc_p_register" value="Register Passenger Account" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="80" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_auth_login" value="Authenticate User Session" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="150" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_p_view_availability" value="Check Tricycle Availability" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="220" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_p_request_ride" value="Request Tricycle Ride" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="290" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Extending Use Case to the Right (Guideline 3.10) -->
+        <mxCell id="uc_p_propose_fare" value="Propose Special Fare&#xa;(Out-of-Route Trip)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;strokeDasharray=3 3;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="690" y="290" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_p_track_map" value="Track Assigned Tricycle on Map" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="360" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_chat" value="Chat with Driver / Passenger" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="430" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_p_cancel_ride" value="Cancel Ride Request" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="500" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Extending Algorithm Use Case to the Right (Guideline 3.10) -->
+        <mxCell id="uc_queue_recovery" value="Recover Queue Priority" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;strokeDasharray=3 3;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="690" y="500" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_p_rate_report" value="Rate Ride &amp; Report Incident" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="570" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_p_view_history" value="View Ride History &amp; Receipts" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="640" width="230" height="50" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================= -->
+        <!-- DRIVER USE CASES (Inherited by TODA Official)             -->
+        <!-- ========================================================= -->
+
+        <mxCell id="uc_d_upload_docs" value="Upload MTOP &amp; License Files" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="730" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_d_geofence_duty" value="Toggle Terminal Geofence Duty" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="800" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_d_accept_dispatch" value="Accept Dispatch Assignment" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="870" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_d_start_walkin" value="Start Terminal Walk-In Ride" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="940" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_d_cancel_trip" value="Cancel Assigned Trip" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="1010" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_d_update_transit" value="Update In-Transit Trip Progress" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="1080" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Included Use Case to the Right (Guideline 3.9) -->
+        <mxCell id="uc_d_pause_tracking" value="Deactivate Geofence Tracking" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;strokeDasharray=3 3;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="690" y="1080" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_d_wayside" value="Pick Up Wayside Passenger" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="1150" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_d_view_earnings" value="View Daily Earnings &amp; Trip Logs" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="1220" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_d_appeal" value="Submit Account Appeal" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="1290" width="230" height="50" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================= -->
+        <!-- SPECIALIZED ADMIN USE CASES (Extended by TODA Official)   -->
+        <!-- ========================================================= -->
+
+        <mxCell id="uc_a_verify_driver" value="Verify Driver MTOP Compliance" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="1380" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_a_override_queue" value="Override Terminal Queue Order" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="1450" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_a_resolve_reports" value="Resolve Passenger Incident Reports" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="1520" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_a_config_settings" value="Configure Fare &amp; Geofence Matrix" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="1590" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_a_broadcast" value="Broadcast Community Alerts" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="1660" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_a_reports" value="Generate Operational Reports" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=12;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="1730" width="230" height="50" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================= -->
+        <!-- ASSOCIATIONS (Guideline 3.2: Straight Solid Lines,        -->
+        <!-- NO Arrowheads on Actor-Use Case associations)             -->
+        <!-- ========================================================= -->
+
+        <!-- PASSENGER ASSOCIATIONS -->
+        <mxCell id="edge_p_reg" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_passenger" target="uc_p_register">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_p_login" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_passenger" target="uc_auth_login">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_p_queue" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_passenger" target="uc_p_view_availability">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_p_request" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_passenger" target="uc_p_request_ride">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_p_map" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_passenger" target="uc_p_track_map">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_p_chat" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_passenger" target="uc_chat">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_p_cancel" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_passenger" target="uc_p_cancel_ride">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_p_rate" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_passenger" target="uc_p_rate_report">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_p_history" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_passenger" target="uc_p_view_history">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- DRIVER ASSOCIATIONS (Also inherited by TODA Official) -->
+        <mxCell id="edge_d_upload" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_driver" target="uc_d_upload_docs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_d_geofence" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_driver" target="uc_d_geofence_duty">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_d_accept" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_driver" target="uc_d_accept_dispatch">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_d_walkin" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_driver" target="uc_d_start_walkin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_d_cancel" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_driver" target="uc_d_cancel_trip">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_d_transit" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_driver" target="uc_d_update_transit">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_d_chat" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_driver" target="uc_chat">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_d_wayside" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_driver" target="uc_d_wayside">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_d_earnings" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_driver" target="uc_d_view_earnings">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_d_appeal" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_driver" target="uc_d_appeal">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- ADMIN SPECIALIZED ASSOCIATIONS (Exclusive to TODA Official) -->
+        <mxCell id="edge_a_verify" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_admin" target="uc_a_verify_driver">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_a_override" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_admin" target="uc_a_override_queue">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_a_resolve" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_admin" target="uc_a_resolve_reports">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_a_settings" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_admin" target="uc_a_config_settings">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_a_broadcast" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_admin" target="uc_a_broadcast">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_a_reports" style="endArrow=none;html=1;strokeColor=#000000;strokeWidth=1.2;rounded=0;" edge="1" parent="1" source="actor_admin" target="uc_a_reports">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- ========================================================= -->
+        <!-- <<EXTEND>> & <<INCLUDE>> RELATIONSHIPS                    -->
+        <!-- Guidelines 3.3, 3.4: Dashed Lines with OPEN Arrowheads    -->
+        <!-- Guideline 3.9: <<include>> points from base to included   -->
+        <!-- Guideline 3.10: <<extend>> points from extension to base  -->
+        <!-- ========================================================= -->
+
+        <!-- 1. Propose Custom Fare <<extend>> Request Tricycle Ride -->
+        <mxCell id="rel_extend_fare" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="html=1;verticalAlign=bottom;labelBackgroundColor=#FFFFFF;endArrow=open;endFill=0;dashed=1;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontSize=11;fontColor=#000000;" edge="1" parent="1" source="uc_p_propose_fare" target="uc_p_request_ride">
+          <mxGeometry width="160" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 2. Recover Queue Priority <<extend>> Cancel Ride Request -->
+        <mxCell id="rel_extend_recovery" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="html=1;verticalAlign=bottom;labelBackgroundColor=#FFFFFF;endArrow=open;endFill=0;dashed=1;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontSize=11;fontColor=#000000;" edge="1" parent="1" source="uc_queue_recovery" target="uc_p_cancel_ride">
+          <mxGeometry width="160" relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 3. Deactivate Geofence Tracking <<include>> Update Trip Progress -->
+        <mxCell id="rel_include_transit" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="html=1;verticalAlign=bottom;labelBackgroundColor=#FFFFFF;endArrow=open;endFill=0;dashed=1;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontSize=11;fontColor=#000000;" edge="1" parent="1" source="uc_d_update_transit" target="uc_d_pause_tracking">
+          <mxGeometry width="160" relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

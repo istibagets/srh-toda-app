@@ -1,8 +1,20 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
 import { guestGuard } from './guards/guest.guard';
+import { rootGuard } from './guards/root.guard';
 
 export const routes: Routes = [
+  {
+    path: '',
+    pathMatch: 'full',
+    canActivate: [rootGuard],
+    loadComponent: () => import('./pages/landing/landing.page').then((m) => m.LandingPage),
+  },
+  {
+    path: 'landing',
+    loadComponent: () => import('./pages/landing/landing.page').then((m) => m.LandingPage),
+    canActivate: [guestGuard],
+  },
   {
     path: 'login',
     loadComponent: () => import('./pages/login/login.page').then((m) => m.LoginPage),
@@ -24,9 +36,8 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
-    path: '',
-    redirectTo: '/login',
-    pathMatch: 'full',
+    path: 'superadmin',
+    loadComponent: () => import('./pages/superadmin/superadmin.page').then((m) => m.SuperadminPage),
   },
   {
     path: '**',

@@ -5,10 +5,13 @@
   <ion-header class="ion-no-border srh-config-header">
     <ion-toolbar>
       <div class="config-header-row">
-        <button type="button" class="header-back-btn" (click)="returnToAdmin()">
+        <button type="button" class="header-back-btn" (click)="returnToAdmin()" aria-label="Return to Admin">
           <ion-icon name="arrow-back-outline"></ion-icon>
         </button>
-        <h1 class="config-header-title">Official Report Generator</h1>
+        <div class="header-text-block">
+          <h1 class="config-header-title">Official Report Generator</h1>
+          <span class="config-header-subtitle">Executive summaries & certified TODA documents</span>
+        </div>
       </div>
     </ion-toolbar>
   </ion-header>
@@ -18,8 +21,11 @@
       <!-- ── SECTION 1: REPORT LAYOUT FORMAT ─────────────── -->
       <div class="config-section">
         <div class="section-top-row">
-          <label class="section-title">1. SELECT REPORT LAYOUT FORMAT<span class="required">*</span></label>
-          <span class="format-badge">4 Formats</span>
+          <div class="section-title-wrap">
+            <span class="step-badge">1</span>
+            <span class="section-title">Select Report Template</span>
+          </div>
+          <span class="format-count-pill">4 Certified Formats</span>
         </div>
 
         <div class="format-cards-deck">
@@ -27,18 +33,20 @@
           <div
             class="format-card"
             [class.active]="selectedFormat() === 1"
-            (click)="setFormat(1)"
+            (click)="selectedFormat.set(1)"
           >
-            <div class="format-card-header">
-              <span class="format-kicker">FORMAT 1 • CERTIFIED TABLE</span>
-              @if (selectedFormat() === 1) {
-                <ion-icon name="checkmark-circle" class="check-icon"></ion-icon>
-              }
+            <div class="card-left-icon blue">
+              <ion-icon name="document-text-outline"></ion-icon>
             </div>
-            <h3 class="format-title">Certified Incident Report</h3>
-            <p class="format-desc">
-              Full masterlist of passenger complaints, disputed fares, and driver conduct incidents with resolution status.
-            </p>
+            <div class="format-card-content">
+              <div class="format-card-topline">
+                <span class="format-kicker">FORMAT 1 • CERTIFIED TABLE</span>
+              </div>
+              <h3 class="format-title">Certified Incident Report</h3>
+              <p class="format-desc">
+                Full masterlist of passenger complaints, disputed fares, and driver conduct incidents with resolution status.
+              </p>
+            </div>
           </div>
 
           <!-- FORMAT 2 -->
@@ -47,16 +55,18 @@
             [class.active]="selectedFormat() === 2"
             (click)="setFormat(2)"
           >
-            <div class="format-card-header">
-              <span class="format-kicker">FORMAT 2 • CHRONOLOGICAL</span>
-              @if (selectedFormat() === 2) {
-                <ion-icon name="checkmark-circle" class="check-icon"></ion-icon>
-              }
+            <div class="format-card-icon-wrap">
+              <ion-icon name="calendar-outline"></ion-icon>
             </div>
-            <h3 class="format-title">Incidents by Date Range</h3>
-            <p class="format-desc">
-              Chronologically grouped passenger reports with monthly period subtotals, ideal for monthly meetings.
-            </p>
+            <div class="format-card-content">
+              <div class="format-card-topline">
+                <span class="format-kicker">FORMAT 2 • CHRONOLOGICAL</span>
+              </div>
+              <h3 class="format-title">Incidents by Date Range</h3>
+              <p class="format-desc">
+                Chronologically grouped passenger reports with monthly period subtotals, ideal for monthly meetings.
+              </p>
+            </div>
           </div>
 
           <!-- FORMAT 3 -->
@@ -65,16 +75,18 @@
             [class.active]="selectedFormat() === 3"
             (click)="setFormat(3)"
           >
-            <div class="format-card-header">
-              <span class="format-kicker">FORMAT 3 • GROUPED ROSTER</span>
-              @if (selectedFormat() === 3) {
-                <ion-icon name="checkmark-circle" class="check-icon"></ion-icon>
-              }
+            <div class="format-card-icon-wrap">
+              <ion-icon name="people-outline"></ion-icon>
             </div>
-            <h3 class="format-title">TODA Fleet Drivers Masterlist</h3>
-            <p class="format-desc">
-              Official certified list of all TODA drivers, MTOP numbers, and registration dates grouped by compliance status.
-            </p>
+            <div class="format-card-content">
+              <div class="format-card-topline">
+                <span class="format-kicker">FORMAT 3 • GROUPED ROSTER</span>
+              </div>
+              <h3 class="format-title">TODA Fleet Drivers Masterlist</h3>
+              <p class="format-desc">
+                Official certified list of all TODA drivers, MTOP numbers, and registration dates grouped by compliance status.
+              </p>
+            </div>
           </div>
 
           <!-- FORMAT 4 -->
@@ -83,24 +95,30 @@
             [class.active]="selectedFormat() === 4"
             (click)="setFormat(4)"
           >
-            <div class="format-card-header">
-              <span class="format-kicker">FORMAT 4 • DASHBOARD</span>
-              @if (selectedFormat() === 4) {
-                <ion-icon name="checkmark-circle" class="check-icon"></ion-icon>
-              }
+            <div class="format-card-icon-wrap">
+              <ion-icon name="stats-chart-outline"></ion-icon>
             </div>
-            <h3 class="format-title">Operations &amp; Safety Dashboard</h3>
-            <p class="format-desc">
-              Visual statistics report with dispute volume chart, compliance donut visual, and official audit insights.
-            </p>
+            <div class="format-card-content">
+              <div class="format-card-topline">
+                <span class="format-kicker">FORMAT 4 • EXECUTIVE DASHBOARD</span>
+              </div>
+              <h3 class="format-title">Operations &amp; Safety Dashboard</h3>
+              <p class="format-desc">
+                Visual statistics report with dispute volume chart, compliance donut visual, and official audit insights.
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- ── SECTION 2: TIMEFRAME & DATE PERIOD ───────────── -->
       <div class="config-section">
-        <label class="section-title">2. TIMEFRAME &amp; DATE PERIOD</label>
-        <div class="timeframe-grid">
+        <div class="section-title-wrap">
+          <span class="step-badge">2</span>
+          <span class="section-title">Timeframe &amp; Date Period</span>
+        </div>
+
+        <div class="timeframe-flex-grid">
           <button
             type="button"
             class="timeframe-pill"
@@ -162,28 +180,43 @@
 
       <!-- ── SECTION 3: SIGNATORY DETAILS ─────────────────── -->
       <div class="config-section">
-        <label class="section-title">3. SIGNATORY CERTIFICATION DETAILS</label>
+        <div class="section-title-wrap">
+          <span class="step-badge">3</span>
+          <span class="section-title">Signatory Certification Details</span>
+        </div>
+
         <div class="signatory-card">
           <div class="input-field-group">
-            <label class="field-label">Signatory Full Name</label>
-            <input
-              type="text"
-              class="styled-input"
-              [ngModel]="signatoryName()"
-              (ngModelChange)="signatoryName.set($event)"
-              placeholder="e.g. Steve Gates Roquero"
-            />
+            <label class="field-label" for="report-signatory-name">Signatory Full Name</label>
+            <div class="input-with-icon">
+              <ion-icon name="person-outline" class="input-icon"></ion-icon>
+              <input
+                type="text"
+                id="report-signatory-name"
+                name="signatory_name"
+                autocomplete="name"
+                class="styled-input"
+                [ngModel]="signatoryName()"
+                (ngModelChange)="signatoryName.set($event)"
+                placeholder="e.g. Steve Gates Roquero"
+              />
+            </div>
           </div>
 
           <div class="input-field-group">
-            <label class="field-label">Official Designation / Title</label>
-            <input
-              type="text"
-              class="styled-input"
-              [ngModel]="signatoryTitle()"
-              (ngModelChange)="signatoryTitle.set($event)"
-              placeholder="e.g. TODA Operations & Safety Administrator"
-            />
+            <label class="field-label" for="report-signatory-title">Official Designation / Title</label>
+            <div class="input-with-icon">
+              <ion-icon name="ribbon-outline" class="input-icon"></ion-icon>
+              <input
+                type="text"
+                id="report-signatory-title"
+                name="signatory_title"
+                class="styled-input"
+                [ngModel]="signatoryTitle()"
+                (ngModelChange)="signatoryTitle.set($event)"
+                placeholder="e.g. TODA Operations & Safety Administrator"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -192,11 +225,7 @@
       <div class="config-action-bottom">
         <button type="button" class="generate-report-btn" (click)="generateOfficialReport()">
           <ion-icon name="print-outline"></ion-icon>
-          <span>GENERATE OFFICIAL REPORT</span>
-        </button>
-
-        <button type="button" class="return-portal-btn" (click)="returnToAdmin()">
-          &larr; Return to Admin Portal
+          <span>Generate Official Report</span>
         </button>
       </div>
     </div>

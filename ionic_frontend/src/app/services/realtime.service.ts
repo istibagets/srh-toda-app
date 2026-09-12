@@ -7,6 +7,7 @@ import { DriverService } from './driver.service';
 import { NotificationService } from './notification.service';
 import { SoundService } from './sound.service';
 import { PushService } from './push.service';
+import { MaintenanceService } from './maintenance.service';
 
 declare global {
   interface Window {
@@ -24,6 +25,7 @@ export class RealtimeService {
   private notificationService = inject(NotificationService);
   private soundService = inject(SoundService);
   private pushService = inject(PushService);
+  private maintenanceService = inject(MaintenanceService);
 
   private echoInstance: Echo<any> | null = null;
   private isConnectedSignal = signal<boolean>(false);
@@ -85,11 +87,35 @@ export class RealtimeService {
         this.driverService.triggerLiveSync();
       };
 
+      // Listen on public system status and maintenance events
+      const handleMaintenanceEvent = (e: any) => {
+        if (e) {
+          const isDown =
+            typeof e.active === 'boolean'
+              ? e.active
+              : typeof e.is_maintenance === 'boolean'
+              ? e.is_maintenance
+              : false;
+          this.maintenanceService.setMaintenanceState(isDown, e.message);
+        }
+      };
+
+      this.echoInstance
+        .channel('srh-system-status')
+        .listen('.maintenance.status', handleMaintenanceEvent)
+        .listen('maintenance.status', handleMaintenanceEvent)
+        .listen('.MaintenanceModeToggled', handleMaintenanceEvent)
+        .listen('MaintenanceModeToggled', handleMaintenanceEvent);
+
       this.echoInstance
         .channel('srh-toda-queue')
         .listen('.queue.changed', handleQueueEvent)
         .listen('queue.changed', handleQueueEvent)
-        .listen('QueueUpdated', handleQueueEvent);
+        .listen('QueueUpdated', handleQueueEvent)
+        .listen('.maintenance.status', handleMaintenanceEvent)
+        .listen('maintenance.status', handleMaintenanceEvent)
+        .listen('.MaintenanceModeToggled', handleMaintenanceEvent)
+        .listen('MaintenanceModeToggled', handleMaintenanceEvent);
 
       // Listen on public rides channel
       const handleRideEvent = (e: any) => {
@@ -103,7 +129,14 @@ export class RealtimeService {
         .channel('srh-toda-rides')
         .listen('.ride.status.updated', handleRideEvent)
         .listen('ride.status.updated', handleRideEvent)
-        .listen('RideStatusUpdated', handleRideEvent);
+        .listen('RideStatusUpdated', handleRideEvent)
+        .listen('.queue.changed', handleQueueEvent)
+        .listen('queue.changed', handleQueueEvent)
+        .listen('QueueUpdated', handleQueueEvent)
+        .listen('.maintenance.status', handleMaintenanceEvent)
+        .listen('maintenance.status', handleMaintenanceEvent)
+        .listen('.MaintenanceModeToggled', handleMaintenanceEvent)
+        .listen('MaintenanceModeToggled', handleMaintenanceEvent);
 
       // Listen on public GPS location channel
       const handleGpsEvent = (e: any) => {
@@ -151,7 +184,9 @@ export class RealtimeService {
       this.echoInstance
         .channel('srh-toda-announcements')
         .listen('.AnnouncementCreated', handleAnnouncementEvent)
-        .listen('AnnouncementCreated', handleAnnouncementEvent);
+        .listen('AnnouncementCreated', handleAnnouncementEvent)
+        .listen('.maintenance.status', handleMaintenanceEvent)
+        .listen('maintenance.status', handleMaintenanceEvent);
 
       // Listen on admin channel
       this.echoInstance

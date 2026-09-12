@@ -22,7 +22,6 @@
           </div>
           <div class="mini-meta">
             <h3 class="mini-title">BOOK A TODA RIDE</h3>
-            <p class="mini-sub">Pull up to book</p>
           </div>
         }
       </div>
@@ -254,16 +253,6 @@
                 <ion-icon name="call-outline"></ion-icon>
               </a>
             }
-          </div>
-
-          <div class="action-buttons-grid single-chat">
-            <button type="button" class="chat-secondary-btn full-width" (click)="openChat.emit()">
-              <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
-              <span>Chat with Driver</span>
-              @if (unreadChatCount() > 0) {
-                <span class="chat-badge-corner">{{ unreadChatCount() > 9 ? '9+' : unreadChatCount() }}</span>
-              }
-            </button>
           </div>
         }
 

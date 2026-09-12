@@ -37,6 +37,7 @@ import {
 export class TabsPage {
   public environmentInjector = inject(EnvironmentInjector);
   authService = inject(AuthService);
+
   isAdmin = computed(() => this.authService.currentUser()?.role === 'admin' || this.authService.currentUser()?.role === 'superadmin');
   isPassenger = computed(() => this.authService.currentUser()?.role === 'passenger');
   isDriver = computed(() => this.authService.currentUser()?.role === 'driver');
@@ -59,4 +60,6 @@ export class TabsPage {
       person,
     });
   }
+
 }
+

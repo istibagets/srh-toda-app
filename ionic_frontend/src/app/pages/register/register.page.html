@@ -165,6 +165,9 @@
 
                 <div class="field-item-wrap">
                   <ion-input
+                    id="reg-name"
+                    name="name"
+                    autocomplete="name"
                     fill="outline"
                     label="Full Name"
                     labelPlacement="floating"
@@ -180,6 +183,9 @@
                 <!-- Email Address with live uniqueness -->
                 <div class="field-item-wrap">
                   <ion-input
+                    id="reg-email"
+                    name="email"
+                    autocomplete="email"
                     fill="outline"
                     label="Email Address"
                     labelPlacement="floating"
@@ -205,6 +211,9 @@
                 <!-- Mobile Phone Number with live uniqueness -->
                 <div class="field-item-wrap">
                   <ion-input
+                    id="reg-phone"
+                    name="phone_number"
+                    autocomplete="tel"
                     fill="outline"
                     label="Mobile Phone (11 digits)"
                     labelPlacement="floating"
@@ -244,6 +253,9 @@
                 <!-- Password -->
                 <div class="field-item-wrap">
                   <ion-input
+                    id="reg-password"
+                    name="password"
+                    autocomplete="new-password"
                     fill="outline"
                     label="Password (Min 8 Characters)"
                     labelPlacement="floating"
@@ -259,6 +271,9 @@
                 <!-- Confirm Password -->
                 <div class="field-item-wrap">
                   <ion-input
+                    id="reg-password-confirm"
+                    name="password_confirmation"
+                    autocomplete="new-password"
                     fill="outline"
                     label="Confirm Password"
                     labelPlacement="floating"
@@ -304,6 +319,9 @@
                 <!-- Full Name as on License -->
                 <div class="field-item-wrap">
                   <ion-input
+                    id="reg-doc-fullname"
+                    name="full_name"
+                    autocomplete="name"
                     fill="outline"
                     label="Full Name (as on License)"
                     labelPlacement="floating"
@@ -317,6 +335,8 @@
                 <!-- MTOP Body Number -->
                 <div class="field-item-wrap">
                   <ion-input
+                    id="reg-mtop-number"
+                    name="mtop_number"
                     fill="outline"
                     label="MTOP Body Number"
                     labelPlacement="floating"
@@ -331,8 +351,10 @@
                 <!-- File Upload Zones -->
                 <div class="upload-grid">
                   <!-- MTOP Upload -->
-                  <label class="upload-zone-card" [class.uploaded]="mtopFileName()">
+                  <label class="upload-zone-card" for="reg-mtop-file" [class.uploaded]="mtopFileName()">
                     <input
+                      id="reg-mtop-file"
+                      name="mtop_certificate"
                       type="file"
                       accept=".jpg,.jpeg,.png,.webp,.pdf,.heic"
                       (change)="onFileSelect($event, 'mtop')"
@@ -346,8 +368,10 @@
                   </label>
 
                   <!-- License Upload -->
-                  <label class="upload-zone-card" [class.uploaded]="licenseFileName()">
+                  <label class="upload-zone-card" for="reg-license-file" [class.uploaded]="licenseFileName()">
                     <input
+                      id="reg-license-file"
+                      name="drivers_license"
                       type="file"
                       accept=".jpg,.jpeg,.png,.webp,.pdf,.heic"
                       (change)="onFileSelect($event, 'license')"

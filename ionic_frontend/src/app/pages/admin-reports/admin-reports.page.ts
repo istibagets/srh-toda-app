@@ -22,6 +22,10 @@ import {
   peopleOutline,
   statsChartOutline,
   alertCircleOutline,
+  ribbonOutline,
+  personOutline,
+  briefcaseOutline,
+  timeOutline,
 } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
 import {
@@ -228,6 +232,10 @@ export class AdminReportsPage implements OnInit, AfterViewInit {
       peopleOutline,
       statsChartOutline,
       alertCircleOutline,
+      ribbonOutline,
+      personOutline,
+      briefcaseOutline,
+      timeOutline,
     });
   }
 
@@ -648,23 +656,26 @@ export class AdminReportsPage implements OnInit, AfterViewInit {
         display: block !important;
       }
       .status-chip {
-        font-size: 6.8pt !important;
+        font-size: 7.2pt !important;
         font-weight: 800 !important;
-        padding: 2px 6px !important;
-        border-radius: 4px !important;
+        padding: 0 !important;
+        background: transparent !important;
+        border: none !important;
         display: inline-block !important;
         letter-spacing: 0.02em !important;
+        text-transform: uppercase !important;
+        white-space: nowrap !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
-      .status-chip.resolved { background: #dcfce7 !important; color: #15803d !important; border: 1px solid #bbf7d0 !important; }
-      .status-chip.investigating { background: #dbeafe !important; color: #1d4ed8 !important; border: 1px solid #bfdbfe !important; }
-      .status-chip.pending { background: #fef3c7 !important; color: #b45309 !important; border: 1px solid #fde68a !important; }
-      .status-chip.dismissed { background: #f1f5f9 !important; color: #475569 !important; border: 1px solid #e2e8f0 !important; }
+      .status-chip.resolved { color: #059669 !important; background: transparent !important; border: none !important; }
+      .status-chip.investigating { color: #2563eb !important; background: transparent !important; border: none !important; }
+      .status-chip.pending { color: #2563eb !important; background: transparent !important; border: none !important; }
+      .status-chip.dismissed { color: #64748b !important; background: transparent !important; border: none !important; }
       .desc-cell { font-size: 7pt !important; color: #334155 !important; line-height: 1.3 !important; }
-      .active-member-note { font-size: 6.8pt !important; color: #475569 !important; }
+      .active-member-note { font-size: 6.8pt !important; color: #059669 !important; font-weight: 700 !important; }
       .suspension-note { font-size: 6.8pt !important; color: #dc2626 !important; font-weight: 700 !important; }
-      .pending-member-note { font-size: 6.8pt !important; color: #475569 !important; }
+      .pending-member-note { font-size: 6.8pt !important; color: #2563eb !important; font-weight: 700 !important; }
 
       .total-row-right {
         text-align: right !important;
@@ -688,7 +699,7 @@ export class AdminReportsPage implements OnInit, AfterViewInit {
       }
       .roster-group-banner.approved-banner { background: #dcfce7 !important; color: #15803d !important; border: 1px solid #bbf7d0; border-left: 3px solid #16a34a !important; }
       .roster-group-banner.removed-banner { background: #fee2e2 !important; color: #b91c1c !important; border: 1px solid #fecaca; border-left: 3px solid #dc2626 !important; }
-      .roster-group-banner.pending-banner { background: #fef3c7 !important; color: #b45309 !important; border: 1px solid #fde68a; border-left: 3px solid #d97706 !important; }
+      .roster-group-banner.pending-banner { background: #eff6ff !important; color: #1d4ed8 !important; border: 1px solid #bfdbfe; border-left: 3px solid #2563eb !important; }
       .roster-group-banner.month-banner { background: #dbeafe !important; color: #1e40af !important; border: 1px solid #bfdbfe; border-left: 3px solid #2563eb !important; }
 
       .group-subtotal-row {
@@ -730,8 +741,8 @@ export class AdminReportsPage implements OnInit, AfterViewInit {
         print-color-adjust: exact !important;
       }
       .dash-kpi-box.blue-border { border-top: 3px solid #2563eb !important; }
-      .dash-kpi-box.amber-border { border-top: 3px solid #f59e0b !important; }
-      .dash-kpi-box.red-border { border-top: 3px solid #ef4444 !important; }
+      .dash-kpi-box.amber-border { border-top: 3px solid #2563eb !important; }
+      .dash-kpi-box.red-border { border-top: 3px solid #64748b !important; }
       .dash-kpi-label { font-size: 6pt !important; font-weight: 800 !important; color: #64748b !important; }
       .dash-kpi-val { font-size: 11pt !important; font-weight: 900 !important; color: #0f172a !important; }
 
@@ -788,7 +799,7 @@ export class AdminReportsPage implements OnInit, AfterViewInit {
         width: 68px !important;
         height: 68px !important;
         border-radius: 50% !important;
-        background: conic-gradient(#10b981 0% 74%, #f59e0b 74% 85%, #ef4444 85% 100%) !important;
+        background: conic-gradient(#059669 0% 74%, #2563eb 74% 85%, #64748b 85% 100%) !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -813,9 +824,9 @@ export class AdminReportsPage implements OnInit, AfterViewInit {
       .donut-legend-col { display: flex !important; flex-direction: column !important; gap: 4px !important; font-size: 6.5pt !important; }
       .legend-item { display: flex !important; align-items: center !important; gap: 4px !important; }
       .legend-dot { width: 7px !important; height: 7px !important; border-radius: 2px !important; }
-      .legend-dot.green { background: #10b981 !important; }
-      .legend-dot.amber { background: #f59e0b !important; }
-      .legend-dot.red { background: #ef4444 !important; }
+      .legend-dot.green { background: #059669 !important; }
+      .legend-dot.amber { background: #2563eb !important; }
+      .legend-dot.red { background: #64748b !important; }
       .legend-name { font-weight: 700 !important; color: #475569 !important; }
       .legend-val { font-weight: 800 !important; color: #0f172a !important; }
 

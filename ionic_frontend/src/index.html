@@ -12,6 +12,119 @@
   <meta name="format-detection" content="telephone=no" />
   <meta name="msapplication-tap-highlight" content="no" />
 
+  <script>
+    // Guard against internal Chrome DevTools / Core Web Vitals extension uncaught startTime error
+    (function () {
+      function isDevToolsError(e) {
+        if (!e) return false;
+        var str = '';
+        try {
+          if (typeof e === 'string') str = e;
+          else str = (e.message || '') + ' ' + (e.error ? (e.error.message || '') + ' ' + (e.error.stack || '') : '') + ' ' + (e.stack || '');
+        } catch (_) {}
+        return (
+          str.indexOf("startTime") !== -1 ||
+          str.indexOf("reportAllChanges") !== -1
+        );
+      }
+
+      var origError = console.error;
+      console.error = function () {
+        var args = Array.prototype.slice.call(arguments);
+        var combined = args.map(function(a) {
+          try { return typeof a === 'object' ? JSON.stringify(a) : String(a); } catch(_) { return String(a); }
+        }).join(' ');
+        if (isDevToolsError(combined)) {
+          return;
+        }
+        return origError.apply(console, arguments);
+      };
+
+      window.onerror = function (msg, url, lineNo, columnNo, error) {
+        var combined = (msg || '') + ' ' + (url || '') + ' ' + (error ? (error.message || '') + ' ' + (error.stack || '') : '');
+        if (isDevToolsError(combined)) {
+          return true; // suppresses the error in console
+        }
+      };
+
+      window.addEventListener('error', function (event) {
+        if (isDevToolsError(event)) {
+          event.stopImmediatePropagation();
+          event.preventDefault();
+          return true;
+        }
+      }, true);
+
+      window.addEventListener('unhandledrejection', function (event) {
+        var reason = event && event.reason;
+        if (reason && isDevToolsError(reason)) {
+          event.stopImmediatePropagation();
+          event.preventDefault();
+          return true;
+        }
+      }, true);
+
+      // Wrap requestIdleCallback to catch extension/DevTools idle exceptions
+      if (typeof window.requestIdleCallback === 'function') {
+        var origRIC = window.requestIdleCallback;
+        window.requestIdleCallback = function (cb, opts) {
+          return origRIC.call(window, function (deadline) {
+            try {
+              return cb(deadline);
+            } catch (err) {
+              if (isDevToolsError(err)) return;
+              throw err;
+            }
+          }, opts);
+        };
+      }
+
+      // Wrap requestAnimationFrame
+      if (typeof window.requestAnimationFrame === 'function') {
+        var origRAF = window.requestAnimationFrame;
+        window.requestAnimationFrame = function (cb) {
+          return origRAF.call(window, function (ts) {
+            try {
+              return cb(ts);
+            } catch (err) {
+              if (isDevToolsError(err)) return;
+              throw err;
+            }
+          });
+        };
+      }
+
+      // Wrap PerformanceObserver entries if present
+      if (typeof window.PerformanceObserver === 'function') {
+        var OrigPO = window.PerformanceObserver;
+        window.PerformanceObserver = function (cb) {
+          return new OrigPO(function (list, obs) {
+            try {
+              if (list && typeof list.getEntries === 'function') {
+                var origGet = list.getEntries;
+                list.getEntries = function () {
+                  var res = origGet.call(list);
+                  return (res || []).map(function (item) {
+                    if (item && item.startTime === undefined) {
+                      try { Object.defineProperty(item, 'startTime', { value: 0, writable: true, configurable: true }); } catch (_) {}
+                    }
+                    return item;
+                  });
+                };
+              }
+              return cb(list, obs);
+            } catch (err) {
+              if (isDevToolsError(err)) return;
+              throw err;
+            }
+          });
+        };
+        window.PerformanceObserver.prototype = OrigPO.prototype;
+        window.PerformanceObserver.supportedEntryTypes = OrigPO.supportedEntryTypes;
+      }
+    })();
+  </script>
+
   <link rel="icon" type="image/png" href="assets/icon/favicon.png" />
   <link rel="apple-touch-icon" href="assets/icon/icon-192.png" />
   <link rel="manifest" href="manifest.webmanifest" />

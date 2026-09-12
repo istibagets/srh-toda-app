@@ -11,7 +11,10 @@
       <div class="search-input-box">
         <ion-icon name="search-outline" class="search-icon"></ion-icon>
         <input
-          type="text"
+          type="search"
+          id="history-search-input"
+          name="history_search"
+          aria-label="Search trip history"
           class="search-input"
           placeholder="Search destination, passenger, or trip ID..."
           [ngModel]="searchQuery()"
@@ -28,94 +31,18 @@
 </ion-header>
 
 <ion-content class="srh-history-content" [fullscreen]="true">
-  <ion-refresher slot="fixed" (ionRefresh)="loadHistory($event)">
-    <ion-refresher-content pullingIcon="chevron-down-circle-outline"></ion-refresher-content>
+  <ion-refresher slot="fixed" type="radial" (ionRefresh)="loadHistory($event)">
+    <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
   <div class="history-layout-container">
-    <!-- ── 1. EXECUTIVE HERO DECK WITH ANIMATED RADIAL RATING GRAPH ── -->
-    <div class="history-hero-deck">
-      <!-- Left: Animated Radial Progress Ring with Profile Avatar -->
-      <div class="radial-score-container">
-        <div class="radial-ring-wrapper">
-          <svg class="radial-svg" viewBox="0 0 100 100">
-            <defs>
-              <mask id="scoreArcMask">
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="42"
-                  fill="none"
-                  stroke="#ffffff"
-                  stroke-width="7.5"
-                  stroke-linecap="round"
-                  stroke-dasharray="263.89"
-                  [style.strokeDashoffset]="animatedDashoffset()"
-                  transform="rotate(-90 50 50)"
-                />
-              </mask>
-            </defs>
-
-            <!-- Background Track Circle -->
-            <circle class="ring-bg" cx="50" cy="50" r="42" />
-
-            <!-- Conic Gradient Fill Masked by Arc Stroke -->
-            <g mask="url(#scoreArcMask)">
-              <foreignObject x="0" y="0" width="100" height="100">
-                <div class="conic-ring-gradient"></div>
-              </foreignObject>
-            </g>
-          </svg>
-
-          <!-- Center Profile Avatar / Fallback Initials -->
-          <div class="radial-avatar-center">
-            @if (userAvatarUrl()) {
-              <img [src]="userAvatarUrl()" alt="User Profile" class="radial-avatar-img" />
-            } @else {
-              <div class="radial-avatar-fallback">
-                {{ userInitials() }}
-              </div>
-            }
-          </div>
-        </div>
-
-        <!-- Rating Score Badge -->
-        <div class="radial-score-badge">
-          <span class="score-num">{{ displayRatingNumber().toFixed(1) }}</span>
-          <ion-icon name="star" class="star-gold"></ion-icon>
-        </div>
-      </div>
-
-      <!-- Right: Performance Metrics & User Bio Stack -->
-      <div class="hero-metrics-column">
-        <div class="user-greeting-row">
-          <span class="user-role-label">{{ authService.isPassenger() ? 'PASSENGER RATING' : 'OVERALL RATING' }}</span>
-          <h2 class="user-display-name">{{ userName() }}</h2>
-        </div>
-
-        <div class="metric-tiles-row">
-          <div class="tile-box">
-            <span class="tile-lbl">{{ authService.isPassenger() ? 'TOTAL RIDES' : 'TRIPS DONE' }}</span>
-            <span class="tile-val">{{ totalCompletedCount() }}</span>
-          </div>
-
-          <div class="tile-divider"></div>
-
-          <div class="tile-box">
-            <span class="tile-lbl">{{ authService.isPassenger() ? 'TOTAL SPENT' : 'REVENUE' }}</span>
-            <span class="tile-val text-emerald">₱{{ totalRevenue().toFixed(0) }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── 2. STATUS FILTER TABS ───────────────────────────── -->
+    <!-- ── 1. STATUS FILTER TABS ───────────────────────────── -->
     <div class="status-tab-bar">
       <button
         type="button"
         class="status-tab-btn"
         [class.active]="activeStatusFilter() === 'all'"
-        (click)="setStatusFilter('all')"
+        (click)="setStatusFilter('all', $event)"
       >
         All ({{ rawRides().length }})
       </button>
@@ -123,7 +50,7 @@
         type="button"
         class="status-tab-btn"
         [class.active]="activeStatusFilter() === 'completed'"
-        (click)="setStatusFilter('completed')"
+        (click)="setStatusFilter('completed', $event)"
       >
         Completed
       </button>
@@ -131,7 +58,7 @@
         type="button"
         class="status-tab-btn"
         [class.active]="activeStatusFilter() === 'walkin'"
-        (click)="setStatusFilter('walkin')"
+        (click)="setStatusFilter('walkin', $event)"
       >
         Walk-In
       </button>
@@ -139,7 +66,7 @@
         type="button"
         class="status-tab-btn"
         [class.active]="activeStatusFilter() === 'cancelled'"
-        (click)="setStatusFilter('cancelled')"
+        (click)="setStatusFilter('cancelled', $event)"
       >
         Cancelled
       </button>
@@ -151,7 +78,7 @@
         type="button"
         class="date-chip"
         [class.active]="activeRangeFilter() === 'all'"
-        (click)="setRangeFilter('all')"
+        (click)="setRangeFilter('all', $event)"
       >
         All Time
       </button>
@@ -159,7 +86,7 @@
         type="button"
         class="date-chip"
         [class.active]="activeRangeFilter() === 'today'"
-        (click)="setRangeFilter('today')"
+        (click)="setRangeFilter('today', $event)"
       >
         Today
       </button>
@@ -167,7 +94,7 @@
         type="button"
         class="date-chip"
         [class.active]="activeRangeFilter() === 'week'"
-        (click)="setRangeFilter('week')"
+        (click)="setRangeFilter('week', $event)"
       >
         This Week
       </button>
@@ -175,7 +102,7 @@
         type="button"
         class="date-chip"
         [class.active]="activeRangeFilter() === 'month'"
-        (click)="setRangeFilter('month')"
+        (click)="setRangeFilter('month', $event)"
       >
         This Month
       </button>
@@ -294,6 +221,18 @@
               </div>
             </div>
 
+            <!-- Feedback tags on trip card if present -->
+            @if (trip.feedback_tags && trip.feedback_tags.length > 0) {
+              <div class="trip-card-tags-wrap">
+                @for (tag of trip.feedback_tags; track tag) {
+                  <span class="trip-card-tag-pill">
+                    <ion-icon name="thumbs-up-outline"></ion-icon>
+                    {{ tag }}
+                  </span>
+                }
+              </div>
+            }
+
             <!-- Review comment snippet if present -->
             @if (trip.review_comment) {
               <div class="trip-review-snippet">
@@ -322,7 +261,7 @@
               <h2 class="receipt-id">{{ trip.trip_id }}</h2>
             </div>
 
-            <button type="button" class="close-receipt-btn" (click)="closeTripReceipt()">
+            <button type="button" class="close-receipt-btn" (click)="closeTripReceipt()" aria-label="Close Receipt">
               <ion-icon name="close-outline"></ion-icon>
             </button>
           </div>
@@ -330,9 +269,12 @@
           <div class="receipt-body">
             <!-- Status Ribbon -->
             <div class="receipt-status-ribbon" [class.completed]="trip.status === 'completed'" [class.cancelled]="trip.status === 'cancelled'">
-              <span class="status-label">STATUS:</span>
-              <span class="status-val">{{ trip.status | uppercase }}</span>
-              <span class="status-time">• {{ trip.created_at }}</span>
+              <div class="ribbon-left">
+                <span class="status-label">STATUS:</span>
+                <span class="status-val">{{ trip.status | uppercase }}</span>
+                <span class="status-time">• {{ trip.created_at }}</span>
+              </div>
+              <span class="ribbon-type-badge">{{ getTripTypeBadge(trip) }}</span>
             </div>
 
             <!-- Route Details -->
@@ -399,32 +341,56 @@
               </div>
             </div>
 
-            <!-- Customer Review & Rating if present -->
-            @if (trip.rating) {
-              <div class="receipt-section review-section">
-                <span class="section-title">{{ authService.isPassenger() ? 'YOUR RATING &amp; FEEDBACK' : 'CUSTOMER RATING &amp; FEEDBACK' }}</span>
+            <!-- Customer Review & Rating Section -->
+            <div class="receipt-section review-section">
+              <span class="section-title">{{ authService.isPassenger() ? 'YOUR RATING &amp; FEEDBACK' : 'PASSENGER RATING &amp; FEEDBACK' }}</span>
+              
+              @if (trip.rating) {
                 <div class="receipt-rating-card">
-                  <div class="rating-stars-row">
-                    @for (star of getRatingStars(trip.rating); track $index) {
-                      <ion-icon name="star" class="modal-star" [class.filled]="star === 1"></ion-icon>
-                    }
-                    <span class="rating-num-tag">{{ trip.rating.toFixed(1) }} / 5.0</span>
+                  <div class="rating-top-row">
+                    <div class="stars-badge" [class.five-stars]="trip.rating >= 4.5">
+                      <span class="star-score">{{ trip.rating | number:'1.1-1' }}</span>
+                      <div class="star-icons-wrap">
+                        @for (s of [1, 2, 3, 4, 5]; track s) {
+                          <ion-icon
+                            [name]="s <= trip.rating ? 'star' : 'star-outline'"
+                            class="review-star-icon"
+                            [class.filled]="s <= trip.rating"
+                          ></ion-icon>
+                        }
+                      </div>
+                    </div>
+                    <span class="rating-time">{{ trip.completed_at || trip.created_time || 'Verified' }}</span>
                   </div>
 
-                  @if (trip.review_comment) {
-                    <p class="receipt-review-quote">"{{ trip.review_comment }}"</p>
-                  }
-
                   @if (trip.feedback_tags && trip.feedback_tags.length > 0) {
-                    <div class="feedback-tags-strip">
+                    <div class="feedback-tags-wrap">
                       @for (tag of trip.feedback_tags; track tag) {
-                        <span class="feedback-pill">{{ tag }}</span>
+                        <span class="feedback-tag-chip">
+                          <ion-icon name="thumbs-up-outline"></ion-icon>
+                          {{ tag }}
+                        </span>
                       }
                     </div>
                   }
+
+                  @if (trip.review_comment) {
+                    <div class="review-comment-bubble">
+                      <ion-icon name="chatbubble-ellipses-outline" class="quote-icon"></ion-icon>
+                      <p class="comment-text">"{{ trip.review_comment }}"</p>
+                    </div>
+                  }
                 </div>
-              </div>
-            }
+              } @else {
+                <div class="receipt-unrated-box">
+                  <ion-icon name="star-outline" class="unrated-star-icon"></ion-icon>
+                  <div class="unrated-text-group">
+                    <span class="unrated-title">No Rating Recorded</span>
+                    <span class="unrated-sub">Passenger did not submit feedback for this completed trip.</span>
+                  </div>
+                </div>
+              }
+            </div>
           </div>
 
           <!-- Bottom Dismiss Button -->

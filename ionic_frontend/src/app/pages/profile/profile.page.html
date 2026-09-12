@@ -1,8 +1,15 @@
 <ion-header class="ion-no-border srh-profile-header">
   <ion-toolbar class="header-toolbar">
-    <ion-title class="header-title">
-      {{ authService.isPassenger() ? 'Passenger Profile & Settings' : (authService.isAdmin() ? 'Admin Profile & Settings' : 'Driver Profile & Settings') }}
-    </ion-title>
+    <div class="header-content-wrapper">
+      <div class="header-title-group">
+        <h1 class="header-title">
+          {{ authService.isPassenger() ? 'Passenger Profile' : (authService.isAdmin() ? 'Admin Profile' : 'Driver Profile') }}
+        </h1>
+      </div>
+      <button type="button" class="header-settings-btn" (click)="openSettingsModal()" title="App Settings">
+        <ion-icon name="settings-outline"></ion-icon>
+      </button>
+    </div>
   </ion-toolbar>
 </ion-header>
 
@@ -11,8 +18,6 @@
 
     <!-- ── 1. EXECUTIVE HERO PROFILE CARD ──────────────────────── -->
     <div class="executive-hero-card">
-      <div class="hero-bg-glow"></div>
-
       <!-- Top Row: Avatar + Info + Role Pill -->
       <div class="hero-main-row">
         <!-- Avatar with Camera Button -->
@@ -21,15 +26,15 @@
             @if (authService.currentUser()?.avatar_url) {
               <img [src]="authService.currentUser()?.avatar_url" alt="Avatar" class="avatar-img" />
             } @else {
-              <div class="avatar-fallback" [class.passenger-bg]="authService.isPassenger()">
+              <div class="avatar-fallback">
                 <span>{{ (authService.currentUser()?.name || 'U').charAt(0).toUpperCase() }}</span>
               </div>
             }
           </div>
 
           <!-- Camera Upload Action Fab -->
-          <label class="avatar-camera-btn" title="Upload new photo">
-            <input type="file" accept="image/*" (change)="onAvatarSelect($event)" class="file-input-hidden" />
+          <label class="avatar-camera-btn" for="profile-avatar-input" title="Upload new photo">
+            <input id="profile-avatar-input" name="avatar" type="file" accept="image/*" (change)="onAvatarSelect($event)" class="file-input-hidden" />
             @if (isUploadingAvatar()) {
               <ion-spinner name="crescent" class="spinner-small"></ion-spinner>
             } @else {
@@ -46,20 +51,11 @@
 
           <div class="meta-badges-row">
             @if (authService.isPassenger()) {
-              <span class="role-pill passenger">
-                COMMUNITY PASSENGER
-              </span>
-              <span class="commuter-resident-pill">
-                <ion-icon name="heart-outline"></ion-icon>
-                SANTA ROSA RESIDENT
-              </span>
+              <span class="role-pill">PASSENGER</span>
+              <span class="resident-pill">Santa Rosa Resident</span>
             } @else {
-              <span class="role-pill" [class.driver]="authService.isDriver()" [class.admin]="authService.isAdmin()">
-                {{ authService.userRole() | uppercase }}
-              </span>
-              <span class="mtop-franchise-pill">
-                MTOP #{{ getDisplayMtop() }}
-              </span>
+              <span class="role-pill">{{ authService.userRole() | uppercase }}</span>
+              <span class="mtop-franchise-pill">MTOP #{{ getDisplayMtop() }}</span>
             }
           </div>
 
@@ -90,10 +86,8 @@
           </div>
           <div class="stat-divider"></div>
           <div class="stat-box">
-            <span class="stat-label">COMMUNITY STATUS</span>
-            <span class="stat-value status-tag approved">
-              Verified
-            </span>
+            <span class="stat-label">STATUS</span>
+            <span class="stat-value status-tag">Verified</span>
           </div>
         } @else {
           <div class="stat-box">
@@ -108,7 +102,10 @@
           <div class="stat-divider"></div>
           <div class="stat-box">
             <span class="stat-label">COMPLIANCE</span>
-            <span class="stat-value status-tag" [class.approved]="(driverService.driver().complianceStatus || authService.currentUser()?.driver_profile?.compliance_status || 'Approved') === 'Approved'">
+            <span
+              class="stat-value status-tag"
+              [class.approved]="(driverService.driver().complianceStatus || authService.currentUser()?.driver_profile?.compliance_status || 'Approved') === 'Approved'"
+            >
               {{ driverService.driver().complianceStatus || authService.currentUser()?.driver_profile?.compliance_status || 'Approved' }}
             </span>
           </div>
@@ -116,7 +113,7 @@
       </div>
     </div>
 
-    <!-- ── 2. SEGMENT TAB NAVIGATION (Icons Centered) ────────── -->
+    <!-- ── 2. SEGMENT TAB NAVIGATION (Clean Modern Icon-Only Tabs) ── -->
     <div class="tab-pill-bar">
       <ion-segment [value]="activeTab()" (ionChange)="onTabChange($event)" mode="ios" class="custom-pill-segment">
         <ion-segment-button value="account" title="Account Details">
@@ -124,21 +121,17 @@
         </ion-segment-button>
 
         @if (authService.isPassenger()) {
-          <ion-segment-button value="commute" title="Saved Places & Commute">
+          <ion-segment-button value="commute" title="Commute Details">
             <ion-icon name="bookmark-outline"></ion-icon>
           </ion-segment-button>
         } @else {
-          <ion-segment-button value="credentials" title="TODA MTOP Credentials">
+          <ion-segment-button value="credentials" title="Franchise Credentials">
             <ion-icon src="assets/icon/srh-tricycle.svg"></ion-icon>
           </ion-segment-button>
         }
 
-        <ion-segment-button value="security" title="Security & Password">
+        <ion-segment-button value="security" title="Security & Credentials">
           <ion-icon name="shield-checkmark-outline"></ion-icon>
-        </ion-segment-button>
-
-        <ion-segment-button value="permissions" title="Hardware Permissions">
-          <ion-icon name="hardware-chip-outline"></ion-icon>
         </ion-segment-button>
       </ion-segment>
     </div>
@@ -155,11 +148,14 @@
 
         <form [formGroup]="accountForm" (ngSubmit)="saveAccount()" class="custom-profile-form">
           <div class="input-group-row">
-            <label class="field-label">Full Name</label>
+            <label class="field-label" for="profile-name-input">Full Name</label>
             <div class="custom-input-wrapper">
               <ion-icon name="person-outline" class="input-prefix-icon"></ion-icon>
               <input
                 type="text"
+                id="profile-name-input"
+                name="name"
+                autocomplete="name"
                 formControlName="name"
                 class="styled-native-input"
                 placeholder="Enter your full name"
@@ -171,11 +167,14 @@
           </div>
 
           <div class="input-group-row">
-            <label class="field-label">Email Address (System Locked)</label>
+            <label class="field-label" for="profile-email-input">Email Address (System Locked)</label>
             <div class="custom-input-wrapper is-locked">
               <ion-icon name="mail-outline" class="input-prefix-icon"></ion-icon>
               <input
                 type="email"
+                id="profile-email-input"
+                name="email"
+                autocomplete="email"
                 [value]="authService.currentUser()?.email"
                 readonly
                 class="styled-native-input locked-input"
@@ -186,11 +185,14 @@
           </div>
 
           <div class="input-group-row">
-            <label class="field-label">Mobile Phone Number</label>
+            <label class="field-label" for="profile-phone-input">Mobile Phone Number</label>
             <div class="custom-input-wrapper">
               <ion-icon name="call-outline" class="input-prefix-icon"></ion-icon>
               <input
                 type="tel"
+                id="profile-phone-input"
+                name="phone_number"
+                autocomplete="tel"
                 formControlName="phone_number"
                 maxlength="11"
                 class="styled-native-input"
@@ -214,6 +216,14 @@
             </button>
           </div>
         </form>
+
+        <!-- ── SIGN OUT ACTION (ONLY ON ACCOUNT TAB) ──────────── -->
+        <div class="account-tab-signout-wrap">
+          <button type="button" class="executive-signout-btn" (click)="onLogout()">
+            <ion-icon name="log-out-outline"></ion-icon>
+            <span>Log Out</span>
+          </button>
+        </div>
       </div>
     }
 
@@ -378,11 +388,14 @@
 
         <form [formGroup]="passwordForm" (ngSubmit)="savePassword()" class="custom-profile-form">
           <div class="input-group-row">
-            <label class="field-label">Current Password</label>
+            <label class="field-label" for="profile-current-pass">Current Password</label>
             <div class="custom-input-wrapper">
               <ion-icon name="lock-closed-outline" class="input-prefix-icon"></ion-icon>
               <input
                 type="password"
+                id="profile-current-pass"
+                name="current_password"
+                autocomplete="current-password"
                 formControlName="current_password"
                 class="styled-native-input"
                 placeholder="Enter current password"
@@ -391,11 +404,14 @@
           </div>
 
           <div class="input-group-row">
-            <label class="field-label">New Password</label>
+            <label class="field-label" for="profile-new-pass">New Password</label>
             <div class="custom-input-wrapper">
               <ion-icon name="lock-closed-outline" class="input-prefix-icon"></ion-icon>
               <input
                 type="password"
+                id="profile-new-pass"
+                name="password"
+                autocomplete="new-password"
                 formControlName="password"
                 class="styled-native-input"
                 placeholder="Minimum 8 characters"
@@ -404,11 +420,14 @@
           </div>
 
           <div class="input-group-row">
-            <label class="field-label">Confirm New Password</label>
+            <label class="field-label" for="profile-confirm-pass">Confirm New Password</label>
             <div class="custom-input-wrapper">
               <ion-icon name="lock-closed-outline" class="input-prefix-icon"></ion-icon>
               <input
                 type="password"
+                id="profile-confirm-pass"
+                name="password_confirmation"
+                autocomplete="new-password"
                 formControlName="password_confirmation"
                 class="styled-native-input"
                 placeholder="Repeat new password"
@@ -428,201 +447,114 @@
             </button>
           </div>
         </form>
-      </div>
-    }
 
-    <!-- ── 6. TAB 4: HARDWARE & SENSORS ────────────────────── -->
-    @if (activeTab() === 'permissions') {
-      <div class="panel-section-card animate-fade-in">
-        <div class="panel-header">
-          <div class="header-text">
-            <h2 class="panel-title">Device Sensors &amp; Preferences</h2>
-            <p class="panel-subtitle">Manage device sensors, audio alerts, and tactile feedback</p>
-          </div>
-        </div>
-
-        @if (diagResult()) {
-          <div class="diag-feedback-banner">
-            <ion-icon name="pulse-outline" class="diag-icon"></ion-icon>
-            <span class="diag-text">{{ diagResult() }}</span>
-          </div>
-        }
-
-        <div class="settings-toggle-list">
-          <!-- GPS Location -->
-          <div class="setting-toggle-row">
-            <div class="setting-icon-box">
-              <ion-icon name="location-outline"></ion-icon>
-            </div>
-            <div class="setting-info">
-              <h4 class="setting-title">GPS High-Accuracy Location</h4>
-              <p class="setting-desc">
-                {{ authService.isPassenger() ? 'Enables accurate pickup location for nearby TODA tricycles' : 'Required for live terminal geofence & dispatch' }}
-              </p>
-            </div>
-            <div class="setting-action">
-              <span class="permission-pill" [class.granted]="gpsStatus() === 'granted'">
-                {{ gpsStatus() === 'granted' ? 'Active' : 'Prompt' }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Push Notifications -->
-          <div class="setting-toggle-row">
-            <div class="setting-icon-box">
-              <ion-icon name="notifications-outline"></ion-icon>
-            </div>
-            <div class="setting-info">
-              <h4 class="setting-title">Push Notifications</h4>
-              <p class="setting-desc">
-                {{ authService.isPassenger() ? 'Live ride arrival alerts and trip status updates' : 'Live dispatch alerts and passenger bookings' }}
-              </p>
-            </div>
-            <div class="setting-action">
-              <ion-toggle [checked]="notifEnabled()" (ionChange)="toggleNotif($event)"></ion-toggle>
-            </div>
-          </div>
-
-          <!-- Alert Sound -->
-          <div class="setting-toggle-row">
-            <div class="setting-icon-box">
-              <ion-icon name="volume-high-outline"></ion-icon>
-            </div>
-            <div class="setting-info">
-              <h4 class="setting-title">In-App Chime Audio</h4>
-              <p class="setting-desc">
-                {{ authService.isPassenger() ? 'Audible tones when your driver arrives or status changes' : 'Audible tones on incoming booking notifications' }}
-              </p>
-            </div>
-            <div class="setting-action">
-              <ion-toggle [checked]="soundEnabled()" (ionChange)="toggleSound($event)"></ion-toggle>
-            </div>
-          </div>
-
-          <!-- Haptics -->
-          <div class="setting-toggle-row">
-            <div class="setting-icon-box">
-              <ion-icon name="phone-portrait-outline"></ion-icon>
-            </div>
-            <div class="setting-info">
-              <h4 class="setting-title">Haptic Vibration</h4>
-              <p class="setting-desc">
-                {{ authService.isPassenger() ? 'Tactile vibration when driver reaches your pickup point' : 'Tactile physical vibration on dispatch updates' }}
-              </p>
-            </div>
-            <div class="setting-action">
-              <ion-toggle [checked]="vibrationEnabled()" (ionChange)="toggleVibration($event)"></ion-toggle>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-action-row">
-          <button type="button" class="secondary-diag-btn" [disabled]="diagRunning()" (click)="runDiagnostics()">
-            @if (diagRunning()) {
-              <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
-              <span>Running Sensor Checks...</span>
-            } @else {
-              <ion-icon name="pulse-outline"></ion-icon>
-              <span>Run Diagnostics Test</span>
-            }
+        <!-- ── DELETE ACCOUNT ACTION ────────────────────────── -->
+        <div class="delete-account-wrap">
+          <button type="button" class="simple-delete-btn" (click)="confirmDeleteAccount()">
+            <ion-icon name="trash-outline"></ion-icon>
+            <span>Delete Account</span>
           </button>
         </div>
       </div>
     }
-
-    <!-- ── 7. SIGN OUT ACTION SECTION ──────────────────────── -->
-    <div class="signout-section-container">
-      <button type="button" class="executive-signout-btn" (click)="onLogout()">
-        <ion-icon name="log-out-outline"></ion-icon>
-        <span>Sign Out of Account</span>
-      </button>
-    </div>
 
   </div>
 
-  <!-- ── 8. IN-APP DOCUMENT PREVIEW MODAL ─────────────────── -->
+  <!-- ── 8. FULL-SCREEN SETTINGS MODAL ─────────────────────── -->
   <ion-modal
-    [isOpen]="isDocPreviewOpen()"
-    (didDismiss)="closeDocPreview()"
-    [initialBreakpoint]="1"
-    [breakpoints]="[0, 1]"
-    [handle]="false"
-    class="admin-sheet-modal doc-preview-modal"
+    [isOpen]="isSettingsModalOpen()"
+    (didDismiss)="closeSettingsModal()"
+    class="srh-fullscreen-settings-modal"
   >
     <ng-template>
-      <div class="modal-sheet-container doc-preview-container">
-        <div class="modal-drag-handle"></div>
-
-        <div class="modal-sheet-header">
-          <div class="header-title-block">
-            <button type="button" class="back-pill-btn" (click)="closeDocPreview()" title="Back">
-              <ion-icon name="arrow-back-outline"></ion-icon>
-              <span>Back</span>
-            </button>
-            <div class="header-text-group">
-              <span class="kicker">OFFICIAL DOCUMENT INSPECTOR</span>
-              <h2 class="driver-title">{{ previewDocTitle() }}</h2>
+      <ion-header class="ion-no-border srh-settings-modal-header">
+        <ion-toolbar>
+          <div class="settings-modal-header-row">
+            <div class="header-title-wrap">
+              <h2 class="settings-modal-title">App Settings</h2>
+              <span class="settings-modal-subtitle">Device Controls &amp; Preferences</span>
             </div>
-          </div>
-
-          <div class="header-action-group">
-            <button type="button" class="tool-circle-btn" (click)="downloadDoc()" title="Download Document">
-              <ion-icon name="download-outline"></ion-icon>
-            </button>
-            <button type="button" class="tool-circle-btn" (click)="printDoc()" title="Print Document">
-              <ion-icon name="print-outline"></ion-icon>
-            </button>
-            <button type="button" class="modal-close-btn" (click)="closeDocPreview()" title="Close">
+            <button type="button" class="modal-close-round-btn" (click)="closeSettingsModal()">
               <ion-icon name="close-outline"></ion-icon>
             </button>
           </div>
-        </div>
+        </ion-toolbar>
+      </ion-header>
 
-        <!-- Zoom & Inspection Controls Pill -->
-        <div class="doc-controls-floating-bar">
-          <button type="button" class="zoom-btn" (click)="zoomDocOut()" [disabled]="docZoomScale() <= 1" title="Zoom Out">
-            <ion-icon name="remove-outline"></ion-icon>
-          </button>
-          <span class="zoom-pct" (click)="resetDocZoom()" title="Click to reset zoom">{{ (docZoomScale() * 100) | number:'1.0-0' }}%</span>
-          <button type="button" class="zoom-btn" (click)="zoomDocIn()" [disabled]="docZoomScale() >= 4" title="Zoom In">
-            <ion-icon name="add-outline"></ion-icon>
-          </button>
-          <button type="button" class="zoom-reset-btn" (click)="resetDocZoom()" title="Reset Zoom">
-            <ion-icon name="refresh-outline"></ion-icon>
-          </button>
-          <span class="pinch-hint">Pinch or double-tap to zoom</span>
-        </div>
+      <ion-content class="srh-settings-modal-content">
+        <div class="settings-modal-container">
+          @if (diagResult()) {
+            <div class="diag-feedback-banner">
+              <ion-icon name="pulse-outline" class="diag-icon"></ion-icon>
+              <span class="diag-text">{{ diagResult() }}</span>
+            </div>
+          }
 
-        <div
-          class="modal-sheet-body doc-preview-body"
-          (wheel)="onWheelZoom($event)"
-          (touchstart)="onImageTouchStart($event)"
-          (touchmove)="onImageTouchMove($event)"
-          (touchend)="onImageTouchEnd()"
-        >
-          <div class="doc-image-frame">
-            <img
-              [src]="previewDocUrl()"
-              [alt]="previewDocTitle()"
-              class="doc-preview-img"
-              [style.transform]="'translate3d(' + docPanX() + 'px, ' + docPanY() + 'px, 0) scale(' + docZoomScale() + ')'"
-              [style.cursor]="docZoomScale() > 1 ? 'grab' : 'default'"
-              (error)="previewDocUrl.set('/assets/icon/srh-logo.png')"
-            />
+          <div class="settings-toggle-list">
+            <!-- GPS Location -->
+            <div class="setting-toggle-row">
+              <div class="setting-icon-box">
+                <ion-icon name="location-outline"></ion-icon>
+              </div>
+              <div class="setting-info">
+                <h4 class="setting-title">GPS High-Accuracy Location</h4>
+                <p class="setting-desc">
+                  {{ authService.isPassenger() ? 'Enables accurate pickup location for nearby TODA tricycles' : 'Required for live terminal geofence & dispatch' }}
+                </p>
+              </div>
+              <div class="setting-action">
+                <span class="permission-pill" [class.granted]="gpsStatus() === 'granted'">
+                  {{ gpsStatus() === 'granted' ? 'Active' : 'Prompt' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Push Notifications -->
+            <div class="setting-toggle-row">
+              <div class="setting-icon-box">
+                <ion-icon name="notifications-outline"></ion-icon>
+              </div>
+              <div class="setting-info">
+                <h4 class="setting-title">Push Notifications</h4>
+                <p class="setting-desc">
+                  {{ authService.isPassenger() ? 'Live ride arrival alerts and trip status updates' : 'Live dispatch alerts and passenger bookings' }}
+                </p>
+              </div>
+              <div class="setting-action">
+                <ion-toggle [checked]="notifEnabled()" (ionChange)="toggleNotif($event)"></ion-toggle>
+              </div>
+            </div>
+
+            <!-- Alert Sound -->
+            <div class="setting-toggle-row">
+              <div class="setting-icon-box">
+                <ion-icon name="volume-high-outline"></ion-icon>
+              </div>
+              <div class="setting-info">
+                <h4 class="setting-title">In-App Chime Audio</h4>
+                <p class="setting-desc">
+                  {{ authService.isPassenger() ? 'Audible tones when your driver arrives or status changes' : 'Audible tones on incoming booking notifications' }}
+                </p>
+              </div>
+              <div class="setting-action">
+                <ion-toggle [checked]="soundEnabled()" (ionChange)="toggleSound($event)"></ion-toggle>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-diag-action-wrap">
+            <button type="button" class="secondary-diag-btn" [disabled]="diagRunning()" (click)="runDiagnostics()">
+              @if (diagRunning()) {
+                <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
+                <span>Running Sensor Checks...</span>
+              } @else {
+                <ion-icon name="pulse-outline"></ion-icon>
+                <span>Run Diagnostics Test</span>
+              }
+            </button>
           </div>
         </div>
-
-        <div class="modal-sheet-footer doc-preview-footer">
-          <button type="button" class="modal-btn outline" (click)="openInExternalBrowser(previewDocUrl(), $event)">
-            <ion-icon name="open-outline"></ion-icon>
-            <span>Open in Browser</span>
-          </button>
-          <button type="button" class="modal-btn approve" (click)="closeDocPreview()">
-            <ion-icon name="checkmark-outline"></ion-icon>
-            <span>Done Inspecting</span>
-          </button>
-        </div>
-      </div>
+      </ion-content>
     </ng-template>
   </ion-modal>
 </ion-content>

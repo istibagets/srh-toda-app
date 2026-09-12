@@ -50,6 +50,7 @@ import {
   businessOutline,
 } from 'ionicons/icons';
 import { DriverService } from '../../services/driver.service';
+import { AttachmentViewerService } from '../../services/attachment-viewer.service';
 import { DriverHeaderComponent } from '../../components/driver-header/driver-header.component';
 import { DutyButtonComponent } from '../../components/duty-button/duty-button.component';
 import { QueueCardComponent, SheetSnap } from '../../components/queue-card/queue-card.component';
@@ -102,6 +103,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
   map: any = null;
   driverMarker: any = null;
+  passengerMarker: any = null;
   terminalMarker: any = null;
   terminalGroundDot: any = null;
 
@@ -112,14 +114,16 @@ export class HomePage implements AfterViewInit, OnDestroy {
   toastMessage = signal<string>('');
   toastColor = signal<string | undefined>(undefined);
 
+  attachmentViewer = inject(AttachmentViewerService);
+
   // Appeal form state for suspended / rejected screen
   appealText = signal<string>('');
-  appealFiles = signal<Array<{ name: string; size: string }>>([]);
+  appealFiles = signal<Array<{ name: string; size: string; url?: string }>>([]);
 
-  // Terminal Real Coordinates from Laravel backend
-  readonly TERMINAL_LNG = 120.92240292427664;
-  readonly TERMINAL_LAT = 15.429550175641715;
-  readonly TERMINAL_RADIUS_METERS = 35;
+  // Terminal Real Coordinates from dynamic driverService / Laravel backend
+  get TERMINAL_LNG(): number { return this.driverService.terminalLng(); }
+  get TERMINAL_LAT(): number { return this.driverService.terminalLat(); }
+  get TERMINAL_RADIUS_METERS(): number { return this.driverService.terminalRadius(); }
 
   driverLng = signal<number>(120.92240292427664);
   driverLat = signal<number>(15.429550175641715);
@@ -140,6 +144,37 @@ export class HomePage implements AfterViewInit, OnDestroy {
   private cachedMapControlsEl: HTMLElement | null = null;
   private cachedHeaderEl: HTMLElement | null = null;
 
+  // Live Event-Driven GPS Tracking & Route Engine
+  // Single authoritative geolocation watch with graceful degrade/re-escalate,
+  // lifecycle-aware subscribe/resume, and a stale-fix supervisor (no busy polling).
+  private gpsWatchId: number | null = null;
+  private gpsUseHighAccuracy = true;
+  private gpsLastFixAt = 0;
+  private gpsFixIsCoarse = false;
+  private gpsRetryCount = 0;
+  private gpsRetryTimeout: any = null;
+  private gpsEscalationTimeout: any = null;
+  private gpsWakeTimeout: any = null;
+  private gpsListenersRegistered = false;
+  private gpsLastCamFollowAt = 0;
+  private lastProcessedGpsCoords: { lat: number; lng: number; time: number } | null = null;
+  private boundVisibilityHandler = (): void => this.onGpsVisibilityChanged();
+  private boundPageShowHandler = (): void => this.onGpsPageShow();
+  private boundOnlineHandler = (): void => this.onGpsOnline();
+  private lastBroadcastTime = 0;
+  private lastDriverBroadcastTime = 0;
+  private lastRerouteTime = 0;
+  private currentActiveRouteCoordinates: [number, number][] = [];
+  private currentRouteDestination: [number, number] | null = null;
+  private currentRouteColor: string = '#2563eb';
+
+  // 60/120fps Smooth Marker Interpolation Engine
+  private markerAnimRafId: number | null = null;
+  private markerCurrentLngLat: [number, number] | null = null;
+  private driverTweenTarget: [number, number] | null = null;
+  private passMarkerAnimRafId: number | null = null;
+  private passMarkerCurrentLngLat: [number, number] | null = null;
+
   // ══════════════════════════════════════════════════════════════════════════
   // PASSENGER BOOKING STATE & REGULATED LANDMARKS
   // ══════════════════════════════════════════════════════════════════════════
@@ -157,6 +192,12 @@ export class HomePage implements AfterViewInit, OnDestroy {
   activePassengerRide = signal<any>(this.getStoredPassengerRide());
   showChatModal = signal<boolean>(false);
   unreadChatCount = signal<number>(0);
+
+  isTripInTransit = computed(() => {
+    const pStatus = String(this.activePassengerRide()?.status || '').toLowerCase().trim();
+    const dStatus = String(this.driverService.activeTrip()?.status || '').toLowerCase().trim();
+    return pStatus === 'in_transit' || dStatus === 'in_transit';
+  });
   showRatingModal = signal<boolean>(false);
   completedRideForRating = signal<any>(null);
   isPinningMode = signal<boolean>(false);
@@ -222,6 +263,8 @@ export class HomePage implements AfterViewInit, OnDestroy {
     } else if (!this.selectedLandmarkLat() && !this.bookingDestination()) {
       this.bookingPickup.set('');
       this.bookingDestination.set('');
+      this.selectedLandmarkLat.set(null);
+      this.selectedLandmarkLng.set(null);
       this.bookingFare.set(20);
       if (this.destinationPinMarker) {
         this.destinationPinMarker.remove();
@@ -252,6 +295,13 @@ export class HomePage implements AfterViewInit, OnDestroy {
       this.setDestinationPin(matched.lng, matched.lat, true);
       this.calculateFare();
     } else {
+      // User typed custom destination name without pinning coordinates on the map
+      this.selectedLandmarkLat.set(null);
+      this.selectedLandmarkLng.set(null);
+      if (this.destinationPinMarker) {
+        this.destinationPinMarker.remove();
+        this.destinationPinMarker = null;
+      }
       this.calculateFare();
     }
   }
@@ -480,6 +530,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
     this.dashboardService.cancelActiveRide(ride.id).subscribe({
       next: () => {
         this.activePassengerRide.set(null);
+        this.syncPassengerDriverTricycleMarker();
         if (this.destinationPinMarker) {
           this.destinationPinMarker.remove();
           this.destinationPinMarker = null;
@@ -488,6 +539,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
       },
       error: () => {
         this.activePassengerRide.set(null);
+        this.syncPassengerDriverTricycleMarker();
       }
     });
   }
@@ -498,11 +550,17 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
     this.dashboardService.acceptFare(ride.id).subscribe({
       next: (res) => {
-        if (res?.ride) {
-          this.activePassengerRide.set(res.ride);
-        } else {
-          this.activePassengerRide.update((r) => r ? { ...r, status: 'en_route' } : null);
-        }
+        const mergedRide = {
+          ...ride,
+          ...(res?.ride || {}),
+          status: 'en_route',
+        };
+        this.activePassengerRide.set(mergedRide);
+        this.isUserPanned.set(false);
+        this.mapControlState.set(3);
+        this.syncPassengerDriverTricycleMarker();
+        // Pan camera to driver, tricycle facing the actual road ahead
+        this.panToDriverWithRoadBearing(mergedRide);
         this.displayToast('🎉 Proposed fare accepted! Tricycle is en route.');
         this.refreshDashboard();
       },
@@ -512,7 +570,71 @@ export class HomePage implements AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Pans the passenger map to the driver's position and orients the camera and
+   * tricycle marker along the actual road heading (first segment of the OSRM route).
+   * Falls back to the DB heading when OSRM is unavailable.
+   */
+  private async panToDriverWithRoadBearing(ride: any): Promise<void> {
+    if (!this.map) return;
+
+    const drvLat = Number(ride.driver_lat || ride.driver?.lat || this.TERMINAL_LAT);
+    const drvLng = Number(ride.driver_lng || ride.driver?.lng || this.TERMINAL_LNG);
+    const pickupLat = Number(ride.pickup_lat || 0);
+    const pickupLng = Number(ride.pickup_lng || 0);
+
+    // Immediate fallback pan so the camera moves now (before the async route fetch)
+    const fallbackHeading = Number(ride.driver_heading ?? ride.driver?.heading ?? 0);
+    this.map.easeTo({
+      center: [drvLng, drvLat],
+      pitch: 60,
+      bearing: fallbackHeading,
+      zoom: 16.5,
+      padding: this.getVisibleMapPadding(),
+      duration: 500,
+      easing: (t: number) => 1 - Math.pow(1 - t, 3),
+      essential: true,
+    });
+
+    // If pickup coords are valid, fetch the actual road route to get the correct bearing
+    if (pickupLat && pickupLng && drvLat && drvLng) {
+      try {
+        const coords = await this.fetchRoadRouteBetweenPoints(drvLng, drvLat, pickupLng, pickupLat);
+        if (coords && coords.length >= 2 && this.map) {
+          // Use the OSRM road-snapped start point as the bearing origin (not raw GPS)
+          const [snapLng, snapLat] = coords[0];
+          const [nextLng, nextLat] = coords[1];
+          const roadBearing = Math.round(this.calculateBearing(snapLat, snapLng, nextLat, nextLng));
+
+          if (!isNaN(roadBearing)) {
+            // Lock tricycle to face the actual road direction ahead
+            this.updateDriverHeadingCone(roadBearing);
+
+            // Smooth camera to align with road bearing
+            if (!this.isUserPanned()) {
+              this.map.easeTo({
+                center: [snapLng, snapLat],
+                pitch: 60,
+                bearing: roadBearing,
+                zoom: 16.5,
+                padding: this.getVisibleMapPadding(),
+                duration: 450,
+                easing: (t: number) => 1 - Math.pow(1 - t, 3),
+                essential: true,
+              });
+            }
+          }
+        }
+      } catch { /* non-critical: fallback heading already applied */ }
+    }
+  }
+
   openTripChat(): void {
+    if (this.isTripInTransit()) {
+      this.displayToast('Trip has started. In-trip chat is disabled.');
+      this.showChatModal.set(false);
+      return;
+    }
     this.unreadChatCount.set(0);
     this.showChatModal.set(true);
   }
@@ -542,29 +664,40 @@ export class HomePage implements AfterViewInit, OnDestroy {
   // ==========================================
   // MAP 3D HIGHWAY ROUTE LINE ENGINE (GeoJSON Layers)
   // ==========================================
+  // ROAD ROUTING & NAVIGATION ENGINE
+  // ==========================================
+  private lastAppliedRouteColor: string | null = null;
+
   private applyRouteLineCoordinates(coordinates: [number, number][], color = '#2563eb'): void {
     if (!this.map) return;
     try {
       if (!Array.isArray(coordinates) || coordinates.length < 2) return;
       if (coordinates.some(([lng, lat]) => isNaN(lng) || isNaN(lat) || !lng || !lat)) return;
 
-      const isEmerald = color === '#059669';
-      const glowColor = isEmerald ? '#059669' : '#1d4ed8';
-      const casingColor = isEmerald ? '#34d399' : '#60a5fa';
-      const lineColor = isEmerald ? '#059669' : '#2563eb';
-      const coreColor = isEmerald ? '#a7f3d0' : '#93c5fd';
+      this.currentActiveRouteCoordinates = coordinates;
+      this.currentRouteColor = color;
 
-      if (this.map.getLayer('terminal-return-route-glow')) {
-        this.map.setPaintProperty('terminal-return-route-glow', 'line-color', glowColor);
-      }
-      if (this.map.getLayer('terminal-return-route-casing')) {
-        this.map.setPaintProperty('terminal-return-route-casing', 'line-color', casingColor);
-      }
-      if (this.map.getLayer('terminal-return-route-line')) {
-        this.map.setPaintProperty('terminal-return-route-line', 'line-color', lineColor);
-      }
-      if (this.map.getLayer('terminal-return-route-core')) {
-        this.map.setPaintProperty('terminal-return-route-core', 'line-color', coreColor);
+      // Only update layer paint properties if the color scheme has actually changed to prevent style re-render flicker
+      if (this.lastAppliedRouteColor !== color) {
+        this.lastAppliedRouteColor = color;
+        const isEmerald = color === '#059669';
+        const glowColor = isEmerald ? '#059669' : '#1d4ed8';
+        const casingColor = isEmerald ? '#34d399' : '#60a5fa';
+        const lineColor = isEmerald ? '#059669' : '#2563eb';
+        const coreColor = isEmerald ? '#a7f3d0' : '#93c5fd';
+
+        if (this.map.getLayer('terminal-return-route-glow')) {
+          this.map.setPaintProperty('terminal-return-route-glow', 'line-color', glowColor);
+        }
+        if (this.map.getLayer('terminal-return-route-casing')) {
+          this.map.setPaintProperty('terminal-return-route-casing', 'line-color', casingColor);
+        }
+        if (this.map.getLayer('terminal-return-route-line')) {
+          this.map.setPaintProperty('terminal-return-route-line', 'line-color', lineColor);
+        }
+        if (this.map.getLayer('terminal-return-route-core')) {
+          this.map.setPaintProperty('terminal-return-route-core', 'line-color', coreColor);
+        }
       }
 
       const source: any = this.map.getSource('terminal-return-route-source');
@@ -597,31 +730,90 @@ export class HomePage implements AfterViewInit, OnDestroy {
     if (!this.map) return;
     if (isNaN(fromLng) || isNaN(fromLat) || isNaN(toLng) || isNaN(toLat) || !fromLng || !fromLat || !toLng || !toLat) return;
 
+    this.currentRouteDestination = [toLng, toLat];
+    this.currentRouteColor = color;
+
     // Fetch the actual road trace without flashing straight lines
     const detailedCoords = await this.fetchRoadRouteBetweenPoints(fromLng, fromLat, toLng, toLat);
     if (!detailedCoords || detailedCoords.length < 2 || !this.map) return;
 
+    // Check if status has become arrived while fetching (pickup routeline must disappear)
+    if (!this.authService.isPassenger()) {
+      const currentTrip = this.driverService.activeTrip();
+      if (currentTrip?.status === 'arrived') return;
+    } else {
+      const currentRide = this.activePassengerRide();
+      if (currentRide?.status === 'arrived') return;
+    }
+
     // Apply the real road curve geometry directly
     this.applyRouteLineCoordinates(detailedCoords, color);
 
-    // 3D Locked Road View centered along pathway with smooth 900ms cubic easing (matching Returning to Terminal)
-    if (lockCamera && !this.isUserPanned() && detailedCoords.length >= 2) {
+    // For DRIVER: snap marker to road start, orient camera along road
+    if (!this.authService.isPassenger() && detailedCoords.length >= 2) {
       const [roadLng, roadLat] = detailedCoords[0];
       const [nextLng, nextLat] = detailedCoords[1];
       const roadBearing = Math.round(this.calculateBearing(roadLat, roadLng, nextLat, nextLng));
       if (!isNaN(roadBearing)) {
         this.driverHeading.set(roadBearing);
-        this.updateDriverHeadingCone(roadBearing);
-        this.updateDriverLocationWebGL(roadLng, roadLat, roadBearing);
-        this.map.easeTo({
-          center: [roadLng, roadLat],
-          bearing: roadBearing,
-          pitch: 60,
-          zoom: 16.5,
-          duration: 900,
-          easing: (t: number) => 1 - Math.pow(1 - t, 3),
-          essential: true,
-        });
+        // Persist road bearing so compass & camera functions always face the route, not device gyro
+        this.driverRouteBearing = roadBearing;
+        this.animateDriverMarkerTo(roadLng, roadLat, roadBearing, 450);
+        if (lockCamera && !this.isUserPanned()) {
+          this.smoothCameraFollow(roadLng, roadLat, roadBearing, 60, 600);
+        }
+      }
+
+    // For PASSENGER on active trip: tricycle marker snaps to road-facing position and camera follows
+    } else if (this.authService.isPassenger() && detailedCoords.length >= 2) {
+      const pRide = this.activePassengerRide();
+      const pStatus = String(pRide?.status || '').toLowerCase().trim();
+      const hasActiveTrip = !!pRide && ['accepted', 'en_route', 'arrived', 'in_transit'].includes(pStatus);
+
+      if (hasActiveTrip) {
+        // coords[0] is the OSRM road-snapped driver position, coords[1] is the next waypoint
+        const [snapLng, snapLat] = detailedCoords[0];
+        const [nextLng, nextLat] = detailedCoords[1];
+        const roadBearing = Math.round(this.calculateBearing(snapLat, snapLng, nextLat, nextLng));
+
+        if (!isNaN(roadBearing)) {
+          // Persist so location broadcasts can use it instantly without waiting for OSRM
+          this.passengerRouteBearing = roadBearing;
+          this.animateDriverMarkerTo(snapLng, snapLat, roadBearing, 450);
+          if (lockCamera && !this.isUserPanned()) {
+            this.smoothCameraFollow(snapLng, snapLat, roadBearing, 60, 600);
+          }
+        }
+      }
+    }
+  }
+
+  private async fetchAndApplyReroute(
+    fromLng: number,
+    fromLat: number,
+    toLng: number,
+    toLat: number,
+    color = '#2563eb'
+  ): Promise<void> {
+    const coords = await this.fetchRoadRouteBetweenPoints(fromLng, fromLat, toLng, toLat);
+    if (!coords || coords.length < 2 || !this.map) return;
+
+    this.currentActiveRouteCoordinates = coords;
+    this.currentRouteDestination = [toLng, toLat];
+    this.applyRouteLineCoordinates(coords, color);
+
+    const [roadLng, roadLat] = coords[0];
+    const [nextLng, nextLat] = coords[1];
+    const roadBearing = Math.round(this.calculateBearing(roadLat, roadLng, nextLat, nextLng));
+
+    if (!isNaN(roadBearing)) {
+      this.driverHeading.set(roadBearing);
+      this.driverRouteBearing = roadBearing;
+      this.driverLat.set(roadLat);
+      this.driverLng.set(roadLng);
+      this.animateDriverMarkerTo(roadLng, roadLat, roadBearing, 450);
+      if (!this.isUserPanned()) {
+        this.smoothCameraFollow(roadLng, roadLat, roadBearing, 60, 600);
       }
     }
   }
@@ -636,7 +828,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
       return [[fromLng, fromLat], [toLng, toLat]];
     }
 
-    const cacheKey = `${fromLng.toFixed(5)},${fromLat.toFixed(5)}_${toLng.toFixed(5)},${toLat.toFixed(5)}`;
+    const cacheKey = `${fromLng.toFixed(4)},${fromLat.toFixed(4)}_${toLng.toFixed(4)},${toLat.toFixed(4)}`;
     if (this.roadRouteCache.has(cacheKey)) {
       return this.roadRouteCache.get(cacheKey)!;
     }
@@ -659,9 +851,11 @@ export class HomePage implements AfterViewInit, OnDestroy {
         }
       }
     } catch (e: any) {
-      if (e?.name !== 'AbortError') {
-        console.warn('OSRM route fetch notice:', e);
+      if (e?.name === 'AbortError') {
+        // Return empty array on abort so we NEVER overwrite existing route line with a straight fallback line!
+        return [];
       }
+      console.warn('OSRM route fetch notice:', e);
     }
 
     return this.buildFallbackRoadRoute(fromLng, fromLat, toLng, toLat);
@@ -679,30 +873,63 @@ export class HomePage implements AfterViewInit, OnDestroy {
         const ride = res?.active_ride || res?.ride;
         if (ride) {
           this.activePassengerRide.set(ride);
-          if (ride.driver_lat && ride.driver_lng) {
-            this.driverLat.set(Number(ride.driver_lat));
-            this.driverLng.set(Number(ride.driver_lng));
-            if (ride.driver_heading !== undefined && ride.driver_heading !== null) {
-              this.driverHeading.set(Number(ride.driver_heading));
-            }
-            this.updateDriverLocationWebGL(Number(ride.driver_lng), Number(ride.driver_lat), Number(ride.driver_heading || 0));
+          this.syncPassengerDriverTricycleMarker();
+
+          const status = String(ride.status || '').toLowerCase().trim();
+          if (['accepted', 'en_route', 'arrived', 'in_transit'].includes(status)) {
+            this.isUserPanned.set(false);
+            this.mapControlState.set(3);
+            // Wait for map to be ready then draw the route (which snaps & orients everything)
+            this.waitForMapAndDrawRoute(ride);
           }
         } else {
           this.activePassengerRide.set(null);
+          this.syncPassengerDriverTricycleMarker();
         }
       },
       error: () => {}
     });
   }
 
+  /**
+   * Waits up to 5s for the map instance to be ready, then calls drawRoadRouteLine
+   * which is the single source of truth for snapping the tricycle to the road and
+   * orienting the camera along the route bearing.
+   */
+  private waitForMapAndDrawRoute(ride: any, attempt = 0): void {
+    if (!this.map) {
+      if (attempt >= 25) return; // give up after 5s
+      setTimeout(() => this.waitForMapAndDrawRoute(ride, attempt + 1), 200);
+      return;
+    }
+
+    const status = String(ride.status || '').toLowerCase().trim();
+    const drvLat = Number(ride.driver_lat || ride.driver?.lat || this.TERMINAL_LAT);
+    const drvLng = Number(ride.driver_lng || ride.driver?.lng || this.TERMINAL_LNG);
+
+    if ((status === 'en_route' || status === 'accepted') && ride.pickup_lat && ride.pickup_lng) {
+      this.drawRoadRouteLine(drvLng, drvLat, Number(ride.pickup_lng), Number(ride.pickup_lat), '#2563eb', true);
+    } else if (status === 'in_transit') {
+      const dLat = Number(ride.destination_lat || ride.dest_lat || 0);
+      const dLng = Number(ride.destination_lng || ride.dest_lng || 0);
+      if (dLat && dLng) {
+        this.drawRoadRouteLine(drvLng, drvLat, dLng, dLat, '#059669', true);
+      }
+    } else if (status === 'arrived') {
+      // Arrived at pickup: pickup route line should disappear
+      this.clearReturnRoutePolyline();
+    }
+  }
+
   togglePassengerSheet(): void {
     this.passengerSheet()?.toggleSnap();
   }
 
-  // Santa Rosa Roadway Network for Centerline Locking
+  // Comprehensive Santa Rosa Roadway Network for Instant Centerline Snapping
   private readonly ROAD_NETWORKS: [number, number][][] = [
-    // Santa Rosa - Tarlac Road (West to East Arterial passing Terminal)
+    // Santa Rosa - Tarlac Road / Fort Magsaysay Road (West to East Arterial passing Terminal)
     [
+      [120.9000, 15.42930],
       [120.9100, 15.42940],
       [120.9160, 15.42945],
       [120.9200, 15.42950],
@@ -710,28 +937,211 @@ export class HomePage implements AfterViewInit, OnDestroy {
       [120.9260, 15.42960],
       [120.9320, 15.42970],
       [120.9380, 15.42980],
+      [120.9450, 15.42990],
+      [120.9535, 15.43000],
+      [120.9620, 15.43050],
+      [120.9700, 15.43100],
     ],
-    // Maharlika Highway (North-South National Highway)
+    // Maharlika Highway (G106 / AH26 - North-South National Highway)
     [
+      [120.9220, 15.4050],
+      [120.9222, 15.4150],
       [120.9224, 15.4230],
       [120.9224, 15.4270],
       [120.92240292427664, 15.429550175641715],
       [120.9224, 15.4330],
       [120.9225, 15.4370],
+      [120.9226, 15.4450],
+      [120.9228, 15.4550],
+      [120.9230, 15.4650],
+    ],
+    // Santa Rosa Bypass Road (G106 Bypass - Eastern North-South Highway Corridor)
+    [
+      [120.9542, 15.4050],
+      [120.9540, 15.4150],
+      [120.9538, 15.4220],
+      [120.9535, 15.4260],
+      [120.9532, 15.4300],
+      [120.9528, 15.4380],
+      [120.9525, 15.4480],
+      [120.9520, 15.4580],
+      [120.9515, 15.4680],
+    ],
+    // Cruz Roja / Sapang / Malasin Road
+    [
+      [120.9224, 15.4330],
+      [120.9260, 15.4350],
+      [120.9320, 15.4380],
+      [120.9400, 15.4420],
+      [120.9500, 15.4460],
+      [120.9530, 15.4480],
     ],
     // Cojuangco St (South Parallel connector)
     [
+      [120.9150, 15.4265],
       [120.9180, 15.4265],
       [120.9224, 15.4265],
       [120.9260, 15.4265],
+      [120.9350, 15.4265],
+      [120.9535, 15.4265],
     ],
     // Bonifacio / Market Road (North Parallel connector)
     [
+      [120.9150, 15.4325],
       [120.9180, 15.4325],
       [120.9224, 15.4325],
       [120.9260, 15.4325],
+      [120.9350, 15.4325],
+      [120.9530, 15.4325],
     ],
   ];
+
+  /**
+   * Snaps any coordinate immediately to the nearest roadway centerline in 0ms.
+   * Completely prevents vehicle marker from ever appearing in fields or outside road lane.
+   */
+  snapToNearestRoad(lng: number, lat: number): [number, number] {
+    let nearestPoint: [number, number] = [lng, lat];
+    let minDistanceSq = Infinity;
+
+    if (this.map) {
+      try {
+        // 1. First priority: Snap to active route line if one exists on the map
+        const activeRouteSource: any = this.map.getSource('terminal-return-route-source');
+        const activeRouteData = activeRouteSource?._data || activeRouteSource?._options?.data;
+        if (activeRouteData?.geometry?.coordinates?.length > 1) {
+          const coords = activeRouteData.geometry.coordinates as [number, number][];
+          for (let i = 0; i < coords.length - 1; i++) {
+            const a = coords[i];
+            const b = coords[i + 1];
+            if (Array.isArray(a) && Array.isArray(b) && a.length >= 2 && b.length >= 2) {
+              const proj = this.projectPointOnSegment(lng, lat, a, b);
+              if (proj.distSq < minDistanceSq) {
+                minDistanceSq = proj.distSq;
+                nearestPoint = [proj.x, proj.y];
+              }
+            }
+          }
+        }
+
+        // 2. Query MapLibre rendered roadway vector features across an adaptive radius
+        const p = this.map.project([lng, lat]);
+        const r = 380; // 380px search radius easily bridges taps in fields back to roads
+        const bbox: [[number, number], [number, number]] = [
+          [Math.max(0, p.x - r), Math.max(0, p.y - r)],
+          [p.x + r, p.y + r],
+        ];
+
+        // Filter strictly for line layers that represent roads/streets/highways
+        const styleLayers = this.map.getStyle()?.layers || [];
+        const roadLayerIds = styleLayers
+          .filter((l: any) => {
+            if (l.type !== 'line') return false;
+            const srcLayer = (l['source-layer'] || '').toLowerCase();
+            const id = (l.id || '').toLowerCase();
+            if (id.includes('glow') || id.includes('casing') || id.includes('terminal-return')) return false;
+            return (
+              srcLayer === 'transportation' ||
+              srcLayer === 'road' ||
+              srcLayer === 'highway' ||
+              id.includes('road') ||
+              id.includes('highway') ||
+              id.includes('street') ||
+              id.includes('path') ||
+              id.includes('bridge') ||
+              id.includes('tunnel') ||
+              id.includes('motorway') ||
+              id.includes('trunk') ||
+              id.includes('primary') ||
+              id.includes('secondary') ||
+              id.includes('tertiary')
+            );
+          })
+          .map((l: any) => l.id);
+
+        let features = roadLayerIds.length > 0
+          ? this.map.queryRenderedFeatures(bbox, { layers: roadLayerIds })
+          : this.map.queryRenderedFeatures(bbox);
+
+        // Viewport fallback: if user zoomed out or tapped far into field
+        if (!features || features.length === 0) {
+          features = roadLayerIds.length > 0
+            ? this.map.queryRenderedFeatures({ layers: roadLayerIds })
+            : [];
+        }
+
+        for (const feat of features) {
+          // STRICT GEOMETRY CHECK: ONLY LineString and MultiLineString! NEVER Polygons!
+          if (feat.geometry.type !== 'LineString' && feat.geometry.type !== 'MultiLineString') {
+            continue;
+          }
+
+          const coords = (feat.geometry as any)?.coordinates;
+          if (!Array.isArray(coords)) continue;
+
+          const lines = feat.geometry.type === 'MultiLineString' ? coords : [coords];
+          for (const line of lines) {
+            if (!Array.isArray(line)) continue;
+            for (let i = 0; i < line.length - 1; i++) {
+              const a = line[i];
+              const b = line[i + 1];
+              if (Array.isArray(a) && Array.isArray(b) && a.length >= 2 && b.length >= 2) {
+                const proj = this.projectPointOnSegment(lng, lat, a, b);
+                if (proj.distSq < minDistanceSq) {
+                  minDistanceSq = proj.distSq;
+                  nearestPoint = [proj.x, proj.y];
+                }
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Road snapping notice:', err);
+      }
+    }
+
+    // 3. Mathematical check against ROAD_NETWORKS
+    for (const road of this.ROAD_NETWORKS) {
+      for (let i = 0; i < road.length - 1; i++) {
+        const a = road[i];
+        const b = road[i + 1];
+        const proj = this.projectPointOnSegment(lng, lat, a, b);
+        if (proj.distSq < minDistanceSq) {
+          minDistanceSq = proj.distSq;
+          nearestPoint = [proj.x, proj.y];
+        }
+      }
+    }
+
+    // If nearest road feature is farther than 45 meters, retain true physical coordinates
+    if (minDistanceSq > 2025) {
+      return [lng, lat];
+    }
+
+    return nearestPoint;
+  }
+
+  private projectPointOnSegment(
+    px: number,
+    py: number,
+    a: [number, number] | any,
+    b: [number, number] | any
+  ): { x: number; y: number; distSq: number } {
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq === 0) {
+      const distLng = (px - a[0]) * 111320 * Math.cos((py * Math.PI) / 180);
+      const distLat = (py - a[1]) * 110540;
+      return { x: a[0], y: a[1], distSq: distLng * distLng + distLat * distLat };
+    }
+    const t = Math.max(0, Math.min(1, ((px - a[0]) * dx + (py - a[1]) * dy) / lenSq));
+    const projX = a[0] + t * dx;
+    const projY = a[1] + t * dy;
+    const distLng = (px - projX) * 111320 * Math.cos((py * Math.PI) / 180);
+    const distLat = (py - projY) * 110540;
+    return { x: projX, y: projY, distSq: distLng * distLng + distLat * distLat };
+  }
 
   // Cached DOM elements for zero-lag 120fps gesture updates
   private floatingPowerEl: HTMLElement | null = null;
@@ -740,9 +1150,14 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
   private boundDeviceOrientation = (e: DeviceOrientationEvent) => this.handleDeviceOrientation(e);
   private compassLastBearing = 0;
+  private coneCumulativeHeading = 0;
   private compassListenerType: string | null = null;
   private compassRafId: number | null = null;
   private lastCompassUpdateTime = 0;
+  /** Last confirmed road-aligned bearing for the passenger view. Persisted so the camera never snaps to wrong angle between OSRM fetches. */
+  private passengerRouteBearing = 0;
+  /** Last confirmed road-aligned bearing for the driver view (active trip routeline). Prevents compass from overriding route direction. */
+  private driverRouteBearing = 0;
 
   constructor() {
     addIcons({
@@ -811,13 +1226,36 @@ export class HomePage implements AfterViewInit, OnDestroy {
           this.clearRouteLine();
           if (this.authService.isPassenger()) {
             this.activePassengerRide.set(null);
+            this.syncPassengerDriverTricycleMarker();
             if (this.destinationPinMarker) {
               this.destinationPinMarker.remove();
               this.destinationPinMarker = null;
             }
+          } else {
+            // Driver side: admin reset or passenger cancel — clear route, return to 2D top view
+            this.driverRouteBearing = 0;
+            this.mapControlState.set(2);
+            if (this.map && !this.isUserPanned()) {
+              this.map.easeTo({
+                bearing: 0,
+                pitch: 0,
+                duration: 500,
+                essential: true,
+              });
+            }
+            // Immediately refresh dashboard to pull updated queue position
+            this.refreshDashboard();
           }
         });
       }
+    });
+
+    // Reactive sync for driver map marker online/offline appearance
+    effect(() => {
+      const isOnline = this.driverService.isOnline();
+      untracked(() => {
+        this.updateDriverMarkerStatus(isOnline);
+      });
     });
 
     // Reactive Road-Tracing Route Line Sync for Passenger & Driver (Locked 3D Navigation)
@@ -825,17 +1263,20 @@ export class HomePage implements AfterViewInit, OnDestroy {
       const isPassenger = this.authService.isPassenger();
       const pRide = this.activePassengerRide();
       const dTrip = this.driverService.activeTrip();
-      const dLat = this.driverLat();
-      const dLng = this.driverLng();
+      const dLat = !isPassenger ? this.driverLat() : 0;
+      const dLng = !isPassenger ? this.driverLng() : 0;
 
       untracked(() => {
+        if (isPassenger) {
+          this.syncPassengerDriverTricycleMarker();
+        }
         if (isPassenger && pRide) {
           const status = String(pRide.status || '').toLowerCase().trim();
           if (status === 'en_route' || status === 'accepted') {
             const pLat = Number(pRide.pickup_lat);
             const pLng = Number(pRide.pickup_lng);
-            const drvLat = Number(pRide.driver_lat || dLat);
-            const drvLng = Number(pRide.driver_lng || dLng);
+            const drvLat = Number(pRide.driver_lat || pRide.driver?.lat || this.TERMINAL_LAT);
+            const drvLng = Number(pRide.driver_lng || pRide.driver?.lng || this.TERMINAL_LNG);
             if (pLat && pLng && drvLat && drvLng) {
               this.clearDestinationPin();
               this.setPickupPin(pLng, pLat, pRide.pickup_location);
@@ -843,6 +1284,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
             }
           } else if (status === 'arrived') {
             this.clearDestinationPin();
+            this.clearReturnRoutePolyline();
             const pLat = Number(pRide.pickup_lat);
             const pLng = Number(pRide.pickup_lng);
             if (pLat && pLng) {
@@ -850,13 +1292,17 @@ export class HomePage implements AfterViewInit, OnDestroy {
             }
           } else if (status === 'in_transit') {
             this.clearPickupPin();
-            const drvLat = Number(pRide.driver_lat || dLat);
-            const drvLng = Number(pRide.driver_lng || dLng);
             const dLat2 = Number(pRide.destination_lat || pRide.dest_lat);
             const dLng2 = Number(pRide.destination_lng || pRide.dest_lng);
-            if (drvLat && drvLng && dLat2 && dLng2) {
+            if (dLat2 && dLng2 && !isNaN(dLat2) && !isNaN(dLng2)) {
+              const drvLat = Number(pRide.driver_lat || pRide.driver?.lat || this.TERMINAL_LAT);
+              const drvLng = Number(pRide.driver_lng || pRide.driver?.lng || this.TERMINAL_LNG);
               this.setDestinationPin(dLng2, dLat2);
               this.drawRoadRouteLine(drvLng, drvLat, dLng2, dLat2, '#059669', true);
+            } else {
+              // Unpinned destination: no routeline, identical to a terminal walk-in ride!
+              this.clearDestinationPin();
+              this.clearReturnRoutePolyline();
             }
           } else {
             this.clearRouteLine();
@@ -883,15 +1329,20 @@ export class HomePage implements AfterViewInit, OnDestroy {
             }
           } else if (status === 'arrived') {
             this.clearDestinationPin();
+            this.clearReturnRoutePolyline();
             const pLat = Number(dTrip.pickupLat);
             const pLng = Number(dTrip.pickupLng);
             if (pLat && pLng) {
               this.setPickupPin(pLng, pLat, dTrip.pickupLocation);
             }
           } else if (status === 'in_transit') {
-            const isWalkInOrWayside = dTrip.tripType === 'terminal_walk_in' || dTrip.tripType === 'wayside_pickup' || !dTrip.dropoffLat;
+            const hasDropoff = !!dTrip.dropoffLat && !!dTrip.dropoffLng && !isNaN(Number(dTrip.dropoffLat)) && !isNaN(Number(dTrip.dropoffLng));
+            const isWalkInOrWayside = dTrip.tripType === 'terminal_walk_in' || dTrip.tripType === 'wayside_pickup' || !hasDropoff;
             if (isWalkInOrWayside) {
-              this.clearRouteLine();
+              // Unpinned destination or terminal walk-in: no routeline!
+              this.clearDestinationPin();
+              this.clearPickupPin();
+              this.clearReturnRoutePolyline();
             } else {
               this.clearPickupPin();
               const dLat2 = Number(dTrip.dropoffLat);
@@ -914,13 +1365,144 @@ export class HomePage implements AfterViewInit, OnDestroy {
       });
     });
 
+    // Real-time ride status update broadcast listener (Event-driven instant UI updates for Passenger & Driver)
+    effect(() => {
+      const ride = this.driverService.rideStatusBroadcast();
+      if (!ride) return;
+      untracked(() => {
+        const isPassenger = this.authService.isPassenger();
+        const currentUserId = this.authService.currentUser()?.id;
+
+        if (isPassenger && Number(ride.passenger_id) === Number(currentUserId)) {
+          const status = String(ride.status || '').toLowerCase().trim();
+          const prevRide = this.activePassengerRide();
+          const prevStatus = String(prevRide?.status || '').toLowerCase().trim();
+
+          if (['accepted', 'en_route', 'arrived', 'in_transit'].includes(status)) {
+            const merged = {
+              ...(prevRide || {}),
+              ...ride,
+              status: status,
+              driver_lat: ride.driver_lat || prevRide?.driver_lat || this.TERMINAL_LAT,
+              driver_lng: ride.driver_lng || prevRide?.driver_lng || this.TERMINAL_LNG,
+              driver_heading: ride.driver_heading !== undefined ? ride.driver_heading : (prevRide?.driver_heading || 0),
+            };
+            this.activePassengerRide.set(merged);
+
+            if (status === 'en_route' || status === 'accepted') {
+              if (prevStatus !== 'en_route' && prevStatus !== 'accepted') {
+                this.soundService.playNotificationChime();
+                this.displayToast('🚖 Driver is on the way to pick you up!');
+              }
+              this.isUserPanned.set(false);
+              this.mapControlState.set(3);
+              this.syncPassengerDriverTricycleMarker();
+              // Draw route — this snaps tricycle to road and orients camera (single source of truth)
+              this.waitForMapAndDrawRoute(merged);
+            } else if (status === 'arrived') {
+              if (prevStatus !== 'arrived') {
+                this.soundService.playArrived();
+                this.displayToast('📍 Driver is waiting outside at your pickup location!');
+                if (typeof document !== 'undefined' && document.hidden) {
+                  this.pushService.showLocalBanner(
+                    '📍 Driver is Waiting Outside!',
+                    'Your TODA tricycle driver has arrived and is waiting outside at your pickup location.',
+                    '/tabs/home'
+                  );
+                }
+              }
+              this.clearReturnRoutePolyline();
+              this.syncPassengerDriverTricycleMarker();
+            } else if (status === 'in_transit') {
+              if (prevStatus !== 'in_transit') {
+                this.soundService.playNotificationChime();
+                this.displayToast('🚀 Trip started! On the way to your destination.');
+              }
+              this.showChatModal.set(false);
+              this.syncPassengerDriverTricycleMarker();
+            } else {
+              this.syncPassengerDriverTricycleMarker();
+            }
+          } else if (status === 'bargaining' || status === 'searching') {
+            const merged = {
+              ...(prevRide || {}),
+              ...ride,
+              status: status,
+            };
+            this.activePassengerRide.set(merged);
+            this.refreshDashboard();
+          } else if (status === 'fare_proposed') {
+            const merged = {
+              ...(prevRide || {}),
+              ...ride,
+              status: status,
+            };
+            this.activePassengerRide.set(merged);
+            if (prevStatus !== 'fare_proposed') {
+              this.soundService.playBookingAlert();
+              this.displayToast(`💰 Driver proposed a fare of ₱${Number(ride.fare || 0).toFixed(2)}`);
+            }
+          } else if (status === 'completed') {
+            this.activePassengerRide.set(null);
+            this.showChatModal.set(false);
+            this.clearRouteLine();
+            this.syncPassengerDriverTricycleMarker();
+            this.completedRideForRating.set(ride);
+            this.showRatingModal.set(true);
+            this.soundService.playDropoffSuccess();
+            this.displayToast('🏁 You have arrived at your destination!');
+          } else if (status === 'cancelled') {
+            this.activePassengerRide.set(null);
+            this.showChatModal.set(false);
+            this.clearRouteLine();
+            this.syncPassengerDriverTricycleMarker();
+            this.displayToast('❌ Ride request was cancelled.');
+            this.soundService.playOffDuty();
+          }
+        } else if (!isPassenger) {
+          // Driver side: handle ride status broadcasts (e.g. admin reset cancels the ride or reassigns)
+          const status = String(ride.status || '').toLowerCase().trim();
+          const currentTrip = this.driverService.activeTrip();
+          const currentTripId = currentTrip ? Number(String(currentTrip.id).replace(/\D/g, '')) : null;
+
+          if (currentTripId && Number(ride.id) === currentTripId && Number(ride.driver_id) !== Number(currentUserId)) {
+            // Ride was reassigned away from this driver (admin reset while bargaining)
+            this.showChatModal.set(false);
+            this.clearRouteLine();
+            this.driverRouteBearing = 0;
+            this.mapControlState.set(2);
+            this.refreshDashboard();
+          } else if (status === 'cancelled') {
+            this.showChatModal.set(false);
+            // Clear route line and return to 2D top view immediately
+            this.clearRouteLine();
+            this.driverRouteBearing = 0;
+            this.mapControlState.set(2);
+            if (this.map && !this.isUserPanned()) {
+              this.map.easeTo({
+                bearing: 0,
+                pitch: 0,
+                duration: 500,
+                essential: true,
+              });
+            }
+            // Immediate dashboard refresh to pull updated queue position from backend
+            this.refreshDashboard();
+          } else if (status === 'in_transit') {
+            this.showChatModal.set(false);
+          }
+        }
+      });
+    });
+
     // Real-time location broadcast listener across multi-devices (updates passenger map live ONLY when on an active trip with the driver)
     effect(() => {
       const loc = this.driverService.locationBroadcast();
       if (loc) {
+        this.lastDriverBroadcastTime = Date.now();
         untracked(() => {
           const currentUserId = this.authService.currentUser()?.id;
-          if (loc.driverId === currentUserId) {
+          if (loc.driverId === currentUserId || loc.driver_user_id === currentUserId) {
             return;
           }
 
@@ -929,24 +1511,51 @@ export class HomePage implements AfterViewInit, OnDestroy {
             const pRide = this.activePassengerRide();
             // ONLY sync driver location if passenger has an active ongoing trip with THIS driver
             if (pRide && (pRide.status === 'en_route' || pRide.status === 'accepted' || pRide.status === 'arrived' || pRide.status === 'in_transit')) {
-              const driverId = pRide.driver?.id || pRide.driver_id;
-              if (loc.driverId && driverId && Number(loc.driverId) !== Number(driverId)) {
-                return;
-              }
-              if (loc.rideId && pRide.id && Number(loc.rideId) !== Number(pRide.id)) {
+              const rideDriverId = pRide.driver?.id || pRide.driver_id;
+              const matchesRide = !!(loc.rideId && pRide.id && Number(loc.rideId) === Number(pRide.id));
+              const matchesDriver = !loc.driverId || !rideDriverId ||
+                Number(loc.driverId) === Number(rideDriverId) ||
+                Number(loc.driver_user_id) === Number(rideDriverId) ||
+                Number(loc.userId) === Number(rideDriverId) ||
+                Number(loc.driverTableId) === Number(pRide.driver?.driver_table_id);
+
+              if (!matchesRide && !matchesDriver) {
                 return;
               }
 
-              this.driverLat.set(loc.lat);
-              this.driverLng.set(loc.lng);
-              if (loc.heading !== undefined) {
-                this.driverHeading.set(loc.heading);
-              }
-              this.updateDriverLocationWebGL(loc.lng, loc.lat, loc.heading || 0);
-
+              // Update the active ride driver coordinates
               this.activePassengerRide.update((r) =>
-                r ? { ...r, driver_lat: loc.lat, driver_lng: loc.lng } : null
+                r ? { ...r, driver_lat: loc.lat, driver_lng: loc.lng, driver_heading: loc.heading } : null
               );
+
+              const drvHeading = loc.heading || this.passengerRouteBearing || 0;
+
+              // Smoothly glide driver tricycle marker
+              if (!this.driverMarker) {
+                this.syncPassengerDriverTricycleMarker();
+              }
+              this.animateDriverMarkerTo(loc.lng, loc.lat, drvHeading, 500);
+
+              // If passenger has an active routeline, progressively trim it
+              if (this.currentActiveRouteCoordinates && this.currentActiveRouteCoordinates.length >= 2) {
+                const nearest = this.findNearestPointOnRoute(loc.lng, loc.lat, this.currentActiveRouteCoordinates);
+                if (nearest.distMeters <= 35 && nearest.segIndex < this.currentActiveRouteCoordinates.length - 1) {
+                  const remaining: [number, number][] = [
+                    nearest.point,
+                    ...this.currentActiveRouteCoordinates.slice(nearest.segIndex + 1),
+                  ];
+                  if (remaining.length >= 2) {
+                    this.currentActiveRouteCoordinates = remaining;
+                    this.applyRouteLineCoordinates(remaining, this.currentRouteColor);
+                  }
+                }
+              }
+
+              // Smoothly follow camera if centered
+              if (this.map && !this.isUserPanned()) {
+                const is3D = this.mapControlState() === 3;
+                this.smoothCameraFollow(loc.lng, loc.lat, is3D ? (this.passengerRouteBearing || drvHeading) : 0, is3D ? 60 : 0, 600);
+              }
             }
           }
         });
@@ -1009,6 +1618,15 @@ export class HomePage implements AfterViewInit, OnDestroy {
     }
   };
 
+  ionViewDidEnter(): void {
+    if (this.map) {
+      setTimeout(() => {
+        try { this.map.resize(); } catch { }
+      }, 50);
+    }
+    this.startRealGpsTracking();
+  }
+
   ngAfterViewInit(): void {
     window.addEventListener('resize', this.boundWindowResize);
     setTimeout(() => {
@@ -1036,24 +1654,31 @@ export class HomePage implements AfterViewInit, OnDestroy {
       this.checkPassengerActiveRide();
     }
 
-    // Initial high-accuracy GPS position fetch on startup
-    if (typeof navigator !== 'undefined' && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          this.hasGpsFix.set(true);
-          this.handleGpsUpdate(pos);
-        },
-        (err) => {
-          console.warn('Initial GPS query failed:', err);
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-      );
-    }
+    // Start continuous event-driven high-accuracy GPS tracking
+    this.startRealGpsTracking();
   }
 
   ngOnDestroy(): void {
     window.removeEventListener('resize', this.boundWindowResize);
+    this.stopGpsTracking();
     this.stopCompassTracking();
+
+    if (this.markerAnimRafId !== null) {
+      cancelAnimationFrame(this.markerAnimRafId);
+      this.markerAnimRafId = null;
+    }
+    if (this.passMarkerAnimRafId !== null) {
+      cancelAnimationFrame(this.passMarkerAnimRafId);
+      this.passMarkerAnimRafId = null;
+    }
+    if (this.driverMarker) {
+      try { this.driverMarker.remove(); } catch { }
+      this.driverMarker = null;
+    }
+    if (this.passengerMarker) {
+      try { this.passengerMarker.remove(); } catch { }
+      this.passengerMarker = null;
+    }
     if (this.map) {
       try {
         this.map.remove();
@@ -1070,7 +1695,17 @@ export class HomePage implements AfterViewInit, OnDestroy {
       return;
     }
     this.dashboardService.getDashboardData().subscribe({
-      next: (data) => {
+      next: (data: any) => {
+        if (data?.geofencing) {
+          this.driverService.updateTerminalSettings(
+            data.geofencing.terminal_lat,
+            data.geofencing.terminal_lng,
+            data.geofencing.terminal_radius
+          );
+          if (this.map) {
+            this.initTerminalGeofence(this.map);
+          }
+        }
         this.driverService.syncFromDashboard(data);
 
         if (this.authService.isPassenger()) {
@@ -1085,10 +1720,14 @@ export class HomePage implements AfterViewInit, OnDestroy {
               const dLat = Number(ar.driver_lat);
               const dLng = Number(ar.driver_lng);
               const dHeading = Number(ar.driver_heading || 0);
-              this.driverLat.set(dLat);
-              this.driverLng.set(dLng);
-              this.driverHeading.set(dHeading);
-              this.updateDriverLocationWebGL(dLng, dLat, dHeading);
+              if (this.driverMarker) {
+                this.driverMarker.setLngLat([dLng, dLat]);
+              } else {
+                this.syncPassengerDriverTricycleMarker();
+              }
+              if (dHeading) {
+                this.updateDriverHeadingCone(dHeading);
+              }
             }
 
             if (prevStatus && prevStatus !== newStatus) {
@@ -1100,10 +1739,12 @@ export class HomePage implements AfterViewInit, OnDestroy {
                 this.displayToast('🚖 Driver is on the way to pick you up!');
               } else if (newStatus === 'arrived') {
                 this.soundService.playArrived();
-                this.displayToast('📍 Your driver has arrived at the pickup location!');
+                this.displayToast('📍 Driver is waiting outside at your pickup location!');
+                this.clearReturnRoutePolyline();
               } else if (newStatus === 'in_transit') {
                 this.soundService.playNotificationChime();
                 this.displayToast('🚀 Trip started! On the way to your destination.');
+                this.showChatModal.set(false);
               } else if (newStatus === 'completed') {
                 this.soundService.playDropoffSuccess();
                 this.displayToast('🏁 You have arrived at your destination!');
@@ -1172,8 +1813,23 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
     if (this.map && !this.isUserPanned()) {
       try {
+        const isPassenger = this.authService.isPassenger();
+        const pRide = this.activePassengerRide();
+        const dTrip = this.driverService.activeTrip();
+        const hasActivePassengerTrip = isPassenger && !!pRide && ['en_route', 'accepted', 'arrived', 'in_transit'].includes(String(pRide?.status || '').toLowerCase().trim());
+        const hasActiveDriverTrip = !isPassenger && !!dTrip && ['en_route', 'in_transit', 'arrived', 'accepted'].includes(String(dTrip?.status || '').toLowerCase().trim());
+        const centerLng = hasActivePassengerTrip ? Number(pRide.driver_lng || pRide.driver?.lng || this.driverLng()) : this.driverLng();
+        const centerLat = hasActivePassengerTrip ? Number(pRide.driver_lat || pRide.driver?.lat || this.driverLat()) : this.driverLat();
+        const is3D = this.mapControlState() === 3;
+        // Use route bearing when driver is on an active trip with a routeline (NOT device compass)
+        const activeBearing = hasActiveDriverTrip && this.driverRouteBearing
+          ? this.driverRouteBearing
+          : (hasActivePassengerTrip ? this.passengerRouteBearing : this.driverHeading());
+
         this.map.easeTo({
-          center: [this.driverLng(), this.driverLat()],
+          center: [centerLng, centerLat],
+          bearing: is3D ? activeBearing : 0,
+          pitch: is3D ? 60 : 0,
           padding: this.getVisibleMapPadding(),
           duration: 380,
           essential: true,
@@ -1192,8 +1848,23 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
     if (this.map && !this.isUserPanned()) {
       try {
+        const isPassenger = this.authService.isPassenger();
+        const pRide = this.activePassengerRide();
+        const dTrip = this.driverService.activeTrip();
+        const hasActivePassengerTrip = isPassenger && !!pRide && ['en_route', 'accepted', 'arrived', 'in_transit'].includes(String(pRide?.status || '').toLowerCase().trim());
+        const hasActiveDriverTrip = !isPassenger && !!dTrip && ['en_route', 'in_transit', 'arrived', 'accepted'].includes(String(dTrip?.status || '').toLowerCase().trim());
+        const centerLng = hasActivePassengerTrip ? Number(pRide.driver_lng || pRide.driver?.lng || this.driverLng()) : this.driverLng();
+        const centerLat = hasActivePassengerTrip ? Number(pRide.driver_lat || pRide.driver?.lat || this.driverLat()) : this.driverLat();
+        const is3D = this.mapControlState() === 3;
+        // Use route bearing when driver is on an active trip with a routeline (NOT device compass)
+        const activeBearing = hasActiveDriverTrip && this.driverRouteBearing
+          ? this.driverRouteBearing
+          : (hasActivePassengerTrip ? this.passengerRouteBearing : this.driverHeading());
+
         this.map.easeTo({
-          center: [this.driverLng(), this.driverLat()],
+          center: [centerLng, centerLat],
+          bearing: is3D ? activeBearing : 0,
+          pitch: is3D ? 60 : 0,
           padding: this.getVisibleMapPadding(),
           duration: 380,
           essential: true,
@@ -1335,20 +2006,50 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
       // On map click/tap GPS override or Drop-Off Destination Pinning
       mapInstance.on('click', async (e: any) => {
-        const lng = e.lngLat.lng;
-        const lat = e.lngLat.lat;
+        const rawLng = e.lngLat.lng;
+        const rawLat = e.lngLat.lat;
 
         // Manual drop-off pin mode for passenger
         if (this.isPinningMode()) {
-          this.selectedLandmarkLat.set(lat);
-          this.selectedLandmarkLng.set(lng);
-          this.setDestinationPin(lng, lat);
+          this.selectedLandmarkLat.set(rawLat);
+          this.selectedLandmarkLng.set(rawLng);
+          this.setDestinationPin(rawLng, rawLat);
           this.isPinningMode.set(false);
           this.bookingDestination.set('');
-          this.calculateCustomFare(lat, lng);
+          this.calculateCustomFare(rawLat, rawLng);
           setTimeout(() => {
             this.showBookingModal.set(true);
           }, 200);
+          return;
+        }
+
+        // If user is a PASSENGER: allow location override ONLY when NOT on an active trip.
+        // During an active trip, the passenger is in the tricycle — their own location pin is hidden
+        // and should never be repositioned. The map follows the driver tricycle, not passenger GPS.
+        if (this.authService.isPassenger()) {
+          const pRide = this.activePassengerRide();
+          const hasActiveTrip = !!pRide && ['en_route', 'accepted', 'arrived', 'in_transit'].includes(String(pRide?.status || '').toLowerCase().trim());
+
+          // BLOCK all location override while on active trip — no tap should move the passenger marker
+          if (hasActiveTrip) return;
+
+          this.isLocationOverridden.set(true);
+          this.hasGpsFix.set(true);
+          this.driverLat.set(rawLat);
+          this.driverLng.set(rawLng);
+
+          if (this.passengerMarker) {
+            this.passengerMarker.setLngLat([rawLng, rawLat]);
+          }
+
+          if (this.map && !this.isUserPanned()) {
+            this.map.easeTo({
+              center: [rawLng, rawLat],
+              zoom: 16.5,
+              duration: 350,
+              essential: true,
+            });
+          }
           return;
         }
 
@@ -1357,68 +2058,42 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
         // 1. When returning: snap marker to road route line and orient along road segment
         if (this.driverService.isReturning()) {
-          await this.applyRoadRouteAndSnap(lng, lat);
+          // Snap to road only when there IS a routeline to follow
+          const [roadLng, roadLat] = this.snapToNearestRoad(rawLng, rawLat);
+          await this.applyRoadRouteAndSnap(roadLng, roadLat);
           return;
         }
 
-        // 2. When in active trip (en_route or in_transit):
+        // 2. When in active trip (en_route or in_transit): snap to road so vehicle stays on roadway
         const dTrip = this.driverService.activeTrip();
         if (dTrip && (dTrip.status === 'en_route' || dTrip.status === 'in_transit')) {
-          const isWalkInOrWayside = dTrip.tripType === 'terminal_walk_in' || dTrip.tripType === 'wayside_pickup' || !dTrip.dropoffLat;
+          // Snap to road ONLY when there's an active routeline
+          const [roadLng, roadLat] = this.snapToNearestRoad(rawLng, rawLat);
+          const isEnRoute = dTrip.status === 'en_route';
+          const anyTrip = dTrip as any;
+          const targetLng = isEnRoute
+            ? Number(anyTrip.pickupLng || anyTrip.pickup_lng)
+            : Number(anyTrip.dropoffLng || anyTrip.dropoff_lng || anyTrip.destinationLng || anyTrip.destination_lng);
+          const targetLat = isEnRoute
+            ? Number(anyTrip.pickupLat || anyTrip.pickup_lat)
+            : Number(anyTrip.dropoffLat || anyTrip.dropoff_lat || anyTrip.destinationLat || anyTrip.destination_lat);
+          const hasTargetCoord = !!targetLng && !!targetLat && !isNaN(targetLng) && !isNaN(targetLat);
+          const isWalkInOrWayside = (!isEnRoute && !hasTargetCoord) || dTrip.tripType === 'terminal_walk_in' || dTrip.tripType === 'wayside_pickup';
 
-          if (isWalkInOrWayside) {
-            let newHeading = this.driverHeading();
-            if (this.driverLat() && this.driverLng()) {
-              newHeading = Math.round(this.calculateBearing(this.driverLat(), this.driverLng(), lat, lng));
+          let roadHeading = this.driverRouteBearing || this.driverHeading();
+          if (this.driverLat() && this.driverLng()) {
+            const calc = Math.round(this.calculateBearing(this.driverLat(), this.driverLng(), roadLat, roadLng));
+            if (!isNaN(calc) && (Math.abs(roadLat - this.driverLat()) > 0.00003 || Math.abs(roadLng - this.driverLng()) > 0.00003)) {
+              roadHeading = calc;
             }
-            this.hasGpsFix.set(true);
-            this.driverLat.set(lat);
-            this.driverLng.set(lng);
-            this.driverHeading.set(newHeading);
-            this.updateDriverLocationWebGL(lng, lat, newHeading);
-            this.clearRouteLine();
-
-            if (this.map && !this.isUserPanned()) {
-              this.map.easeTo({
-                center: [lng, lat],
-                pitch: 60,
-                bearing: newHeading,
-                zoom: 16.5,
-                duration: 650,
-                easing: (t: number) => 1 - Math.pow(1 - t, 3),
-                essential: true,
-              });
-            }
-
-            this.driverService.updateDriverLocation({
-              lat: lat,
-              lng: lng,
-              heading: newHeading,
-              ride_id: Number(dTrip.id),
-            });
-            return;
           }
 
-          const targetLng = dTrip.status === 'en_route' ? Number(dTrip.pickupLng || 120.92240) : Number(dTrip.dropoffLng || 120.92240);
-          const targetLat = dTrip.status === 'en_route' ? Number(dTrip.pickupLat || 15.42955) : Number(dTrip.dropoffLat || 15.42955);
-          const color = dTrip.status === 'en_route' ? '#2563eb' : '#059669';
-
-          const coordinates = await this.fetchRoadRouteBetweenPoints(lng, lat, targetLng, targetLat);
-          const roadLng = coordinates && coordinates.length > 0 ? coordinates[0][0] : lng;
-          const roadLat = coordinates && coordinates.length > 0 ? coordinates[0][1] : lat;
-          const nextLng = coordinates && coordinates.length > 1 ? coordinates[1][0] : targetLng;
-          const nextLat = coordinates && coordinates.length > 1 ? coordinates[1][1] : targetLat;
-          const roadHeading = Math.round(this.calculateBearing(roadLat, roadLng, nextLat, nextLng)) || this.driverHeading();
-
+          // Instantly update driver position on the road with 0ms delay!
           this.hasGpsFix.set(true);
           this.driverLat.set(roadLat);
           this.driverLng.set(roadLng);
           this.driverHeading.set(roadHeading);
           this.updateDriverLocationWebGL(roadLng, roadLat, roadHeading);
-
-          if (coordinates) {
-            this.applyRouteLineCoordinates(coordinates, color);
-          }
 
           if (this.map && !this.isUserPanned()) {
             this.map.easeTo({
@@ -1426,7 +2101,8 @@ export class HomePage implements AfterViewInit, OnDestroy {
               pitch: 60,
               bearing: roadHeading,
               zoom: 16.5,
-              duration: 900,
+              padding: this.getVisibleMapPadding(),
+              duration: 450,
               easing: (t: number) => 1 - Math.pow(1 - t, 3),
               essential: true,
             });
@@ -1436,31 +2112,55 @@ export class HomePage implements AfterViewInit, OnDestroy {
             lat: roadLat,
             lng: roadLng,
             heading: roadHeading,
-            ride_id: Number(dTrip.id),
+            ride_id: Number(String(dTrip.id).replace(/\D/g, '')),
           });
+
+          if (!isWalkInOrWayside && hasTargetCoord) {
+            const color = isEnRoute ? '#2563eb' : '#059669';
+            // Asynchronously draw the real road curve without blocking the immediate UI update
+            this.drawRoadRouteLine(roadLng, roadLat, targetLng, targetLat, color, true);
+          } else {
+            // Unpinned destination: no routeline! Just like a terminal walk-in ride
+            this.clearDestinationPin();
+            this.clearReturnRoutePolyline();
+          }
           return;
         }
 
-        // 3. Standard 2D/3D map click when NOT returning and NOT in active trip
+        // 3. FREE ROAM — no active trip, not returning: use raw tap coordinates, NO road snapping!
+        // The vehicle can be placed anywhere the driver taps (open field, parking area, etc.)
         let newHeading = this.driverHeading();
         if (this.driverLat() && this.driverLng()) {
-          newHeading = Math.round(this.calculateBearing(this.driverLat(), this.driverLng(), lat, lng));
+          const calc = Math.round(this.calculateBearing(this.driverLat(), this.driverLng(), rawLat, rawLng));
+          if (!isNaN(calc) && (Math.abs(rawLat - this.driverLat()) > 0.00003 || Math.abs(rawLng - this.driverLng()) > 0.00003)) {
+            newHeading = calc;
+          }
         }
 
-        this.handleGpsUpdate({
-          coords: {
-            latitude: lat,
-            longitude: lng,
-            heading: newHeading,
-            speed: 15,
-            accuracy: 5,
-          },
-        } as any);
+        this.hasGpsFix.set(true);
+        this.driverLat.set(rawLat);
+        this.driverLng.set(rawLng);
+        this.driverHeading.set(newHeading);
+        this.updateDriverLocationWebGL(rawLng, rawLat, newHeading);
 
-        // Broadcast overridden location via Reverb to all connected devices/sessions
+        if (this.map && !this.isUserPanned()) {
+          const is3D = this.mapControlState() === 3;
+          this.map.easeTo({
+            center: [rawLng, rawLat],
+            pitch: is3D ? 60 : 0,
+            bearing: is3D ? newHeading : 0,
+            zoom: 16.5,
+            padding: this.getVisibleMapPadding(),
+            duration: 450,
+            easing: (t: number) => 1 - Math.pow(1 - t, 3),
+            essential: true,
+          });
+        }
+
+        // Broadcast raw overridden location via Reverb to all connected devices/sessions
         this.driverService.updateDriverLocation({
-          lat: lat,
-          lng: lng,
+          lat: rawLat,
+          lng: rawLng,
           heading: newHeading,
         });
       });
@@ -1475,13 +2175,15 @@ export class HomePage implements AfterViewInit, OnDestroy {
           const pRide = this.activePassengerRide();
           const dTrip = this.driverService.activeTrip();
 
-          if (isPassenger && pRide && (pRide.status === 'en_route' || pRide.status === 'in_transit')) {
-            const centerLng = Number(pRide.driver_lng || pRide.pickup_lng || this.driverLng());
-            const centerLat = Number(pRide.driver_lat || pRide.pickup_lat || this.driverLat());
+          if (isPassenger && pRide && ['accepted', 'en_route', 'arrived', 'in_transit'].includes(String(pRide.status || '').toLowerCase().trim())) {
+            const centerLng = Number(pRide.driver_lng || pRide.driver?.lng || pRide.pickup_lng || this.driverLng());
+            const centerLat = Number(pRide.driver_lat || pRide.driver?.lat || pRide.pickup_lat || this.driverLat());
+            const initBearing = Number(pRide.driver_heading || pRide.driver?.heading || 0);
             mapInstance.jumpTo({
               center: [centerLng, centerLat],
               padding: pad,
               pitch: 60,
+              bearing: initBearing,
               zoom: 16.5,
             });
           } else if (!isPassenger && dTrip && (dTrip.status === 'en_route' || dTrip.status === 'in_transit')) {
@@ -1537,12 +2239,16 @@ export class HomePage implements AfterViewInit, OnDestroy {
         }
       });
 
-      // ONLY set isUserPanned when the USER physically touches and drags the map
-      mapInstance.on('dragstart', (e: any) => {
+      // ONLY set isUserPanned when the USER physically touches, drags, or zooms the map
+      const markUserInteracting = (e: any) => {
         if (e && e.originalEvent) {
           this.isUserPanned.set(true);
         }
-      });
+      };
+      mapInstance.on('dragstart', markUserInteracting);
+      mapInstance.on('zoomstart', markUserInteracting);
+      mapInstance.on('rotatestart', markUserInteracting);
+      mapInstance.on('pitchstart', markUserInteracting);
 
       mapInstance.on('error', (e: any) => {
         if (e && e.error && e.error.message && !mapInstance.isStyleLoaded()) {
@@ -1734,53 +2440,451 @@ export class HomePage implements AfterViewInit, OnDestroy {
         }
       }
 
-      // 2. Driver Animated Location Puck (Google Maps / Apple Maps / Uber style)
-      if (!this.driverMarker) {
-        const driverEl = document.createElement('div');
-        driverEl.className = 'driver-live-map-marker-container';
-        driverEl.innerHTML = `
-          <div class="driver-marker-ping"></div>
-          <div class="driver-cone-beam" id="driver-cone-beam-element" style="transform: rotate(${this.driverHeading()}deg)">
-            <svg viewBox="0 0 70 70" fill="none">
-              <defs>
-                <linearGradient id="headingConeGrad" x1="35" y1="35" x2="35" y2="2" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.6"/>
-                  <stop offset="60%" stop-color="#60a5fa" stop-opacity="0.25"/>
-                  <stop offset="100%" stop-color="#93c5fd" stop-opacity="0"/>
-                </linearGradient>
-              </defs>
-              <path d="M35 35 L16 3 A35 35 0 0 1 54 3 Z" fill="url(#headingConeGrad)"/>
-            </svg>
-          </div>
-          <div class="driver-center-dot"></div>
-        `;
+      // 2. Animated Location Puck (Passenger: Blue Dot & Cone Beam; Driver: 3D Tricycle)
+      const isOnline = this.driverService.isOnline();
 
-        this.driverMarker = new maplibregl.Marker({
-          element: driverEl,
-          offset: [0, 0],
-          pitchAlignment: 'map',
-          rotationAlignment: 'map',
-        })
-          .setLngLat([this.driverLng(), this.driverLat()])
-          .addTo(mapInstance);
+      if (!isPassenger) {
+        if (!this.driverMarker) {
+          // Use current GPS position if available; fallback to terminal/signal coords
+          const initLng = this.markerCurrentLngLat ? this.markerCurrentLngLat[0] : this.driverLng();
+          const initLat = this.markerCurrentLngLat ? this.markerCurrentLngLat[1] : this.driverLat();
+          const driverEl = document.createElement('div');
+          driverEl.className = `driver-live-map-marker-container ${isOnline ? 'is-online' : 'is-offline'}`;
+          driverEl.innerHTML = `
+            <div class="driver-marker-ping"></div>
+            <div class="driver-tricycle-puck" id="driver-tricycle-puck-element" style="transform: rotate(${this.driverHeading()}deg)">
+              <img src="assets/images/tricycle-marker.png" alt="Tricycle" class="tricycle-puck-img" />
+            </div>
+          `;
+
+          this.driverMarker = new maplibregl.Marker({
+            element: driverEl,
+            anchor: 'center',
+            offset: [0, 0],
+            pitchAlignment: 'map',
+            rotationAlignment: 'map',
+          })
+            .setLngLat([initLng, initLat])
+            .addTo(mapInstance);
+          // Seed cumulative heading so the first update delta is 0
+          this.coneCumulativeHeading = this.driverHeading();
+          // Sync markerCurrentLngLat so animations start from correct position
+          this.markerCurrentLngLat = [initLng, initLat];
+        }
+      } else {
+        // PASSENGER: Own location puck (Blue Dot without cone)
+        if (!this.passengerMarker) {
+          const initLng = this.passMarkerCurrentLngLat ? this.passMarkerCurrentLngLat[0] : this.driverLng();
+          const initLat = this.passMarkerCurrentLngLat ? this.passMarkerCurrentLngLat[1] : this.driverLat();
+          const passEl = document.createElement('div');
+          passEl.className = 'driver-live-map-marker-container is-passenger-puck';
+          passEl.innerHTML = `
+            <div class="driver-marker-ping"></div>
+            <div class="driver-center-dot"></div>
+          `;
+
+          this.passengerMarker = new maplibregl.Marker({
+            element: passEl,
+            anchor: 'center',
+            offset: [0, 0],
+            pitchAlignment: 'viewport',
+            rotationAlignment: 'viewport',
+          })
+            .setLngLat([initLng, initLat])
+            .addTo(mapInstance);
+          this.passMarkerCurrentLngLat = [initLng, initLat];
+        }
+
+        // Check if passenger already has an active trip and sync the driver's tricycle marker
+        // Also hide own location pin if already on active trip at init
+        this.syncPassengerDriverTricycleMarker();
+      }
+
+      // If we have a real GPS fix already, immediately center the camera
+      if (this.hasGpsFix() && !this.isUserPanned()) {
+        const curLng = this.driverLng();
+        const curLat = this.driverLat();
+        const is3D = this.mapControlState() === 3;
+        try {
+          mapInstance.easeTo({
+            center: [curLng, curLat],
+            pitch: is3D ? 60 : 0,
+            bearing: is3D ? this.driverHeading() : 0,
+            zoom: 16.5,
+            padding: this.getVisibleMapPadding(),
+            duration: 500,
+            essential: true,
+          });
+        } catch { }
       }
     } catch (err) {
       console.warn('Map marker add notice:', err);
     }
   }
 
+  /**
+   * For passengers on an active trip (accepted, en_route, arrived, in_transit):
+   * Ensures the driver's location is rendered as the 3D Tricycle Icon (not blue circle with cone).
+   * Also hides/shows the passenger's own location pin (passengerMarker) so it never overlaps
+   * the route or causes the camera to follow the wrong marker.
+   * Automatically cleans up the marker when trip ends or is cancelled.
+   */
+  private syncPassengerDriverTricycleMarker(): void {
+    if (!this.map || !this.authService.isPassenger()) return;
+    const pRide = this.activePassengerRide();
+    const status = String(pRide?.status || '').toLowerCase().trim();
+    const hasActiveTrip = !!pRide && ['accepted', 'en_route', 'arrived', 'in_transit'].includes(status);
+
+    if (hasActiveTrip) {
+      if (this.mapControlState() !== 3) {
+        this.mapControlState.set(3);
+      }
+
+      // Hide passenger's own location pin — they are in the tricycle, no need to show their GPS dot
+      // This also prevents the camera from being pulled to the passenger GPS position during the trip
+      if (this.passengerMarker) {
+        const el = this.passengerMarker.getElement();
+        if (el) el.style.display = 'none';
+      }
+
+      const drvLat = Number(
+        pRide.driver_lat || 
+        pRide.driver?.lat || 
+        this.TERMINAL_LAT
+      );
+      const drvLng = Number(
+        pRide.driver_lng || 
+        pRide.driver?.lng || 
+        this.TERMINAL_LNG
+      );
+
+      // Determine heading: use live heading, or calculate from driver position to target along path
+      let drvHeading = Number(
+        pRide.driver_heading !== undefined && pRide.driver_heading !== null && pRide.driver_heading !== 0
+          ? pRide.driver_heading 
+          : (pRide.driver?.heading ? pRide.driver.heading : 0)
+      );
+
+      if (!drvHeading) {
+        const targetLat = status === 'in_transit'
+          ? Number(pRide.destination_lat || pRide.dest_lat)
+          : Number(pRide.pickup_lat);
+        const targetLng = status === 'in_transit'
+          ? Number(pRide.destination_lng || pRide.dest_lng)
+          : Number(pRide.pickup_lng);
+
+        if (targetLat && targetLng && (drvLat !== targetLat || drvLng !== targetLng)) {
+          const calc = Math.round(this.calculateBearing(drvLat, drvLng, targetLat, targetLng));
+          if (!isNaN(calc)) {
+            drvHeading = calc;
+          }
+        }
+      }
+
+      if (!this.driverMarker) {
+        const driverEl = document.createElement('div');
+        driverEl.className = 'driver-live-map-marker-container is-online';
+        driverEl.innerHTML = `
+          <div class="driver-marker-ping"></div>
+          <div class="driver-tricycle-puck" id="driver-tricycle-puck-element" style="transform: rotate(${drvHeading}deg)">
+            <img src="assets/images/tricycle-marker.png" alt="Tricycle" class="tricycle-puck-img" />
+          </div>
+        `;
+        this.driverMarker = new maplibregl.Marker({
+          element: driverEl,
+          anchor: 'center',
+          offset: [0, 0],
+          pitchAlignment: 'map',
+          rotationAlignment: 'map',
+        })
+          .setLngLat([drvLng, drvLat])
+          .addTo(this.map);
+        // Seed cumulative heading so the first update delta is 0
+        this.coneCumulativeHeading = drvHeading;
+      } else {
+        // Ensure element has tricycle icon (not passenger cone)
+        const tricycleImg = this.driverMarker.getElement()?.querySelector('.tricycle-puck-img');
+        if (!tricycleImg) {
+          const el = this.driverMarker.getElement();
+          if (el) {
+            el.className = 'driver-live-map-marker-container is-online';
+            el.innerHTML = `
+              <div class="driver-marker-ping"></div>
+              <div class="driver-tricycle-puck" id="driver-tricycle-puck-element" style="transform: rotate(${drvHeading}deg)">
+                <img src="assets/images/tricycle-marker.png" alt="Tricycle" class="tricycle-puck-img" />
+              </div>
+            `;
+          }
+        }
+        this.driverMarker.setLngLat([drvLng, drvLat]);
+      }
+      this.updateDriverHeadingCone(drvHeading);
+    } else {
+      // Trip ended or cancelled: remove driver's tricycle marker from passenger's map
+      if (this.driverMarker) {
+        try {
+          this.driverMarker.remove();
+        } catch { }
+        this.driverMarker = null;
+      }
+      // Re-show the passenger's own location pin (they are back at their drop-off/current location)
+      if (this.passengerMarker) {
+        const el = this.passengerMarker.getElement();
+        if (el) el.style.display = '';
+      }
+      if (this.mapControlState() === 3) {
+        this.mapControlState.set(2);
+      }
+    }
+  }
+
   private updateDriverHeadingCone(heading: number): void {
+    // --- Shortest-path bearing update ---
+    // Instead of always setting raw 0-360 degrees (which causes the browser CSS transition
+    // to spin the long way when crossing the 0/360 boundary), we maintain a cumulative
+    // unwrapped heading that only ever moves by the shortest angular delta (≤180°).
+    // e.g. going from 350° to 10° adds +20 to the cumulative value (not -340).
+    const normalizedNew = ((heading % 360) + 360) % 360;
+    const normalizedCur = ((this.coneCumulativeHeading % 360) + 360) % 360;
+    let delta = normalizedNew - normalizedCur;
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+    this.coneCumulativeHeading += delta;
+
+    const cumDeg = this.coneCumulativeHeading;
+
+    const tricycleEl = this.driverMarker?.getElement()?.querySelector('#driver-tricycle-puck-element') ||
+      document.getElementById('driver-tricycle-puck-element');
+    if (tricycleEl) {
+      (tricycleEl as HTMLElement).style.transform = `rotate(${cumDeg}deg)`;
+    }
+
     const coneEl = document.getElementById('driver-cone-beam-element');
     if (coneEl) {
-      coneEl.style.transform = `rotate(${heading}deg)`;
+      coneEl.style.transform = `rotate(${cumDeg}deg)`;
+    }
+  }
+
+  private updateDriverMarkerStatus(isOnline: boolean): void {
+    const markerEl = document.querySelector('.driver-live-map-marker-container');
+    if (markerEl) {
+      if (isOnline) {
+        markerEl.classList.add('is-online');
+        markerEl.classList.remove('is-offline');
+      } else {
+        markerEl.classList.add('is-offline');
+        markerEl.classList.remove('is-online');
+      }
     }
   }
 
   private updateDriverLocationWebGL(lng: number, lat: number, heading: number): void {
-    if (this.driverMarker) {
-      this.driverMarker.setLngLat([lng, lat]);
+    this.animateDriverMarkerTo(lng, lat, heading, 400);
+  }
+
+  private animateDriverMarkerTo(targetLng: number, targetLat: number, targetHeading: number, duration = 450): void {
+    // Always update the heading cone regardless of marker state
+    this.updateDriverHeadingCone(targetHeading);
+
+    // Always track our target position so we can sync once marker is ready
+    const nextLngLat: [number, number] = [targetLng, targetLat];
+
+    if (!this.driverMarker) {
+      this.markerCurrentLngLat = nextLngLat;
+      if (this.map) {
+        try {
+          const isOnline = this.driverService.isOnline();
+          const driverEl = document.createElement('div');
+          driverEl.className = `driver-live-map-marker-container ${isOnline ? 'is-online' : 'is-offline'}`;
+          driverEl.innerHTML = `
+            <div class="driver-marker-ping"></div>
+            <div class="driver-tricycle-puck" id="driver-tricycle-puck-element" style="transform: rotate(${targetHeading}deg)">
+              <img src="assets/images/tricycle-marker.png" alt="Tricycle" class="tricycle-puck-img" />
+            </div>
+          `;
+          this.driverMarker = new maplibregl.Marker({
+            element: driverEl,
+            anchor: 'center',
+            offset: [0, 0],
+            pitchAlignment: 'map',
+            rotationAlignment: 'map',
+          })
+            .setLngLat(nextLngLat)
+            .addTo(this.map);
+          this.coneCumulativeHeading = targetHeading;
+        } catch (e) {
+          console.warn('Driver marker create notice:', e);
+          this.driverMarker = null;
+        }
+      }
+      return;
     }
-    this.updateDriverHeadingCone(heading);
+
+    if (!this.markerCurrentLngLat) {
+      this.markerCurrentLngLat = nextLngLat;
+      this.driverMarker.setLngLat(nextLngLat);
+      return;
+    }
+
+    const cur = this.markerCurrentLngLat;
+    if (Math.abs(cur[0] - targetLng) < 0.000001 && Math.abs(cur[1] - targetLat) < 0.000001) {
+      return;
+    }
+
+    // Newest target always wins: if a tween is already gliding, simply re-target it
+    // (picks up from the current interpolated value) instead of canceling + restarting,
+    // which eliminates rubber-banding on rapid consecutive GPS ticks.
+    this.driverTweenTarget = nextLngLat;
+    if (this.markerAnimRafId !== null) {
+      return;
+    }
+
+    const startPoint: [number, number] = [cur[0], cur[1]];
+    let from: [number, number] = startPoint;
+    let to: [number, number] = nextLngLat;
+    let t0 = performance.now();
+
+    const step = (currentTime: number) => {
+      const target = this.driverTweenTarget;
+      if (!target) {
+        this.markerAnimRafId = null;
+        return;
+      }
+
+      // A fresher fix arrived mid-flight → glide from the current interpolated value
+      if (target[0] !== to[0] || target[1] !== to[1]) {
+        from = this.markerCurrentLngLat ? [this.markerCurrentLngLat[0], this.markerCurrentLngLat[1]] : [to[0], to[1]];
+        to = [target[0], target[1]];
+        t0 = currentTime;
+      }
+
+      const progress = Math.min((currentTime - t0) / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 3);
+
+      const currentLng = from[0] + (to[0] - from[0]) * ease;
+      const currentLat = from[1] + (to[1] - from[1]) * ease;
+      this.markerCurrentLngLat = [currentLng, currentLat];
+
+      if (this.driverMarker) {
+        this.driverMarker.setLngLat([currentLng, currentLat]);
+      }
+
+      if (progress < 1) {
+        this.markerAnimRafId = requestAnimationFrame(step);
+      } else {
+        this.markerCurrentLngLat = to;
+        this.driverTweenTarget = null;
+        this.markerAnimRafId = null;
+      }
+    };
+
+    this.markerAnimRafId = requestAnimationFrame(step);
+  }
+
+  private animatePassengerMarkerTo(targetLng: number, targetLat: number, duration = 450): void {
+    const nextLngLat: [number, number] = [targetLng, targetLat];
+
+    if (!this.passengerMarker) {
+      this.passMarkerCurrentLngLat = nextLngLat;
+      if (this.map && this.authService.isPassenger()) {
+        try {
+          const passEl = document.createElement('div');
+          passEl.className = 'driver-live-map-marker-container is-passenger-puck';
+          passEl.innerHTML = `
+            <div class="driver-marker-ping"></div>
+            <div class="driver-center-dot"></div>
+          `;
+          this.passengerMarker = new maplibregl.Marker({
+            element: passEl,
+            anchor: 'center',
+            offset: [0, 0],
+            pitchAlignment: 'viewport',
+            rotationAlignment: 'viewport',
+          })
+            .setLngLat(nextLngLat)
+            .addTo(this.map);
+        } catch (e) {
+          console.warn('Passenger marker create notice:', e);
+          this.passengerMarker = null;
+        }
+      }
+      return;
+    }
+
+    if (!this.passMarkerCurrentLngLat) {
+      this.passMarkerCurrentLngLat = nextLngLat;
+      this.passengerMarker.setLngLat(nextLngLat);
+      return;
+    }
+
+    if (!this.passMarkerCurrentLngLat) {
+      this.passMarkerCurrentLngLat = [this.driverLng(), this.driverLat()];
+    }
+
+    const startLng = this.passMarkerCurrentLngLat[0];
+    const startLat = this.passMarkerCurrentLngLat[1];
+    const startTime = performance.now();
+
+    if (this.passMarkerAnimRafId !== null) {
+      cancelAnimationFrame(this.passMarkerAnimRafId);
+      this.passMarkerAnimRafId = null;
+    }
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 3);
+
+      const currentLng = startLng + (targetLng - startLng) * ease;
+      const currentLat = startLat + (targetLat - startLat) * ease;
+      this.passMarkerCurrentLngLat = [currentLng, currentLat];
+
+      if (this.passengerMarker) {
+        this.passengerMarker.setLngLat([currentLng, currentLat]);
+      }
+
+      if (progress < 1) {
+        this.passMarkerAnimRafId = requestAnimationFrame(animate);
+      } else {
+        this.passMarkerAnimRafId = null;
+        this.passMarkerCurrentLngLat = [targetLng, targetLat];
+      }
+    };
+
+    this.passMarkerAnimRafId = requestAnimationFrame(animate);
+  }
+
+  private smoothCameraFollow(lng: number, lat: number, bearing = 0, pitch = 0, duration = 600): void {
+    if (!this.map || this.isUserPanned()) return;
+
+    const now = Date.now();
+    const center = this.map.getCenter();
+    const dist = this.calculateDistanceMeters(center.lat, center.lng, lat, lng);
+    const sinceLast = now - this.gpsLastCamFollowAt;
+
+    // Avoid redundant eases: skip camera work when already centered on a near-identical spot.
+    // Coarse fixes (cell/Wi-Fi hops) get a slower, wider cadence so the view doesn't jitter.
+    if (this.gpsFixIsCoarse) {
+      if (dist < 12 && sinceLast < 2500) return;
+    } else if (dist < 0.7 && sinceLast < 2000) {
+      return;
+    }
+    this.gpsLastCamFollowAt = now;
+
+    // Honor the user's selected viewport: 2D stays north-up & flat, 3D keeps route/device heading
+    const is3D = this.mapControlState() === 3;
+    const targetBearing = is3D ? bearing : 0;
+    const targetPitch = is3D ? pitch : 0;
+
+    this.map.easeTo({
+      center: [lng, lat],
+      bearing: targetBearing,
+      pitch: targetPitch,
+      padding: this.getVisibleMapPadding(),
+      duration: duration,
+      easing: (t: number) => 1 - Math.pow(1 - t, 3),
+      essential: true,
+    });
   }
 
   private createDriverBeamConeGeoJSON(centerLng: number, centerLat: number, headingDeg: number): any {
@@ -1814,67 +2918,226 @@ export class HomePage implements AfterViewInit, OnDestroy {
     };
   }
 
-  // --- 4. GPS TRACKING (Single Fetch on First Load — No Drift Interval) ---
+  // --- 4. GPS TRACKING (Event-driven watch, degrade/re-escalate, lifecycle-aware) ---
+  private get gpsWatchOptions(): PositionOptions {
+    return {
+      // High accuracy for live road movement; collapses to network/cell fix when GPS is blocked
+      enableHighAccuracy: this.gpsUseHighAccuracy,
+      // Never accept stale cache for fresh movement updates
+      maximumAge: this.gpsUseHighAccuracy ? 0 : 5000,
+      // Long timeout: a watch must only report failure when the device truly has no fix,
+      // never die because a tricycle GPS is slow to re-acquire under trees / urban canyons.
+      timeout: 60000,
+    };
+  }
+
   private startRealGpsTracking(): void {
-    if (!navigator.geolocation) {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
       this.isGpsFetching.set(false);
+      return;
+    }
+    if (this.gpsWatchId !== null) {
       return;
     }
 
     this.isGpsFetching.set(true);
+    this.registerGpsLifecycleListeners();
 
-    // Fetch once on app open / first load with high accuracy
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        this.isGpsFetching.set(false);
-        this.handleGpsUpdate(pos);
-      },
-      (err) => {
-        console.warn('GPS initial location fetch error:', err);
-        this.isGpsFetching.set(false);
-        this.displayToast('Unable to acquire GPS location. Please check device location permissions.');
-      },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
-    );
+    // 1. Seed instantly with a fresh one-shot fix so the marker never waits for the watcher
+    this.requestFreshGpsFix(true);
+
+    // 2. Subscribe the single authoritative, event-driven watcher
+    this.subscribeGpsWatch();
+
+    // 3. Stale-fix supervisor: pokes once (a single getCurrentPosition) whenever no event
+    //    has arrived, instead of hammering the GPS with a fixed-interval poller.
+    this.scheduleGpsWakeGuard();
   }
 
-  private stopGpsTracking(): void {
+  private subscribeGpsWatch(): void {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return;
+    if (this.gpsWatchId !== null) {
+      try { navigator.geolocation.clearWatch(this.gpsWatchId); } catch { }
+      this.gpsWatchId = null;
+    }
+
+    this.isGpsFetching.set(true);
+    try {
+      this.gpsWatchId = navigator.geolocation.watchPosition(
+        (pos) => this.onGpsFixAcquired(pos),
+        (err) => this.onGpsWatchError(err),
+        this.gpsWatchOptions
+      );
+    } catch (e) {
+      console.warn('Could not initialize GPS watcher:', e);
+      this.gpsWatchId = null;
+      this.isGpsFetching.set(false);
+    }
+  }
+
+  private onGpsFixAcquired(pos: GeolocationPosition): void {
+    if (!pos || !pos.coords) return;
+    this.gpsLastFixAt = Date.now();
+    this.gpsRetryCount = 0;
+    this.isGpsFetching.set(false);
+
+    // Running on degraded network fix? Reload the hardware GPS once it has had time to recover.
+    if (!this.gpsUseHighAccuracy) {
+      this.scheduleGpsAccuracyEscalation();
+    }
+
+    this.handleGpsUpdate(pos);
+  }
+
+  private onGpsWatchError(err: GeolocationPositionError): void {
+    const code = err?.code;
+    this.isGpsFetching.set(false);
+
+    // PERMISSION_DENIED: the user blocked geolocation — stop burning battery retrying
+    if (code === 1) {
+      this.stopGpsWatchOnly();
+      return;
+    }
+
+    // TIMEOUT / POSITION_UNAVAILABLE: GPS signal lost while moving. Degrade to the
+    // network/cell fix so the marker keeps moving instead of freezing, then re-escalate
+    // once hardware GPS recovers.
+    if (this.gpsUseHighAccuracy) {
+      this.gpsUseHighAccuracy = false;
+      this.scheduleGpsRetry(1200);
+    } else {
+      this.scheduleGpsRetry(4000);
+    }
+  }
+
+  private scheduleGpsRetry(delay: number): void {
+    if (this.gpsRetryTimeout !== null) return;
+
+    if (this.gpsRetryCount >= 8) {
+      // Give the radio stack a real breather, then allow one consumer-friendly retry
+      this.stopGpsWatchOnly();
+      this.gpsRetryTimeout = setTimeout(() => {
+        this.gpsRetryTimeout = null;
+        this.gpsRetryCount = 0;
+        this.subscribeGpsWatch();
+      }, 45000);
+      return;
+    }
+
+    this.gpsRetryCount++;
+    this.gpsRetryTimeout = setTimeout(() => {
+      this.gpsRetryTimeout = null;
+      this.subscribeGpsWatch();
+    }, delay);
+  }
+
+  private scheduleGpsAccuracyEscalation(): void {
+    if (this.gpsEscalationTimeout !== null) return;
+    this.gpsEscalationTimeout = setTimeout(() => {
+      this.gpsEscalationTimeout = null;
+      if (!this.gpsUseHighAccuracy) {
+        this.gpsUseHighAccuracy = true;
+        this.subscribeGpsWatch();
+      }
+    }, 25000);
+  }
+
+  private scheduleGpsWakeGuard(): void {
+    if (this.gpsWakeTimeout !== null) clearTimeout(this.gpsWakeTimeout);
+    this.gpsWakeTimeout = setTimeout(() => {
+      this.gpsWakeTimeout = null;
+      if (typeof document !== 'undefined' && document.hidden) {
+        this.scheduleGpsWakeGuard();
+        return;
+      }
+      if (this.gpsWatchId !== null && Date.now() - this.gpsLastFixAt > 12000) {
+        this.requestFreshGpsFix();
+      }
+      this.scheduleGpsWakeGuard();
+    }, 12000);
+  }
+
+  private requestFreshGpsFix(initial = false): void {
+    if (typeof navigator === 'undefined' || typeof navigator.geolocation === 'undefined') return;
+    if (initial) this.isGpsFetching.set(true);
+    try {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => this.onGpsFixAcquired(pos),
+        () => { this.isGpsFetching.set(false); },
+        {
+          enableHighAccuracy: this.gpsUseHighAccuracy,
+          maximumAge: initial ? 0 : 5000,
+          timeout: 8000,
+        }
+      );
+    } catch { }
+  }
+
+  private onGpsVisibilityChanged(): void {
+    if (typeof document !== 'undefined' && document.hidden) {
+      this.stopGpsWatchOnly();
+    } else {
+      this.resumeGpsTracking();
+    }
+  }
+
+  private onGpsPageShow(): void {
+    if (typeof document === 'undefined' || !document.hidden) {
+      this.resumeGpsTracking();
+    }
+  }
+
+  private onGpsOnline(): void {
+    if (typeof document === 'undefined' || !document.hidden) {
+      this.resumeGpsTracking(true);
+    }
+  }
+
+  private resumeGpsTracking(resetAccuracy = false): void {
+    if (resetAccuracy) this.gpsUseHighAccuracy = true;
+    if (this.gpsWatchId === null) {
+      this.startRealGpsTracking();
+      return;
+    }
+    this.requestFreshGpsFix();
+  }
+
+  private registerGpsLifecycleListeners(): void {
+    if (this.gpsListenersRegistered) return;
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', this.boundVisibilityHandler);
+      window.addEventListener('pageshow', this.boundPageShowHandler);
+      window.addEventListener('online', this.boundOnlineHandler);
+      this.gpsListenersRegistered = true;
+    }
+  }
+
+  private unregisterGpsLifecycleListeners(): void {
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', this.boundVisibilityHandler);
+      window.removeEventListener('pageshow', this.boundPageShowHandler);
+      window.removeEventListener('online', this.boundOnlineHandler);
+      this.gpsListenersRegistered = false;
+    }
+  }
+
+  private stopGpsWatchOnly(): void {
+    if (this.gpsWatchId !== null) {
+      try { navigator.geolocation.clearWatch(this.gpsWatchId); } catch { }
+      this.gpsWatchId = null;
+    }
+    if (this.gpsRetryTimeout !== null) { clearTimeout(this.gpsRetryTimeout); this.gpsRetryTimeout = null; }
+    if (this.gpsEscalationTimeout !== null) { clearTimeout(this.gpsEscalationTimeout); this.gpsEscalationTimeout = null; }
     this.isGpsFetching.set(false);
   }
 
-  // --- 2.1 ROADWAY CENTERLINE PROJECTION SNAPPING ---
-  snapToNearestRoad(lat: number, lng: number): { lat: number; lng: number } {
-    let closestPt = { lat, lng };
-    let minDistanceSq = Infinity;
-
-    for (const line of this.ROAD_NETWORKS) {
-      for (let i = 0; i < line.length - 1; i++) {
-        const [lngA, latA] = line[i];
-        const [lngB, latB] = line[i + 1];
-
-        const dx = lngB - lngA;
-        const dy = latB - latA;
-        const lenSq = dx * dx + dy * dy;
-
-        let t = 0;
-        if (lenSq > 0) {
-          t = ((lng - lngA) * dx + (lat - latA) * dy) / lenSq;
-          t = Math.max(0, Math.min(1, t));
-        }
-
-        const projLng = lngA + t * dx;
-        const projLat = latA + t * dy;
-
-        const distSq = Math.pow(projLat - lat, 2) + Math.pow(projLng - lng, 2);
-        if (distSq < minDistanceSq) {
-          minDistanceSq = distSq;
-          closestPt = { lat: projLat, lng: projLng };
-        }
-      }
-    }
-
-    return closestPt;
+  private stopGpsTracking(): void {
+    this.stopGpsWatchOnly();
+    if (this.gpsWakeTimeout !== null) { clearTimeout(this.gpsWakeTimeout); this.gpsWakeTimeout = null; }
+    this.unregisterGpsLifecycleListeners();
+    this.lastProcessedGpsCoords = null;
   }
+
 
   // --- 2.2 RETURNING TO TERMINAL NAVIGATION ROUTE LAYER ---
   private initReturnRouteLayer(mapInstance: any): void {
@@ -2025,16 +3288,21 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
   private buildFallbackRoadRoute(fromLng: number, fromLat: number, toLng: number, toLat: number): [number, number][] {
     const route: [number, number][] = [[fromLng, fromLat]];
-    const bridgeCoord: [number, number] = [120.9260, 15.4240];
-    const junctionCoord: [number, number] = [120.9260, 15.42955];
+    const bridgeCoord: [number, number] = [120.92600, 15.42400];
+    const junctionCorridor: [number, number] = [120.92600, 15.42955];
+    const terminalJunction: [number, number] = [120.92240, 15.42955];
 
     if (fromLat < 15.424) {
-      route.push([120.9260, Math.min(fromLat, 15.4200)]);
+      route.push([120.92600, Math.min(fromLat, 15.42000)]);
       route.push(bridgeCoord);
-      route.push(junctionCoord);
+      route.push(junctionCorridor);
+      route.push(terminalJunction);
+      route.push([toLng, 15.42955]);
       route.push([toLng, toLat]);
     } else {
-      route.push([fromLng, toLat]);
+      // Connect along the Santa Rosa Fort Magsaysay arterial corridor
+      route.push([fromLng, 15.42955]);
+      route.push([toLng, 15.42955]);
       route.push([toLng, toLat]);
     }
 
@@ -2053,45 +3321,37 @@ export class HomePage implements AfterViewInit, OnDestroy {
     const coordinates = await this.fetchRoadRouteToTerminal(driverLng, driverLat);
     if (!coordinates || coordinates.length < 2 || !this.map) return;
 
-    try {
-      const source = this.map.getSource('terminal-return-route-source');
-      if (source) {
-        source.setData({
-          type: 'Feature',
-          geometry: {
-            type: 'LineString',
-            coordinates: coordinates,
-          },
-          properties: {},
-        });
-      }
+    this.currentRouteDestination = [this.TERMINAL_LNG, this.TERMINAL_LAT];
+    this.currentRouteColor = '#2563eb';
+    this.currentActiveRouteCoordinates = coordinates;
+    this.applyRouteLineCoordinates(coordinates);
 
-      // Orient vehicle and camera along the actual road direction ahead
-      if (this.driverService.isReturning() && coordinates.length >= 2) {
-        const [nextLng, nextLat] = coordinates[1];
-        const roadBearing = Math.round(this.calculateBearing(driverLat, driverLng, nextLat, nextLng));
-        if (!isNaN(roadBearing)) {
-          this.driverHeading.set(roadBearing);
-          const coneEl = document.getElementById('driver-tricycle-cone');
-          if (coneEl) {
-            coneEl.style.transform = `rotate(${roadBearing}deg)`;
-          }
+    // Orient vehicle and camera along the actual road direction ahead
+    if (this.driverService.isReturning() && coordinates.length >= 2) {
+      const [roadLng, roadLat] = coordinates[0];
+      const [nextLng, nextLat] = coordinates[1];
+      const roadBearing = Math.round(this.calculateBearing(driverLat, driverLng, nextLat, nextLng));
+      if (!isNaN(roadBearing)) {
+        this.driverHeading.set(roadBearing);
+        this.driverRouteBearing = roadBearing;
+        this.animateDriverMarkerTo(roadLng, roadLat, roadBearing, 450);
 
-          if (this.map && !this.isUserPanned()) {
-            this.map.easeTo({
-              center: [driverLng, driverLat],
-              bearing: roadBearing,
-              pitch: 60,
-              zoom: 16.2,
-              duration: 350,
-            });
-          }
+        if (this.map && !this.isUserPanned()) {
+          this.smoothCameraFollow(roadLng, roadLat, roadBearing, 60, 600);
         }
       }
-    } catch { }
+    }
   }
 
   private clearReturnRoutePolyline(): void {
+    if (this.routeBetweenAbortController) {
+      try {
+        this.routeBetweenAbortController.abort();
+      } catch { }
+      this.routeBetweenAbortController = null;
+    }
+    this.currentActiveRouteCoordinates = [];
+    this.currentRouteDestination = null;
     if (!this.map) return;
     this.lastRoutedCoords = null;
     try {
@@ -2113,6 +3373,9 @@ export class HomePage implements AfterViewInit, OnDestroy {
     const coordinates = await this.fetchRoadRouteToTerminal(inputLng, inputLat);
     if (!coordinates || coordinates.length < 2) return false;
 
+    this.currentRouteDestination = [this.TERMINAL_LNG, this.TERMINAL_LAT];
+    this.currentRouteColor = '#2563eb';
+
     // 1. The exact road centerline starting coordinate
     const [roadLng, roadLat] = coordinates[0];
 
@@ -2126,6 +3389,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
     this.driverLat.set(roadLat);
     this.driverLng.set(roadLng);
     this.driverHeading.set(roadHeading);
+    this.driverRouteBearing = roadHeading;
 
     try {
       localStorage.setItem('srh_last_driver_coords', JSON.stringify({
@@ -2135,23 +3399,11 @@ export class HomePage implements AfterViewInit, OnDestroy {
       }));
     } catch { }
 
-    if (this.driverMarker) {
-      this.driverMarker.setLngLat([roadLng, roadLat]);
-      const coneEl = document.getElementById('driver-tricycle-cone');
-      if (coneEl) coneEl.style.transform = `rotate(${roadHeading}deg)`;
-    }
-    this.updateDriverLocationWebGL(roadLng, roadLat, roadHeading);
-
+    this.animateDriverMarkerTo(roadLng, roadLat, roadHeading, 450);
     this.applyRouteLineCoordinates(coordinates);
 
     if (this.map && !this.isUserPanned()) {
-      this.map.easeTo({
-        center: [roadLng, roadLat],
-        pitch: 60,
-        bearing: roadHeading,
-        duration: 900,
-        easing: (t: number) => 1 - Math.pow(1 - t, 3),
-      });
+      this.smoothCameraFollow(roadLng, roadLat, roadHeading, 60, 600);
     }
 
     const distToTerminal = this.calculateDistanceMeters(roadLat, roadLng, this.TERMINAL_LAT, this.TERMINAL_LNG);
@@ -2185,65 +3437,289 @@ export class HomePage implements AfterViewInit, OnDestroy {
     }, 120);
   }
 
-  private async handleGpsUpdate(pos: GeolocationPosition): Promise<void> {
-    const lat = pos.coords.latitude;
-    const lng = pos.coords.longitude;
+  private findNearestPointOnRoute(
+    lng: number,
+    lat: number,
+    coords: [number, number][]
+  ): { point: [number, number]; segIndex: number; distMeters: number } {
+    let bestDistSq = Infinity;
+    let bestPoint: [number, number] = [lng, lat];
+    let bestSegIndex = 0;
 
-    if (this.driverService.isReturning()) {
-      await this.applyRoadRouteAndSnap(lng, lat);
-      return;
-    }
-
-    this.hasGpsFix.set(true);
-    this.driverLat.set(lat);
-    this.driverLng.set(lng);
-
-    const distToTerminal = this.calculateDistanceMeters(
-      lat,
-      lng,
-      this.TERMINAL_LAT,
-      this.TERMINAL_LNG
-    );
-    this.isInsideTerminal.set(distToTerminal <= this.TERMINAL_RADIUS_METERS);
-
-    let currentHeading = this.driverHeading();
-    if (pos.coords.heading !== null && pos.coords.heading !== undefined && !isNaN(pos.coords.heading)) {
-      currentHeading = Math.round(pos.coords.heading);
-      this.driverHeading.set(currentHeading);
-    } else {
-      const prevLat = this.driverLat();
-      const prevLng = this.driverLng();
-      const dist = this.calculateDistanceMeters(prevLat, prevLng, lat, lng);
-      if (dist >= 1.5) {
-        currentHeading = Math.round(this.calculateBearing(prevLat, prevLng, lat, lng));
-        this.driverHeading.set(currentHeading);
+    for (let i = 0; i < coords.length - 1; i++) {
+      const a = coords[i];
+      const b = coords[i + 1];
+      if (Array.isArray(a) && Array.isArray(b) && a.length >= 2 && b.length >= 2) {
+        const proj = this.projectPointOnSegment(lng, lat, a, b);
+        if (proj.distSq < bestDistSq) {
+          bestDistSq = proj.distSq;
+          bestPoint = [proj.x, proj.y];
+          bestSegIndex = i;
+        }
       }
     }
 
-    try {
-      localStorage.setItem('srh_last_driver_coords', JSON.stringify({
-        lat,
-        lng,
-        heading: currentHeading,
-      }));
-    } catch { }
+    const distMeters = Math.sqrt(bestDistSq);
+    return { point: bestPoint, segIndex: bestSegIndex, distMeters };
+  }
 
-    if (this.driverMarker) {
-      this.driverMarker.setLngLat([lng, lat]);
+  private handleGpsUpdate(pos: GeolocationPosition): void {
+    if (!pos || !pos.coords) return;
+    const rawLat = pos.coords.latitude;
+    const rawLng = pos.coords.longitude;
+    const accuracy = pos.coords.accuracy;
+    const speed = pos.coords.speed;
+    const heading = pos.coords.heading;
+
+    // Degraded fixes still move the marker (never freeze during GPS dropouts); they only
+    // get a wider jitter window so cell/Wi-Fi noise can't ping-pong the tricycle.
+    this.gpsFixIsCoarse = accuracy !== null && accuracy !== undefined && accuracy > 600;
+    const jitterWindow = this.gpsFixIsCoarse ? 1500 : 250;
+
+    // Basic validity check
+    if (isNaN(rawLat) || isNaN(rawLng) || rawLat === 0 || rawLng === 0) {
+      return;
     }
-    this.updateDriverHeadingCone(currentHeading);
 
-    // Center map smoothly on driver's location without altering the current zoom level
-    if (this.map && !this.isUserPanned()) {
+    const now = Date.now();
+
+    // Deadband: only skip micro-jitter (< 0.25m) received within the jitter window
+    if (this.lastProcessedGpsCoords) {
+      const distFromLast = this.calculateDistanceMeters(
+        this.lastProcessedGpsCoords.lat,
+        this.lastProcessedGpsCoords.lng,
+        rawLat,
+        rawLng
+      );
+      if (distFromLast < 0.25 && (now - this.lastProcessedGpsCoords.time) < jitterWindow) {
+        return;
+      }
+    }
+
+    this.lastProcessedGpsCoords = { lat: rawLat, lng: rawLng, time: now };
+    this.hasGpsFix.set(true);
+
+    this.processLiveLocation(rawLng, rawLat, heading, speed);
+  }
+
+  private processLiveLocation(
+    rawLng: number,
+    rawLat: number,
+    reportedHeading: number | null,
+    speed: number | null
+  ): void {
+    const isPassenger = this.authService.isPassenger();
+    const pRide = this.activePassengerRide();
+    const dTrip = !isPassenger ? this.driverService.activeTrip() : null;
+    const isReturning = !isPassenger && this.driverService.isReturning();
+    const isPassengerOnActiveTrip = isPassenger && !!pRide && ['accepted', 'en_route', 'arrived', 'in_transit'].includes(String(pRide?.status || '').toLowerCase().trim());
+    const isDriverOnActiveTrip = !isPassenger && !!dTrip && ['accepted', 'en_route', 'arrived', 'in_transit'].includes(String(dTrip?.status || '').toLowerCase().trim());
+
+    // 1. If PASSENGER is on an active trip:
+    // Sync current location. If no recent live driver broadcast arrived (> 2.5s), use own physical GPS to glide tricycle
+    if (isPassengerOnActiveTrip) {
+      this.driverLat.set(rawLat);
+      this.driverLng.set(rawLng);
+
+      const lastB = this.lastDriverBroadcastTime || 0;
+      if (Date.now() - lastB > 2500) {
+        let drvHeading = this.passengerRouteBearing || this.driverHeading();
+        if (reportedHeading !== null && reportedHeading !== undefined && !isNaN(reportedHeading) && (speed || 0) > 0.4) {
+          drvHeading = Math.round(reportedHeading);
+        } else if (this.driverLat() && this.driverLng()) {
+          const calc = Math.round(this.calculateBearing(this.driverLat(), this.driverLng(), rawLat, rawLng));
+          if (!isNaN(calc) && (Math.abs(rawLat - this.driverLat()) > 0.00003 || Math.abs(rawLng - this.driverLng()) > 0.00003)) {
+            drvHeading = calc;
+          }
+        }
+        this.driverHeading.set(drvHeading);
+
+        if (!this.driverMarker) {
+          this.syncPassengerDriverTricycleMarker();
+        }
+        this.animateDriverMarkerTo(rawLng, rawLat, drvHeading, 450);
+
+        if (!this.isUserPanned()) {
+          this.smoothCameraFollow(rawLng, rawLat, drvHeading, 60, 600);
+        }
+      }
+      return;
+    }
+
+    // 2. Determine if there is an active navigation route destination
+    let targetDestLng: number | null = null;
+    let targetDestLat: number | null = null;
+    let routeColor = '#2563eb';
+
+    if (isReturning) {
+      targetDestLng = this.TERMINAL_LNG;
+      targetDestLat = this.TERMINAL_LAT;
+      routeColor = '#2563eb';
+    } else if (isDriverOnActiveTrip && dTrip) {
+      const isEnRoute = dTrip.status === 'en_route';
+      const anyTrip = dTrip as any;
+      const tLng = isEnRoute
+        ? Number(anyTrip.pickupLng || anyTrip.pickup_lng)
+        : Number(anyTrip.dropoffLng || anyTrip.dropoff_lng || anyTrip.destinationLng || anyTrip.destination_lng);
+      const tLat = isEnRoute
+        ? Number(anyTrip.pickupLat || anyTrip.pickup_lat)
+        : Number(anyTrip.dropoffLat || anyTrip.dropoff_lat || anyTrip.destinationLat || anyTrip.destination_lat);
+      if (tLng && tLat && !isNaN(tLng) && !isNaN(tLat)) {
+        targetDestLng = tLng;
+        targetDestLat = tLat;
+        routeColor = isEnRoute ? '#2563eb' : '#059669';
+      }
+    }
+
+    const hasActiveRouteTarget = targetDestLng !== null && targetDestLat !== null;
+    const hasExistingRouteCoords = this.currentActiveRouteCoordinates && this.currentActiveRouteCoordinates.length >= 2;
+
+    // 3. IF THERE IS AN ACTIVE ROUTELINE:
+    // During degraded (coarse) fixes skip road-matching entirely — network hops would
+    // randomly snap the tricycle on/off the route and trigger phantom reroutes/412 glitches.
+    if (hasActiveRouteTarget && hasExistingRouteCoords && !this.gpsFixIsCoarse) {
+      const nearest = this.findNearestPointOnRoute(rawLng, rawLat, this.currentActiveRouteCoordinates);
+
+      // On-route threshold: 35 meters
+      if (nearest.distMeters <= 35) {
+        // --- ON ROUTE ---
+        const [roadLng, roadLat] = nearest.point;
+        const coords = this.currentActiveRouteCoordinates;
+        const segIdx = nearest.segIndex;
+
+        // Determine road heading forward
+        let roadHeading = this.driverRouteBearing || this.driverHeading();
+        if (segIdx < coords.length - 1) {
+          const [nextLng, nextLat] = coords[segIdx + 1];
+          const calc = Math.round(this.calculateBearing(roadLat, roadLng, nextLat, nextLng));
+          if (!isNaN(calc)) {
+            roadHeading = calc;
+          }
+        }
+
+        // Progressive Route Trimming: slice away passed segments so routeline begins from the vehicle
+        const remainingCoords: [number, number][] = [
+          [roadLng, roadLat],
+          ...coords.slice(segIdx + 1),
+        ];
+
+        if (remainingCoords.length >= 2) {
+          this.currentActiveRouteCoordinates = remainingCoords;
+          this.applyRouteLineCoordinates(remainingCoords, routeColor);
+        }
+
+        this.driverLat.set(roadLat);
+        this.driverLng.set(roadLng);
+        this.driverHeading.set(roadHeading);
+        this.driverRouteBearing = roadHeading;
+
+        this.animateDriverMarkerTo(roadLng, roadLat, roadHeading, 450);
+
+        if (!this.isUserPanned()) {
+          this.smoothCameraFollow(roadLng, roadLat, roadHeading, 60, 600);
+        }
+
+        // Check terminal arrival if returning
+        if (isReturning) {
+          const distToTerminal = this.calculateDistanceMeters(roadLat, roadLng, this.TERMINAL_LAT, this.TERMINAL_LNG);
+          this.isInsideTerminal.set(distToTerminal <= this.TERMINAL_RADIUS_METERS);
+          if (distToTerminal <= this.TERMINAL_RADIUS_METERS) {
+            this.handleTerminalArrival();
+          }
+        }
+
+        this.broadcastDriverLocationThrottled(roadLat, roadLng, roadHeading, speed);
+        return;
+      } else {
+        // --- OFF ROUTE / Went the other way around ---
+        const [roadLng, roadLat] = this.snapToNearestRoad(rawLng, rawLat);
+        const now = Date.now();
+
+        let moveHeading = this.driverHeading();
+        if (this.driverLat() && this.driverLng()) {
+          const calc = Math.round(this.calculateBearing(this.driverLat(), this.driverLng(), roadLat, roadLng));
+          if (!isNaN(calc) && (Math.abs(roadLat - this.driverLat()) > 0.00003 || Math.abs(roadLng - this.driverLng()) > 0.00003)) {
+            moveHeading = calc;
+          }
+        }
+
+        this.driverLat.set(roadLat);
+        this.driverLng.set(roadLng);
+        this.driverHeading.set(moveHeading);
+        this.animateDriverMarkerTo(roadLng, roadLat, moveHeading, 450);
+
+        if (!this.isUserPanned()) {
+          this.smoothCameraFollow(roadLng, roadLat, moveHeading, 60, 600);
+        }
+
+        // Seamless dynamic rerouting from current road point to destination
+        if (now - this.lastRerouteTime > 1500 && targetDestLng && targetDestLat) {
+          this.lastRerouteTime = now;
+          this.fetchAndApplyReroute(roadLng, roadLat, targetDestLng, targetDestLat, routeColor);
+        }
+
+        this.broadcastDriverLocationThrottled(roadLat, roadLng, moveHeading, speed);
+        return;
+      }
+    }
+
+    // 4. If active route target exists but no coordinates yet (initial draw)
+    if (hasActiveRouteTarget && !hasExistingRouteCoords && targetDestLng && targetDestLat) {
+      const [roadLng, roadLat] = this.snapToNearestRoad(rawLng, rawLat);
+      this.driverLat.set(roadLat);
+      this.driverLng.set(roadLng);
+      this.drawRoadRouteLine(roadLng, roadLat, targetDestLng, targetDestLat, routeColor, true);
+      this.broadcastDriverLocationThrottled(roadLat, roadLng, this.driverHeading(), speed);
+      return;
+    }
+
+    // 5. FREE ROAM (No active routeline)
+    let moveHeading = this.driverHeading();
+    if (reportedHeading !== null && reportedHeading !== undefined && !isNaN(reportedHeading) && (speed || 0) > 0.4) {
+      moveHeading = Math.round(reportedHeading);
+    } else if (this.driverLat() && this.driverLng()) {
+      const calc = Math.round(this.calculateBearing(this.driverLat(), this.driverLng(), rawLat, rawLng));
+      if (!isNaN(calc) && (Math.abs(rawLat - this.driverLat()) > 0.00003 || Math.abs(rawLng - this.driverLng()) > 0.00003)) {
+        moveHeading = calc;
+      }
+    }
+
+    this.driverLat.set(rawLat);
+    this.driverLng.set(rawLng);
+    this.driverHeading.set(moveHeading);
+
+    const distToTerminal = this.calculateDistanceMeters(rawLat, rawLng, this.TERMINAL_LAT, this.TERMINAL_LNG);
+    this.isInsideTerminal.set(distToTerminal <= this.TERMINAL_RADIUS_METERS);
+
+    if (isPassenger) {
+      this.animatePassengerMarkerTo(rawLng, rawLat, 450);
+    } else {
+      this.animateDriverMarkerTo(rawLng, rawLat, moveHeading, 450);
+      this.broadcastDriverLocationThrottled(rawLat, rawLng, moveHeading, speed);
+    }
+
+    if (!this.isUserPanned()) {
       const is3D = this.mapControlState() === 3;
-      this.map.easeTo({
-        center: [lng, lat],
-        bearing: is3D ? currentHeading : 0,
-        pitch: is3D ? 60 : 0,
-        duration: 800,
-        easing: (t: number) => 1 - Math.pow(1 - t, 3),
-      });
+      this.smoothCameraFollow(rawLng, rawLat, is3D ? moveHeading : 0, is3D ? 60 : 0, 600);
     }
+  }
+
+  private broadcastDriverLocationThrottled(lat: number, lng: number, heading: number, speed: number | null): void {
+    if (this.authService.isPassenger()) return;
+    const now = Date.now();
+    if (now - this.lastBroadcastTime < 1000) return;
+    this.lastBroadcastTime = now;
+
+    const dTrip = this.driverService.activeTrip();
+    const rideId = dTrip ? Number(String(dTrip.id).replace(/\D/g, '')) : undefined;
+
+    this.driverService.updateDriverLocation({
+      lat,
+      lng,
+      heading,
+      speed: speed ?? undefined,
+      ride_id: rideId,
+    });
   }
 
   // --- 5. COMPASS TRACKING & 3D ORIENTATION CAMERA ---
@@ -2276,9 +3752,33 @@ export class HomePage implements AfterViewInit, OnDestroy {
   }
 
   private handleDeviceOrientation(e: DeviceOrientationEvent): void {
-    // In Returning to Terminal state: disable gyro compass drift to keep view locked to road navigation!
+    // When driver is returning to terminal: keep view locked to road navigation, disable gyro drift
     if (this.driverService.isReturning()) {
       return;
+    }
+
+    // When there is an active route line on the map: strictly disable compass / gyro to keep road lock
+    if (this.currentActiveRouteCoordinates && this.currentActiveRouteCoordinates.length >= 2) {
+      return;
+    }
+
+    // When DRIVER has an ACTIVE TRIP with a routeline: tricycle bearing must stay locked to
+    // the road/route direction. Device compass must NOT override it.
+    if (!this.authService.isPassenger()) {
+      const dTrip = this.driverService.activeTrip();
+      if (dTrip && ['en_route', 'in_transit', 'arrived', 'accepted'].includes(String(dTrip.status || '').toLowerCase().trim())) {
+        return;
+      }
+    }
+
+    // When PASSENGER has an ACTIVE TRIP with a routeline: the tricycle bearing must stay
+    // locked to the road direction. Device compass must NOT override it.
+    if (this.authService.isPassenger()) {
+      const pRide = this.activePassengerRide();
+      const pStatus = String(pRide?.status || '').toLowerCase().trim();
+      if (pRide && ['accepted', 'en_route', 'arrived', 'in_transit'].includes(pStatus)) {
+        return;
+      }
     }
 
     let rawHeading: number | null = null;
@@ -2362,44 +3862,68 @@ export class HomePage implements AfterViewInit, OnDestroy {
   handleUnifiedMapButtonClick(): void {
     if (!this.map) return;
 
+    const isPassenger = this.authService.isPassenger();
+    const pRide = this.activePassengerRide();
+    const hasActivePassengerTrip = isPassenger && !!pRide && ['en_route', 'accepted', 'arrived', 'in_transit'].includes(String(pRide?.status || '').toLowerCase().trim());
+    const hasActiveTrip = hasActivePassengerTrip; // alias for backward compat below
+
+    // 1. If location is overridden or GPS fix lost: ALWAYS fetch device GPS (target icon spins during fetch)
+    if (this.isLocationOverridden() || !this.hasGpsFix()) {
+      this.fetchAndRecenterGpsLocation();
+      return;
+    }
+
+    // 2. If user only panned the map without overriding location:
     if (this.isUserPanned()) {
-      if (this.isLocationOverridden() || !this.hasGpsFix()) {
-        this.fetchAndRecenterGpsLocation();
-      } else {
-        this.isUserPanned.set(false);
-        this.recenterToDriverOrTerminal();
-      }
+      this.isUserPanned.set(false);
+      this.recenterToDriverOrTerminal();
+      this.displayToast(hasActiveTrip ? 'Re-centered on Driver Tricycle' : 'Re-centered on Location');
       return;
     }
 
     const currentState = this.mapControlState();
+    const targetLng = hasActiveTrip ? Number(pRide.driver_lng || pRide.driver?.lng || this.driverLng()) : this.driverLng();
+    const targetLat = hasActiveTrip ? Number(pRide.driver_lat || pRide.driver?.lat || this.driverLat()) : this.driverLat();
+    const targetHeading = hasActiveTrip ? Number(pRide.driver_heading || pRide.driver?.heading || 0) : this.driverHeading();
 
     if (currentState === 2) {
-      // Request iOS device orientation permission if required
-      if (typeof (DeviceOrientationEvent as any)?.requestPermission === 'function') {
-        (DeviceOrientationEvent as any).requestPermission().catch(() => {});
+      const dTrip = this.driverService.activeTrip();
+      const hasActiveDriverTrip = !isPassenger && !!dTrip && ['en_route', 'in_transit', 'arrived', 'accepted'].includes(String(dTrip?.status || '').toLowerCase().trim());
+      const hasActiveTrip = hasActivePassengerTrip || hasActiveDriverTrip;
+
+      // When on an active trip with a routeline, lock to route bearing (not device compass)
+      // Only request compass permission in true free-roam 3D mode
+      if (!hasActiveTrip) {
+        if (typeof (DeviceOrientationEvent as any)?.requestPermission === 'function') {
+          (DeviceOrientationEvent as any).requestPermission().catch(() => {});
+        }
       }
 
-      // Switch from 2D Top View to 3D Tilted Compass View
+      // Use route bearing when on active trip, device heading otherwise
+      const bearing3D = hasActiveDriverTrip && this.driverRouteBearing
+        ? this.driverRouteBearing
+        : (hasActivePassengerTrip ? this.passengerRouteBearing : targetHeading);
+
+      // Switch from 2D Top View to 3D Tilted Route/Compass View
       this.isUserPanned.set(false);
       this.mapControlState.set(3);
       this.map.easeTo({
-        center: [this.driverLng(), this.driverLat()],
+        center: [targetLng, targetLat],
         padding: this.getVisibleMapPadding(),
         zoom: 17.2,
         pitch: 60,
-        bearing: this.driverHeading(),
+        bearing: bearing3D,
         duration: 650,
         easing: (t: number) => 1 - Math.pow(1 - t, 3),
         essential: true,
       });
-      this.displayToast('3D Compass View (Follows Device Orientation)');
+      this.displayToast(hasActiveTrip ? '3D Route View (Facing Route Direction)' : '3D Compass View (Follows Device Orientation)');
     } else {
-      // Switch from 3D Tilted Compass View back to 2D Top View
+      // Switch from 3D Tilted View back to 2D Top View
       this.isUserPanned.set(false);
       this.mapControlState.set(2);
       this.map.easeTo({
-        center: [this.driverLng(), this.driverLat()],
+        center: [targetLng, targetLat],
         padding: this.getVisibleMapPadding(),
         zoom: 16.6,
         pitch: 0,
@@ -2413,8 +3937,11 @@ export class HomePage implements AfterViewInit, OnDestroy {
   }
 
   fetchAndRecenterGpsLocation(): void {
+    this.isUserPanned.set(false);
+    this.isLocationOverridden.set(false);
+    this.startRealGpsTracking();
+
     if (!navigator.geolocation) {
-      this.isUserPanned.set(false);
       this.recenterToDriverOrTerminal();
       return;
     }
@@ -2442,8 +3969,21 @@ export class HomePage implements AfterViewInit, OnDestroy {
         );
         this.isInsideTerminal.set(distToTerminal <= this.TERMINAL_RADIUS_METERS);
 
-        if (this.driverMarker) {
-          this.driverMarker.setLngLat([lng, lat]);
+        if (this.authService.isPassenger()) {
+          this.animatePassengerMarkerTo(lng, lat, 400);
+        } else {
+          this.animateDriverMarkerTo(lng, lat, this.driverHeading(), 400);
+          this.broadcastDriverLocationThrottled(lat, lng, this.driverHeading(), pos.coords.speed);
+        }
+
+        const isPassenger = this.authService.isPassenger();
+        const pRide = this.activePassengerRide();
+        const hasActiveTrip = isPassenger && !!pRide && ['en_route', 'accepted', 'arrived', 'in_transit'].includes(String(pRide?.status || '').toLowerCase().trim());
+
+        if (hasActiveTrip) {
+          this.recenterToDriverOrTerminal();
+          this.displayToast('GPS restored • Centered on Driver');
+          return;
         }
 
         const is3D = this.mapControlState() === 3;
@@ -2464,6 +4004,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
         console.warn('GPS location fetch error on recenter:', err);
         this.isGpsFetching.set(false);
         this.isUserPanned.set(false);
+        this.isLocationOverridden.set(false);
         this.recenterToDriverOrTerminal();
         this.displayToast('Re-centered on last known position');
       },
@@ -2473,13 +4014,20 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
   private recenterToDriverOrTerminal(): void {
     if (!this.map) return;
+    const isPassenger = this.authService.isPassenger();
+    const pRide = this.activePassengerRide();
+    const hasActiveTrip = isPassenger && !!pRide && ['en_route', 'accepted', 'arrived', 'in_transit'].includes(String(pRide?.status || '').toLowerCase().trim());
+    const targetLng = hasActiveTrip ? Number(pRide.driver_lng || pRide.driver?.lng || this.driverLng()) : this.driverLng();
+    const targetLat = hasActiveTrip ? Number(pRide.driver_lat || pRide.driver?.lat || this.driverLat()) : this.driverLat();
     const is3D = this.mapControlState() === 3;
+    const targetBearing = hasActiveTrip ? Number(pRide.driver_heading || pRide.driver?.heading || 0) : (is3D ? this.driverHeading() : 0);
+
     this.map.flyTo({
-      center: [this.driverLng(), this.driverLat()],
+      center: [targetLng, targetLat],
       padding: this.getVisibleMapPadding(),
       zoom: is3D ? 17.2 : 16.6,
       pitch: is3D ? 60 : 0,
-      bearing: is3D ? this.driverHeading() : 0,
+      bearing: targetBearing,
       speed: 1.2,
       curve: 1.4,
       essential: true,
@@ -2619,19 +4167,40 @@ export class HomePage implements AfterViewInit, OnDestroy {
   handleAppealFileUpload(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      const newFiles: Array<{ name: string; size: string }> = [];
+      const newFiles: Array<{ name: string; size: string; url?: string }> = [];
       for (let i = 0; i < input.files.length; i++) {
         const file = input.files[i];
+        let fileUrl = '';
+        try {
+          fileUrl = URL.createObjectURL(file);
+        } catch {
+          fileUrl = '';
+        }
         newFiles.push({
           name: file.name,
           size: (file.size / 1024).toFixed(1) + ' KB',
+          url: fileUrl,
         });
       }
       this.appealFiles.set([...this.appealFiles(), ...newFiles]);
     }
   }
 
-  removeAppealFile(index: number): void {
+  previewAppealFile(file: { name: string; url?: string }): void {
+    if (file.url) {
+      this.attachmentViewer.open(file.name, file.url, 'ATTACHED APPEAL PROOF');
+    }
+  }
+
+  previewSubmittedAttachment(att: { name: string; url?: string }): void {
+    const url = att.url || `/api/attachments/appeal/${att.name}`;
+    this.attachmentViewer.open(att.name, url, 'SUBMITTED APPEAL PROOF');
+  }
+
+  removeAppealFile(index: number, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
     const current = [...this.appealFiles()];
     current.splice(index, 1);
     this.appealFiles.set(current);

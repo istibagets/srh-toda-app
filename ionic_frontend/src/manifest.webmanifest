@@ -2,8 +2,8 @@
   "name": "SRH LINK-TODA",
   "short_name": "SRH TODA",
   "description": "Santa Rosa Homes TODA Tricycle Dispatch and Hailing System",
-  "start_url": "/",
-  "id": "/",
+  "start_url": "/?source=pwa",
+  "id": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
   "display_override": [

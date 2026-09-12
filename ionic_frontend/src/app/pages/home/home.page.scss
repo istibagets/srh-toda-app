@@ -11,6 +11,7 @@
   top: 0;
   left: 0;
   right: 0;
+  width: 100%;
   z-index: 100;
   pointer-events: none;
   transform-origin: center top;
@@ -401,6 +402,22 @@
       font-size: 10px;
       color: #92400e;
     }
+
+    .pending-proof-section {
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px dashed rgba(217, 119, 6, 0.3);
+
+      .proof-label {
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        color: #92400e;
+        text-transform: uppercase;
+        display: block;
+        margin-bottom: 4px;
+      }
+    }
   }
 
   .appeal-form-box {
@@ -440,6 +457,26 @@
         font-weight: 600;
         padding: 4px 8px;
         border-radius: 8px;
+        transition: all 0.15s ease;
+
+        &.clickable {
+          cursor: pointer;
+
+          &:hover {
+            background: #dbeafe;
+            border-color: #93c5fd;
+          }
+
+          &:active {
+            transform: scale(0.96);
+          }
+        }
+
+        .view-ico {
+          font-size: 12px;
+          color: #3b82f6;
+          margin-left: 2px;
+        }
 
         .del-btn {
           background: transparent;
@@ -448,6 +485,12 @@
           font-weight: bold;
           font-size: 14px;
           cursor: pointer;
+          padding: 0 2px;
+          line-height: 1;
+
+          &:hover {
+            color: #b91c1c;
+          }
         }
       }
     }
@@ -735,7 +778,7 @@
   --background: #ffffff;
 
   .booking-modal-container {
-    padding: 12px 18px 16px 18px;
+    padding: 8px 16px calc(12px + env(safe-area-inset-bottom, 8px)) 16px;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -745,8 +788,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 8px;
-      padding-bottom: 8px;
+      margin-bottom: 6px;
+      padding-bottom: 6px;
       border-bottom: 1px solid #f1f5f9;
 
       .modal-title-meta {
@@ -791,16 +834,16 @@
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      padding-bottom: 4px;
+      gap: 6px;
+      padding-bottom: 2px;
 
       .srh-input-box {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 10px;
-        padding: 8px 12px;
-        border-radius: 20px;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 18px;
         background: #ffffff;
         transition: all 0.2s ease;
 
@@ -1171,43 +1214,45 @@
           }
         }
       }
-    }
 
-    .modal-footer-cta {
-      margin-top: 4px;
-      padding-top: 0;
+      .modal-footer-cta {
+        margin-top: 6px;
+        padding-top: 0;
+        flex-shrink: 0;
 
-      .confirm-dispatch-btn {
-        width: 100%;
-        height: 46px;
-        border-radius: 16px;
-        background: linear-gradient(135deg, #1d4ed8, #2563eb);
-        color: #ffffff;
-        font-size: 0.95rem;
-        font-weight: 900;
-        border: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        cursor: pointer;
-        box-shadow: 0 8px 24px -4px rgba(37, 99, 235, 0.45);
-        transition: transform 0.15s ease, background 0.2s ease;
+        .confirm-dispatch-btn {
+          width: 100%;
+          height: 46px;
+          border-radius: 14px;
+          background: linear-gradient(135deg, #1d4ed8, #2563eb);
+          color: #ffffff;
+          font-size: 0.95rem;
+          font-weight: 800;
+          letter-spacing: 0.01em;
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          cursor: pointer;
+          box-shadow: 0 4px 16px -2px rgba(37, 99, 235, 0.45);
+          transition: transform 0.15s ease, background 0.2s ease;
 
-        &:active:not(:disabled) {
-          transform: scale(0.98);
-          background: #1e40af;
-        }
+          &:active:not(:disabled) {
+            transform: scale(0.98);
+            background: #1e40af;
+          }
 
-        &:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
 
-        .btn-spinner {
-          width: 20px;
-          height: 20px;
-          --color: #ffffff;
+          .btn-spinner {
+            width: 20px;
+            height: 20px;
+            --color: #ffffff;
+          }
         }
       }
     }

@@ -23,7 +23,8 @@ class QueueService
 
             $driver->update([
                 'is_online' => false,
-                'queue_position' => null
+                'queue_position' => null,
+                'queue_joined_at' => null,
             ]);
 
             if ($currentPosition !== null) {
@@ -52,7 +53,8 @@ class QueueService
             // 2. Put our driver firmly at Position #1
             $driver->update([
                 'is_online' => true,
-                'queue_position' => 1
+                'queue_position' => 1,
+                'queue_joined_at' => $driver->queue_joined_at ?? now(),
             ]);
 
             $this->normalizeQueue();
@@ -67,20 +69,24 @@ class QueueService
     public function pushToBack(Driver $driver)
     {
         DB::transaction(function () use ($driver) {
-            $onTripDriverUserIds = Ride::whereIn('status', ['fare_proposed', 'fare_accepted', 'accepted', 'arrived', 'in_transit', 'returning'])
+            $onTripDriverUserIds = Ride::whereIn('status', ['bargaining', 'fare_proposed', 'fare_accepted', 'accepted', 'en_route', 'arrived', 'in_transit', 'returning'])
                 ->pluck('driver_id')
                 ->filter()
                 ->toArray();
 
-            $onlineDriversCount = Driver::where('is_online', true)
-                ->where('compliance_status', 'Approved')
+            // Find current maximum queue position among other online waiting drivers
+            $maxPosition = Driver::where('is_online', true)
+                ->where('id', '!=', $driver->id)
+                ->whereNotIn('compliance_status', ['Suspended', 'suspended', 'Rejected', 'rejected'])
                 ->whereNotNull('queue_position')
                 ->whereNotIn('user_id', $onTripDriverUserIds)
-                ->count();
+                ->max('queue_position') ?? 0;
 
+            // Place firmly behind all other online waiting drivers with fresh queue_joined_at
             $driver->update([
-                'is_online' => true,
-                'queue_position' => max(1, $onlineDriversCount + 1)
+                'is_online'       => true,
+                'queue_position'  => $maxPosition + 10,
+                'queue_joined_at' => now(),
             ]);
 
             $this->normalizeQueue();
@@ -96,7 +102,7 @@ class QueueService
     public function normalizeQueue()
     {
         // 1. Find all drivers who are currently on an active trip
-        $onTripDriverUserIds = Ride::whereIn('status', ['fare_proposed', 'fare_accepted', 'accepted', 'arrived', 'in_transit', 'returning'])
+        $onTripDriverUserIds = Ride::whereIn('status', ['bargaining', 'fare_proposed', 'fare_accepted', 'accepted', 'en_route', 'arrived', 'in_transit', 'returning'])
             ->pluck('driver_id')
             ->filter()
             ->toArray();
@@ -110,11 +116,11 @@ class QueueService
 
         // 3. Sequential re-indexing for ALL waiting online drivers with an existing queue position
         $drivers = Driver::where('is_online', true)
-            ->whereNotNull('compliance_status')
-            ->where('compliance_status', 'Approved')
+            ->whereNotIn('compliance_status', ['Suspended', 'suspended', 'Rejected', 'rejected'])
             ->whereNotNull('queue_position')
             ->whereNotIn('user_id', $onTripDriverUserIds)
             ->orderBy('queue_position', 'asc')
+            ->orderBy('queue_joined_at', 'asc')
             ->orderBy('updated_at', 'asc')
             ->get();
 
@@ -137,7 +143,7 @@ class QueueService
         $cutoff = now()->subHours($inactiveHours);
 
         // 1. Identify all drivers on active rides — they are 100% protected
-        $onTripDriverUserIds = Ride::whereIn('status', ['fare_proposed', 'fare_accepted', 'accepted', 'arrived', 'in_transit', 'returning'])
+        $onTripDriverUserIds = Ride::whereIn('status', ['bargaining', 'fare_proposed', 'fare_accepted', 'accepted', 'en_route', 'arrived', 'in_transit', 'returning'])
             ->pluck('driver_id')
             ->filter()
             ->toArray();
@@ -169,6 +175,7 @@ class QueueService
             $driver->update([
                 'is_online' => false,
                 'queue_position' => null,
+                'queue_joined_at' => null,
             ]);
             $count++;
         }

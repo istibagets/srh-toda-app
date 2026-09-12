@@ -19,6 +19,8 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
     'appeal_attachments',
     'is_online',       // Added for Queue System
     'queue_position',  // Added for Queue System
+    'queue_joined_at', // Added for individual driver online/joined queue time
+    'outside_geofence_at', // Added for 30-min geofence exit timeout
     'last_activity_at' // Added for 2-hour idle off-duty tracking
 ])]
 class Driver extends Model
@@ -26,8 +28,10 @@ class Driver extends Model
     // This explicitly tells Laravel to treat is_online as true/false, not 1/0
     protected $casts = [
         'is_online' => 'boolean',
+        'queue_joined_at' => 'datetime',
         'appealed_at' => 'datetime',
         'last_activity_at' => 'datetime',
+        'outside_geofence_at' => 'datetime',
         'appeal_attachments' => 'array',
     ];
 
@@ -57,6 +61,30 @@ class Driver extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the full name with fallback to the associated user record (Normalized Accessor).
+     */
+    public function getFullNameAttribute($value)
+    {
+        return $value ?: ($this->user?->name ?? 'TODA Driver');
+    }
+
+    /**
+     * Relationship: A driver has many rides.
+     */
+    public function rides()
+    {
+        return $this->hasMany(Ride::class, 'driver_id', 'user_id');
+    }
+
+    /**
+     * Relationship: A driver has many incident reports.
+     */
+    public function reports()
+    {
+        return $this->hasMany(Report::class, 'driver_id', 'user_id');
     }
 
     /**

@@ -33,6 +33,8 @@ import {
   refreshOutline,
   carOutline,
   chevronDownCircleOutline,
+  thumbsUpOutline,
+  thumbsUp,
 } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
 import { DashboardService, HistoryRideItem, RideHistoryResponse } from '../../services/dashboard.service';
@@ -165,17 +167,31 @@ export class HistoryPage implements OnInit {
     } else if (status === 'cancelled') {
       list = list.filter((r) => r.status === 'cancelled');
     } else if (status === 'walkin') {
-      list = list.filter((r) => r.trip_type === 'terminal_walk_in');
+      list = list.filter(
+        (r) =>
+          r.trip_type === 'terminal_walk_in' ||
+          !r.passenger_name ||
+          r.passenger_name === 'Walk-in Passenger'
+      );
     }
 
     if (query) {
-      list = list.filter(
-        (r) =>
-          r.destination.toLowerCase().includes(query) ||
-          r.pickup_location.toLowerCase().includes(query) ||
-          r.passenger_name.toLowerCase().includes(query) ||
-          r.trip_id.toLowerCase().includes(query)
-      );
+      list = list.filter((r) => {
+        const dest = (r.destination || '').toLowerCase();
+        const pickup = (r.pickup_location || '').toLowerCase();
+        const passenger = (r.passenger_name || '').toLowerCase();
+        const tripId = (r.trip_id || '').toLowerCase();
+        const driverName = (r.driver_name || '').toLowerCase();
+        const mtop = (r.mtop_number || '').toLowerCase();
+        return (
+          dest.includes(query) ||
+          pickup.includes(query) ||
+          passenger.includes(query) ||
+          tripId.includes(query) ||
+          driverName.includes(query) ||
+          mtop.includes(query)
+        );
+      });
     }
 
     return list;
@@ -221,6 +237,8 @@ export class HistoryPage implements OnInit {
       refreshOutline,
       carOutline,
       chevronDownCircleOutline,
+      thumbsUpOutline,
+      thumbsUp,
     });
   }
 
@@ -228,13 +246,17 @@ export class HistoryPage implements OnInit {
     this.loadHistory();
   }
 
+  ngOnDestroy(): void {
+    if (this.ratingAnimFrameId) {
+      cancelAnimationFrame(this.ratingAnimFrameId);
+    }
+  }
+
   private hasCapturedLifetimeRating = false;
   private hasAnimatedOnce = false;
 
   loadHistory(event?: any): void {
-    if (!event) {
-      this.isLoading.set(true);
-    }
+    this.isLoading.set(true);
 
     const filters = {
       status: this.activeStatusFilter(),
@@ -277,15 +299,22 @@ export class HistoryPage implements OnInit {
     });
   }
 
-  setStatusFilter(status: 'all' | 'completed' | 'walkin' | 'cancelled'): void {
+  setStatusFilter(status: 'all' | 'completed' | 'walkin' | 'cancelled', event?: Event): void {
     if (this.activeStatusFilter() === status) return;
     this.activeStatusFilter.set(status);
+    this.loadHistory();
+    if (event?.currentTarget) {
+      (event.currentTarget as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
   }
 
-  setRangeFilter(range: 'all' | 'today' | 'week' | 'month'): void {
+  setRangeFilter(range: 'all' | 'today' | 'week' | 'month', event?: Event): void {
     if (this.activeRangeFilter() === range) return;
     this.activeRangeFilter.set(range);
     this.loadHistory();
+    if (event?.currentTarget) {
+      (event.currentTarget as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
   }
 
   onSearchChange(event: any): void {

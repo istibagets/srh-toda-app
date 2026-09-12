@@ -25,6 +25,7 @@ import {
   checkmarkCircleOutline,
 } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
+import { PushService } from '../../services/push.service';
 
 @Component({
   selector: 'app-login',
@@ -46,6 +47,7 @@ import { AuthService } from '../../services/auth.service';
 export class LoginPage {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
+  private pushService = inject(PushService);
   private router = inject(Router);
   private toastCtrl = inject(ToastController);
 
@@ -116,6 +118,7 @@ export class LoginPage {
       next: (res) => {
         this.isLoading.set(false);
         if (res.status === 'success') {
+          this.pushService.promptAppPermissionsIfNecessary();
           this.router.navigate(['/tabs/home'], { replaceUrl: true });
         }
       },

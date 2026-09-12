@@ -5,7 +5,6 @@ import { RouterModule } from '@angular/router';
 import {
   IonHeader,
   IonToolbar,
-  IonTitle,
   IonContent,
   IonSpinner,
   IonSegment,
@@ -27,6 +26,7 @@ import {
   IonNote,
   IonModal,
   ToastController,
+  AlertController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { DriverService } from '../../services/driver.service';
@@ -34,6 +34,7 @@ import { DashboardService } from '../../services/dashboard.service';
 import { SavedLocationService } from '../../services/saved-location.service';
 import { PushService } from '../../services/push.service';
 import { SoundService } from '../../services/sound.service';
+import { AttachmentViewerService } from '../../services/attachment-viewer.service';
 import {
   personOutline,
   shieldCheckmarkOutline,
@@ -78,8 +79,9 @@ import {
   downloadOutline,
   printOutline,
   closeOutline,
+  settingsOutline,
+  trashOutline,
 } from 'ionicons/icons';
-import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -94,7 +96,6 @@ import { AuthService } from '../../services/auth.service';
     RouterModule,
     IonHeader,
     IonToolbar,
-    IonTitle,
     IonContent,
     IonSpinner,
     IonSegment,
@@ -113,32 +114,36 @@ export class ProfilePage implements OnInit {
   soundService = inject(SoundService);
   private fb = inject(FormBuilder);
   private toastCtrl = inject(ToastController);
+  private alertCtrl = inject(AlertController);
 
   // Passenger specific live statistics
   passengerTotalRides = signal<number>(0);
   passengerTotalFares = signal<number>(0);
 
   getDisplayMtop(): string {
-    const fromProfile = this.authService.currentUser()?.driver_profile?.mtop_number;
-    if (fromProfile) {
+    const user = this.authService.currentUser();
+    const fromProfile = user?.driver_profile?.mtop_number;
+    if (fromProfile && fromProfile !== 'PENDING' && fromProfile !== 'ADMIN') {
       return String(fromProfile).replace(/^MTOP-?/i, '').trim();
     }
     const fromDriver = this.driverService.driver().mtopNumber;
-    if (fromDriver && fromDriver !== '22') {
+    if (fromDriver && fromDriver !== 'PENDING' && fromDriver !== 'ADMIN') {
       return String(fromDriver).replace(/^MTOP-?/i, '').trim();
     }
     return '128491';
   }
 
-  // Active Segment Tab: 'account' | 'credentials' | 'commute' | 'security' | 'permissions'
-  activeTab = signal<'account' | 'credentials' | 'commute' | 'security' | 'permissions'>('account');
+  // Active Segment Tab: 'account' | 'credentials' | 'commute' | 'security'
+  activeTab = signal<'account' | 'credentials' | 'commute' | 'security'>('account');
+
+  // Full-screen settings modal state
+  isSettingsModalOpen = signal<boolean>(false);
 
   // Permissions & Hardware state
   gpsStatus = signal<'granted' | 'prompt' | 'denied'>('prompt');
   pushPermission = signal<string>('default');
   notifEnabled = signal<boolean>(true);
   soundEnabled = signal<boolean>(true);
-  vibrationEnabled = signal<boolean>(true);
   diagRunning = signal<boolean>(false);
   diagResult = signal<string | null>(null);
 
@@ -176,12 +181,11 @@ export class ProfilePage implements OnInit {
   private initialPanX = 0;
   private initialPanY = 0;
 
+  attachmentViewer = inject(AttachmentViewerService);
+
   openDocPreview(title: string, url?: string | null): void {
     if (!url) return;
-    this.previewDocTitle.set(title);
-    this.previewDocUrl.set(url);
-    this.resetDocZoom();
-    this.isDocPreviewOpen.set(true);
+    this.attachmentViewer.open(title, url, 'OFFICIAL DRIVER DOCUMENT');
   }
 
   closeDocPreview(): void {
@@ -377,10 +381,65 @@ export class ProfilePage implements OnInit {
       downloadOutline,
       printOutline,
       closeOutline,
+      settingsOutline,
+      trashOutline,
     });
 
     this.initUserForm();
     this.initHardwarePermissions();
+  }
+
+  openSettingsModal(): void {
+    this.isSettingsModalOpen.set(true);
+  }
+
+  closeSettingsModal(): void {
+    this.isSettingsModalOpen.set(false);
+  }
+
+  async confirmDeleteAccount(): Promise<void> {
+    const alert = await this.alertCtrl.create({
+      header: 'Delete Account?',
+      subHeader: 'Permanent and Irreversible',
+      message: 'Are you sure you want to permanently delete your TODA account? All your profile information, rides history, and preferences will be permanently wiped.',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+        },
+        {
+          text: 'Delete Account',
+          role: 'destructive',
+          handler: () => {
+            this.executeDeleteAccount();
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private executeDeleteAccount(): void {
+    this.authService.deleteAccount().subscribe({
+      next: async () => {
+        const t = await this.toastCtrl.create({
+          message: 'Your account has been deleted successfully.',
+          duration: 3000,
+          color: 'dark',
+          position: 'bottom',
+        });
+        await t.present();
+      },
+      error: async (err) => {
+        const t = await this.toastCtrl.create({
+          message: err.message || 'Failed to delete account.',
+          duration: 3000,
+          color: 'danger',
+          position: 'bottom',
+        });
+        await t.present();
+      },
+    });
   }
 
   ngOnInit(): void {
@@ -418,7 +477,6 @@ export class ProfilePage implements OnInit {
     }
     this.notifEnabled.set(localStorage.getItem('srh_notif_enabled') !== 'false');
     this.soundEnabled.set(localStorage.getItem('srh_sound_enabled') !== 'false');
-    this.vibrationEnabled.set(localStorage.getItem('srh_vibration_enabled') !== 'false');
 
     if (typeof navigator !== 'undefined' && 'permissions' in navigator) {
       navigator.permissions
@@ -434,16 +492,6 @@ export class ProfilePage implements OnInit {
     const newTab = event.detail.value;
     if (newTab) {
       this.activeTab.set(newTab);
-    }
-  }
-
-  private async triggerHaptic(style: ImpactStyle = ImpactStyle.Light): Promise<void> {
-    try {
-      await Haptics.impact({ style });
-    } catch {
-      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-        navigator.vibrate(30);
-      }
     }
   }
 
@@ -466,7 +514,6 @@ export class ProfilePage implements OnInit {
           this.gpsStatus.set('granted');
           this.diagResult.set('GPS location access is active and accurate.');
           this.showToast('GPS location tracking activated.', 'success');
-          this.triggerHaptic(ImpactStyle.Medium);
         },
         () => {
           this.gpsStatus.set('denied');
@@ -485,7 +532,6 @@ export class ProfilePage implements OnInit {
       this.soundService.playOnDuty();
       this.diagResult.set('System notifications are enabled and registered with TODA Push Server.');
       this.showToast('Push notifications enabled & active!', 'success');
-      this.triggerHaptic(ImpactStyle.Medium);
     } else {
       this.pushPermission.set('denied');
       this.showToast('Push notifications permission was not granted.', 'warning');
@@ -496,23 +542,12 @@ export class ProfilePage implements OnInit {
     const checked = event.detail.checked;
     this.notifEnabled.set(checked);
     localStorage.setItem('srh_notif_enabled', checked ? 'true' : 'false');
-    this.triggerHaptic();
   }
 
   toggleSound(event: any): void {
     const checked = event.detail.checked;
     this.soundEnabled.set(checked);
     localStorage.setItem('srh_sound_enabled', checked ? 'true' : 'false');
-    this.triggerHaptic();
-  }
-
-  toggleVibration(event: any): void {
-    const checked = event.detail.checked;
-    this.vibrationEnabled.set(checked);
-    localStorage.setItem('srh_vibration_enabled', checked ? 'true' : 'false');
-    if (checked) {
-      this.triggerHaptic(ImpactStyle.Heavy);
-    }
   }
 
   async runDiagnostics(): Promise<void> {
@@ -524,51 +559,52 @@ export class ProfilePage implements OnInit {
       this.soundService.playBookingAlert();
     } catch { }
 
-    // 2. Trigger Haptics
-    this.triggerHaptic(ImpactStyle.Heavy);
-
-    // 3. Ensure permissions and trigger Web Push test
+    // 2. Ensure permissions and trigger Web Push test
     try {
       if (this.pushService.permissionStatus() !== 'granted') {
         await this.pushService.requestPermissionAndSubscribe();
       }
       this.pushService.triggerTestPush();
     } catch (e) {
-      console.warn('Diagnostic push test note:', e);
+      console.warn('Diagnostics push note:', e);
     }
 
     setTimeout(() => {
+      const parts: string[] = [];
+      parts.push(`GPS: ${this.gpsStatus().toUpperCase()}`);
+      parts.push(`Push: ${this.notifEnabled() ? 'ENABLED' : 'MUTED'}`);
+      parts.push(`Chime: ${this.soundEnabled() ? 'ACTIVE' : 'MUTED'}`);
+
+      this.diagResult.set(`Diagnostics Passed (${parts.join(' | ')})`);
       this.diagRunning.set(false);
-      this.diagResult.set('Diagnostics passed! Sound, vibration, and push notification banner verified.');
-      this.showToast('Hardware diagnostics completed. Test notification sent!', 'success');
-      this.triggerHaptic(ImpactStyle.Medium);
-    }, 800);
+      this.showToast('Hardware sensor check completed successfully.', 'success');
+    }, 1200);
   }
 
-  // Account update
+  // Account form submission
   saveAccount(): void {
     if (this.accountForm.invalid) {
       this.accountForm.markAllAsTouched();
-      this.showToast('Please check the required fields in the account form.', 'warning');
+      this.showToast('Please check your input values.', 'warning');
       return;
     }
 
+    const val = this.accountForm.value;
     this.isSavingAccount.set(true);
 
-    this.authService.updateProfile(this.accountForm.value).subscribe({
-      next: () => {
+    this.authService.updateProfile({ name: val.name, phone_number: val.phone_number }).subscribe({
+      next: (res) => {
         this.isSavingAccount.set(false);
-        this.showToast('Profile details updated successfully.', 'success');
-        this.triggerHaptic(ImpactStyle.Medium);
+        this.showToast('Personal profile saved successfully.', 'success');
       },
       error: (err) => {
         this.isSavingAccount.set(false);
-        this.showToast(err.message || 'Failed to update profile.', 'danger');
+        this.showToast(err.message || 'Failed to update personal profile.', 'danger');
       },
     });
   }
 
-  // Password update
+  // Password form submission
   savePassword(): void {
     if (this.passwordForm.invalid) {
       this.passwordForm.markAllAsTouched();
@@ -589,7 +625,6 @@ export class ProfilePage implements OnInit {
         this.isSavingPassword.set(false);
         this.showToast('Security password changed successfully.', 'success');
         this.passwordForm.reset();
-        this.triggerHaptic(ImpactStyle.Medium);
       },
       error: (err) => {
         this.isSavingPassword.set(false);
@@ -609,7 +644,6 @@ export class ProfilePage implements OnInit {
         next: () => {
           this.isUploadingAvatar.set(false);
           this.showToast('Avatar updated successfully.', 'success');
-          this.triggerHaptic(ImpactStyle.Medium);
         },
         error: (err) => {
           this.isUploadingAvatar.set(false);

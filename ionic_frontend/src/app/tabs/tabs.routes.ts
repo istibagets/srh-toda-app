@@ -42,6 +42,11 @@ export const routes: Routes = [
           import('../pages/profile/profile.page').then((m) => m.ProfilePage),
       },
       {
+        path: 'superadmin',
+        loadComponent: () =>
+          import('../pages/superadmin/superadmin.page').then((m) => m.SuperadminPage),
+      },
+      {
         path: '',
         redirectTo: 'home',
         pathMatch: 'full',

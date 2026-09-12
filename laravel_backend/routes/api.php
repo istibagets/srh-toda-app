@@ -11,6 +11,16 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
+Route::get('/maintenance-status', function () {
+    $isDown = app()->isDownForMaintenance() || file_exists(storage_path('framework/down'));
+    return response()->json([
+        'status'         => 'success',
+        'is_maintenance' => (bool) $isDown,
+        'active'         => (bool) $isDown,
+        'message'        => $isDown ? 'System is currently under maintenance.' : 'System is operational.',
+    ]);
+});
+
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
@@ -20,6 +30,7 @@ Route::prefix('auth')->group(function () {
     Route::put('/profile', [AuthController::class, 'updateProfile']);
     Route::put('/password', [AuthController::class, 'updatePassword']);
     Route::post('/avatar', [AuthController::class, 'uploadAvatar']);
+    Route::delete('/account', [AuthController::class, 'deleteAccount']);
 });
 
 Route::prefix('home')->group(function () {
@@ -57,7 +68,10 @@ Route::prefix('driver')->group(function () {
     Route::post('/start-wayside', [DashboardController::class, 'startWayside']);
     Route::post('/return-terminal', [DashboardController::class, 'returnToTerminal']);
     Route::post('/update-location', [DashboardController::class, 'updateLocation']);
+    Route::post('/appeal', [\App\Http\Controllers\DriverController::class, 'submitAppeal']);
 });
+
+Route::post('/drivers/appeal', [\App\Http\Controllers\DriverController::class, 'submitAppeal']);
 
 Route::prefix('admin')->group(function () {
     Route::get('/overview', [DashboardController::class, 'getAdminOverview']);
@@ -66,6 +80,24 @@ Route::prefix('admin')->group(function () {
     Route::post('/announcement', [DashboardController::class, 'createAnnouncement']);
     Route::post('/reorder-queue', [DashboardController::class, 'reorderQueue']);
     Route::post('/remove-from-queue', [DashboardController::class, 'removeFromQueue']);
+    Route::post('/reset-driver-trip', [DashboardController::class, 'resetDriverTrip']);
+});
+
+Route::prefix('superadmin')->group(function () {
+    Route::post('/login', [\App\Http\Controllers\Api\SuperAdminApiController::class, 'login']);
+    Route::get('/overview', [\App\Http\Controllers\Api\SuperAdminApiController::class, 'getOverview']);
+    Route::get('/users', [\App\Http\Controllers\Api\SuperAdminApiController::class, 'getUsers']);
+    Route::post('/users', [\App\Http\Controllers\Api\SuperAdminApiController::class, 'createUser']);
+    Route::put('/users/{id}', [\App\Http\Controllers\Api\SuperAdminApiController::class, 'updateUser']);
+    Route::post('/users/{id}', [\App\Http\Controllers\Api\SuperAdminApiController::class, 'updateUser']);
+    Route::post('/users/{id}/role', [\App\Http\Controllers\Api\SuperAdminApiController::class, 'updateUserRole']);
+    Route::post('/users/{id}/toggle-status', [\App\Http\Controllers\Api\SuperAdminApiController::class, 'toggleUserStatus']);
+    Route::delete('/users/{id}', [\App\Http\Controllers\Api\SuperAdminApiController::class, 'deleteUser']);
+    Route::get('/cms', [\App\Http\Controllers\Api\SuperAdminApiController::class, 'getCmsData']);
+    Route::post('/cms/update', [\App\Http\Controllers\Api\SuperAdminApiController::class, 'updateCmsData']);
+    Route::get('/logs', [\App\Http\Controllers\Api\SuperAdminApiController::class, 'getActivityLogs']);
+    Route::post('/system/clear-cache', [\App\Http\Controllers\Api\SuperAdminApiController::class, 'clearCache']);
+    Route::post('/system/toggle-maintenance', [\App\Http\Controllers\Api\SuperAdminApiController::class, 'toggleMaintenance']);
 });
 
 Route::prefix('push')->group(function () {

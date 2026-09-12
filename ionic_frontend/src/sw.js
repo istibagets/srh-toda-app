@@ -2,14 +2,27 @@
    SRH LINK-TODA - Service Worker for PWA Offline & Background Web Push
    ========================================================================== */
 
-const CACHE_NAME = 'srh-toda-pwa-v1';
+const CACHE_NAME = 'srh-toda-pwa-v10';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches
+      .keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+      .then(() => self.clients.claim())
+  );
 });
 
 // Handle Fetch (Mandatory for Chrome PWA Install Prompt)
@@ -70,7 +83,6 @@ self.addEventListener('push', (event) => {
     body: data.body,
     icon: data.icon || '/assets/icon/icon-192.png',
     badge: data.badge || '/assets/icon/badge-192.png',
-    vibrate: [200, 100, 200, 100, 300],
     data: {
       url: data.url || '/',
     },

@@ -14,7 +14,7 @@ import {
   untracked,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonToast } from '@ionic/angular';
+import { IonToast, ToastController } from '@ionic/angular';
 import { DriverService } from '../../services/driver.service';
 import { AuthService } from '../../services/auth.service';
 import { DropOffCardComponent } from '../drop-off-card/drop-off-card.component';
@@ -33,6 +33,7 @@ export type SheetSnap = 'min' | 'mid' | 'max';
 export class QueueCardComponent implements AfterViewInit, OnDestroy {
   driverService = inject(DriverService);
   authService = inject(AuthService);
+  private toastController = inject(ToastController);
   isAdmin = computed(() => this.authService.currentUser()?.role === 'admin');
   unreadChatCount = input<number>(0);
   private ngZone = inject(NgZone);
@@ -141,6 +142,7 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
   });
 
   hasPendingChanges = signal<boolean>(false);
+  isOverrideToastDismissed = signal<boolean>(false);
   private originalDriverOrder: number[] = [];
 
   constructor() {
@@ -165,9 +167,6 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
           if (ids.length > 0) {
             this.originalDriverOrder = [...ids];
           }
-          setTimeout(() => {
-            this.updateVisualQueueNumbers();
-          }, 50);
         }
       });
     });
@@ -180,7 +179,6 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
           setTimeout(() => {
             this.initSortableQueue();
             this.captureOriginalOrder();
-            this.updateVisualQueueNumbers();
           }, 80);
         });
       }
@@ -259,15 +257,8 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
   }
 
   private checkUnsavedChanges(): void {
-    const container = this.sortableQueueContainer()?.nativeElement;
-    if (!container) return;
-
-    const items = container.querySelectorAll('.draggable-queue-item:not(.sortable-fallback)');
-    const currentOrder: number[] = [];
-    items.forEach((item) => {
-      const id = item.getAttribute('data-id');
-      if (id) currentOrder.push(Number(id));
-    });
+    const currentQueue = this.driverService.queue();
+    const currentOrder = currentQueue.map((item) => Number(item.id));
 
     if (this.originalDriverOrder.length === 0) {
       this.originalDriverOrder = [...currentOrder];
@@ -282,6 +273,9 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
 
     this.hasPendingChanges.set(isDifferent);
     this.driverService.setHasUnsavedQueueOrder(isDifferent);
+    if (isDifferent) {
+      this.isOverrideToastDismissed.set(false);
+    }
   }
 
   private initSortableQueue(): void {
@@ -317,74 +311,30 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
         if (this.originalDriverOrder.length === 0) {
           this.captureOriginalOrder();
         }
-        if (navigator.vibrate) {
-          try {
-            navigator.vibrate(20);
-          } catch { }
-        }
       },
-      onChange: () => {
-        // Live change queue numbers dynamically on screen as the card pushes other drivers
-        this.updateVisualQueueNumbers();
-      },
-      onEnd: () => {
+      onEnd: (evt: Sortable.SortableEvent) => {
         this.isItemSorting = false;
-        if (navigator.vibrate) {
-          try {
-            navigator.vibrate([15, 15]);
-          } catch { }
+
+        const oldIndex = evt.oldIndex;
+        const newIndex = evt.newIndex;
+
+        if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex) {
+          return;
         }
+
+        // Return the moved DOM element to its original slot so Angular's @for reconciles the DOM cleanly without duplicating elements
+        if (evt.from && evt.item) {
+          const children = Array.from(evt.from.children);
+          const nextSibling = children[oldIndex > newIndex ? oldIndex + 1 : oldIndex];
+          evt.from.insertBefore(evt.item, nextSibling || null);
+        }
+
         this.ngZone.run(() => {
-          this.updateVisualQueueNumbers();
+          this.driverService.moveQueueItem(oldIndex, newIndex);
           this.checkUnsavedChanges();
         });
       },
     });
-  }
-
-  private updateVisualQueueNumbers(): void {
-    const container = this.sortableQueueContainer()?.nativeElement;
-    if (!container) return;
-
-    const items = container.querySelectorAll(
-      '.draggable-queue-item:not(.sortable-fallback)'
-    );
-    items.forEach((item, index) => {
-      const numSpan = item.querySelector('.queue-number-badge') as HTMLElement;
-      if (numSpan) {
-        const newText = '#' + (index + 1);
-        if (numSpan.innerText !== newText) {
-          numSpan.innerText = newText;
-        }
-        if (index === 0) {
-          numSpan.className =
-            'queue-number-badge first font-black text-sm px-2.5 py-1 rounded-xl shadow-xs bg-blue-600 text-white shrink-0';
-        } else {
-          numSpan.className =
-            'queue-number-badge font-black text-sm px-2.5 py-1 rounded-xl shadow-xs bg-blue-50 text-blue-700 border border-blue-200 shrink-0';
-        }
-      }
-    });
-
-    const fallback = document.querySelector('.sortable-fallback');
-    const ghost = container.querySelector('.sortable-ghost');
-    if (fallback && ghost) {
-      const realSiblings = Array.from(container.children).filter(
-        (child) => !child.classList.contains('sortable-fallback')
-      );
-      const ghostIndex = realSiblings.indexOf(ghost);
-      const fallbackBadge = fallback.querySelector('.queue-number-badge') as HTMLElement;
-      if (fallbackBadge && ghostIndex !== -1) {
-        fallbackBadge.innerText = '#' + (ghostIndex + 1);
-        if (ghostIndex === 0) {
-          fallbackBadge.className =
-            'queue-number-badge first font-black text-sm px-2.5 py-1 rounded-xl shadow-xs bg-blue-600 text-white shrink-0';
-        } else {
-          fallbackBadge.className =
-            'queue-number-badge font-black text-sm px-2.5 py-1 rounded-xl shadow-xs bg-blue-50 text-blue-700 border border-blue-200 shrink-0';
-        }
-      }
-    }
   }
 
   // =========================================================================
@@ -787,12 +737,24 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
     this.driverService.proposeFare(fare);
   }
 
+  async showActionToast(message: string): Promise<void> {
+    const toast = await this.toastController.create({
+      message,
+      duration: 3000,
+      position: 'top',
+      color: 'success',
+    });
+    await toast.present();
+  }
+
   onDriverArrived(): void {
     this.driverService.notifyDriverArrived();
+    this.showActionToast('📍 Marked arrived! Passenger notified that you are waiting outside.');
   }
 
   onStartTrip(): void {
     this.driverService.startDepartTrip();
+    this.showActionToast('🚀 Trip started! On the way to destination.');
   }
 
   onCancelTrip(): void {
@@ -808,50 +770,23 @@ export class QueueCardComponent implements AfterViewInit, OnDestroy {
   }
 
   saveAdminQueue(): void {
-    const container = this.sortableQueueContainer()?.nativeElement;
-    if (!container) return;
-    const items = container.querySelectorAll(
-      '.draggable-queue-item:not(.sortable-fallback)'
-    );
-    const newOrder: number[] = [];
-    items.forEach((el) => {
-      const id = el.getAttribute('data-id');
-      if (id) newOrder.push(Number(id));
-    });
+    const list = this.driverService.queue();
+    const ids = list.map((item) => Number(item.id || item.driverId));
 
-    if (newOrder.length > 0) {
-      this.originalDriverOrder = [...newOrder];
-      this.driverService.reorderQueue(newOrder);
-      this.driverService.saveQueueOrder(newOrder);
+    if (ids.length > 0) {
+      this.originalDriverOrder = [...ids];
+      this.driverService.saveQueueOrder(ids);
     }
     this.hasPendingChanges.set(false);
     this.driverService.setHasUnsavedQueueOrder(false);
-    this.updateVisualQueueNumbers();
+    this.isOverrideToastDismissed.set(false);
   }
 
   cancelAdminQueue(): void {
-    const container = this.sortableQueueContainer()?.nativeElement;
-    if (container && this.originalDriverOrder.length > 0) {
-      const itemMap = new Map<number, HTMLElement>();
-      const items = container.querySelectorAll(
-        '.draggable-queue-item:not(.sortable-fallback)'
-      );
-      items.forEach((item) => {
-        const id = Number(item.getAttribute('data-id'));
-        if (id) itemMap.set(id, item as HTMLElement);
-      });
-
-      this.originalDriverOrder.forEach((id) => {
-        const item = itemMap.get(id);
-        if (item) {
-          container.appendChild(item);
-        }
-      });
-    }
-
     this.driverService.cancelQueueOrderChanges();
     this.hasPendingChanges.set(false);
     this.driverService.setHasUnsavedQueueOrder(false);
-    this.updateVisualQueueNumbers();
+    this.isOverrideToastDismissed.set(false);
+    this.captureOriginalOrder();
   }
 }

@@ -14,9 +14,10 @@
 
   <!-- 3. FLOATING MAP CONTROLS STACK (Bottom Right) -->
   <div id="floating-map-controls-container" class="floating-map-controls-container">
-    <button type="button" id="unified-map-control-btn" class="unified-map-btn" [class.btn-state-panned]="isUserPanned()"
+    <button type="button" id="unified-map-control-btn" class="unified-map-btn"
+      [class.btn-state-panned]="isUserPanned() || isLocationOverridden() || isGpsFetching()"
       (click)="handleUnifiedMapButtonClick()" title="Toggle 2D / 3D Map View">
-      @if (isUserPanned()) {
+      @if (isUserPanned() || isLocationOverridden() || isGpsFetching()) {
       <svg class="control-svg recenter-svg" [class.is-spinning]="isGpsFetching()" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2.5">
         <circle cx="12" cy="12" r="7" />
@@ -41,10 +42,11 @@
   </div>
 
   <!-- 4. PASSENGER COMMUTER BOTTOM SHEET (1:1 Hardware Drag Engine) -->
-  <app-passenger-sheet [activeRide]="activePassengerRide()" [unreadChatCount]="unreadChatCount()" [popularLandmarks]="popularLandmarks"
-    (dragSync)="onSheetDragSync($event)" (snapChange)="onSnapChange($event)" (dragStart)="onSheetDragStart()"
-    (dragEnd)="onSheetDragEnd()" (openBooking)="openBookingModal($event)" (acceptFare)="acceptPassengerFare()"
-    (openChat)="openTripChat()" (cancelRide)="cancelPassengerRide()"></app-passenger-sheet>
+  <app-passenger-sheet [activeRide]="activePassengerRide()" [unreadChatCount]="unreadChatCount()"
+    [popularLandmarks]="popularLandmarks" (dragSync)="onSheetDragSync($event)" (snapChange)="onSnapChange($event)"
+    (dragStart)="onSheetDragStart()" (dragEnd)="onSheetDragEnd()" (openBooking)="openBookingModal($event)"
+    (acceptFare)="acceptPassengerFare()" (openChat)="openTripChat()"
+    (cancelRide)="cancelPassengerRide()"></app-passenger-sheet>
 
 
 
@@ -52,13 +54,12 @@
   <!-- 5. INTERACTIVE PASSENGER BOOKING MODAL         -->
   <!-- ============================================== -->
   <ion-modal [isOpen]="showBookingModal()" (didDismiss)="closeBookingModal()" class="srh-booking-sheet-modal"
-    [initialBreakpoint]="0.54" [breakpoints]="[0, 0.54]">
+    [initialBreakpoint]="0.57" [breakpoints]="[0, 0.57]">
     <ng-template>
       <div class="booking-modal-container">
         <!-- Modal Header -->
         <div class="modal-top-bar">
           <div class="modal-title-meta">
-            <span class="modal-eyebrow">SRH TODA RIDE DISPATCH</span>
             <h2 class="modal-heading">Request a Tricycle</h2>
           </div>
           <button type="button" class="modal-close-btn" (click)="closeBookingModal()">
@@ -83,7 +84,8 @@
                   PICKUP ADDRESS (REQUIRED)
                   }
                 </span>
-                <input type="text" class="box-native-input" [ngModel]="bookingPickup()"
+                <input type="text" id="booking-pickup-input" name="booking_pickup"
+                  aria-label="Pickup Address (Block and Lot)" class="box-native-input" [ngModel]="bookingPickup()"
                   (ngModelChange)="bookingPickup.set($event)" placeholder="Enter Block &amp; Lot" />
               </div>
             </div>
@@ -110,7 +112,8 @@
                   DROP-OFF NAME (REQUIRED)
                   }
                 </span>
-                <input type="text" class="box-native-input" [ngModel]="bookingDestination()"
+                <input type="text" id="booking-destination-input" name="booking_destination"
+                  aria-label="Drop-off Destination Name" class="box-native-input" [ngModel]="bookingDestination()"
                   (ngModelChange)="onDestinationInputChange($event)" placeholder="Enter Drop off name" />
               </div>
             </div>
@@ -156,7 +159,7 @@
             </div>
           </div>
 
-          <!-- Modal Footer CTA (Directly below fare summary) -->
+          <!-- Modal Footer CTA (Directly below fare summary on that space) -->
           <div class="modal-footer-cta">
             <button type="button" class="confirm-dispatch-btn" [disabled]="isSubmittingBooking()"
               (click)="submitPassengerBooking()">
@@ -195,9 +198,10 @@
 
   <!-- 4. FLOATING MAP CONTROLS STACK (Bottom Right) -->
   <div id="floating-map-controls-container" class="floating-map-controls-container">
-    <button type="button" id="unified-map-control-btn" class="unified-map-btn" [class.btn-state-panned]="isUserPanned()"
+    <button type="button" id="unified-map-control-btn" class="unified-map-btn"
+      [class.btn-state-panned]="isUserPanned() || isLocationOverridden() || isGpsFetching()"
       (click)="handleUnifiedMapButtonClick()" title="Toggle 2D / 3D Map View">
-      @if (isUserPanned()) {
+      @if (isUserPanned() || isLocationOverridden() || isGpsFetching()) {
       <svg class="control-svg recenter-svg" [class.is-spinning]="isGpsFetching()" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2.5">
         <circle cx="12" cy="12" r="7" />
@@ -222,10 +226,10 @@
   </div>
 
   <!-- 5. BOTTOM SHEET: LIVE QUEUE, DROP-OFF & RETURNING -->
-  <app-queue-card [unreadChatCount]="unreadChatCount()" (startWalkIn)="onStartTerminalRide()" (addWayside)="onAddWaysideRide()"
-    (toggleDutyClick)="onDutyToggled(!driverService.isOnline())" (dropOffClick)="onDropOffClicked()"
-    (openChat)="openTripChat()" (snapChange)="onSnapChange($event)" (dragSync)="onSheetDragSync($event)"
-    (dragStart)="onSheetDragStart()" (dragEnd)="onSheetDragEnd()"></app-queue-card>
+  <app-queue-card [unreadChatCount]="unreadChatCount()" (startWalkIn)="onStartTerminalRide()"
+    (addWayside)="onAddWaysideRide()" (toggleDutyClick)="onDutyToggled(!driverService.isOnline())"
+    (dropOffClick)="onDropOffClicked()" (openChat)="openTripChat()" (snapChange)="onSnapChange($event)"
+    (dragSync)="onSheetDragSync($event)" (dragStart)="onSheetDragStart()" (dragEnd)="onSheetDragEnd()"></app-queue-card>
 
   <!-- 6. TERMINAL WALK-IN & WAYSIDE MODAL -->
   <app-terminal-ride-modal [isOpen]="showTerminalModal()" [isWayside]="isWaysideModal()"
@@ -305,30 +309,48 @@
           <p class="appeal-text">"{{ driverService.driver().appealMessage }}"</p>
           <span class="appeal-time">Submitted {{ driverService.driver().appealedAt }}. Admin will evaluate
             shortly.</span>
+
+          @if (driverService.driver().appealAttachments && (driverService.driver().appealAttachments?.length || 0) > 0)
+          {
+          <div class="pending-proof-section">
+            <span class="proof-label">ATTACHED PROOF:</span>
+            <div class="file-chips-row">
+              @for (att of driverService.driver().appealAttachments; track att.name) {
+              <div class="file-chip clickable" (click)="previewSubmittedAttachment(att)">
+                <ion-icon name="document-attach-outline"></ion-icon>
+                <span class="fname">{{ att.name }}</span>
+                <ion-icon name="eye-outline" class="view-ico"></ion-icon>
+              </div>
+              }
+            </div>
+          </div>
+          }
         </div>
         } @else {
         <div class="appeal-form-box">
-          <textarea class="appeal-textarea" rows="3"
+          <textarea id="driver-appeal-textarea" name="appeal_message" aria-label="Appeal reason and explanation"
+            class="appeal-textarea" rows="3"
             placeholder="Explain why your account should be reinstated or detail corrected details..."
             [ngModel]="appealText()" (ngModelChange)="appealText.set($event)"></textarea>
 
           @if (appealFiles().length > 0) {
           <div class="file-chips-row">
             @for (file of appealFiles(); track file.name; let idx = $index) {
-            <div class="file-chip">
+            <div class="file-chip clickable" (click)="previewAppealFile(file)">
               <ion-icon name="document-attach-outline"></ion-icon>
               <span class="fname">{{ file.name }}</span>
-              <button type="button" class="del-btn" (click)="removeAppealFile(idx)">&times;</button>
+              <button type="button" class="del-btn" (click)="removeAppealFile(idx, $event)">&times;</button>
             </div>
             }
           </div>
           }
 
           <div class="appeal-form-footer">
-            <label class="attach-btn">
+            <label class="attach-btn" for="appeal-proof-files">
               <ion-icon name="document-attach-outline"></ion-icon>
               <span>Attach Proof</span>
-              <input type="file" multiple class="hidden-input" (change)="handleAppealFileUpload($event)" />
+              <input id="appeal-proof-files" name="appeal_proof_files" type="file" multiple class="hidden-input"
+                (change)="handleAppealFileUpload($event)" />
             </label>
             <span class="size-hint">Max 10MB</span>
           </div>
@@ -371,7 +393,7 @@
 
   <!-- 7. IN-APP TRIP CHAT MODAL -->
   <app-trip-chat [rideId]="chatRideId()" [targetName]="chatTargetName()" [targetSub]="chatTargetSub()"
-    [targetAvatar]="chatTargetAvatar()" [isOpen]="showChatModal()" (closeChat)="closeTripChat()"
+    [targetAvatar]="chatTargetAvatar()" [isOpen]="showChatModal() && !isTripInTransit()" (closeChat)="closeTripChat()"
     (newMessageReceived)="onNewChatMessage($event)"></app-trip-chat>
 
   <!-- 8. PASSENGER RIDE COMPLETION & RATING MODAL -->
@@ -379,6 +401,6 @@
     (closeModal)="showRatingModal.set(false)" (submitted)="onRatingSubmitted()"></app-passenger-rating-modal>
 
   <!-- TOAST NOTIFICATIONS -->
-  <ion-toast [isOpen]="showToast()" [message]="toastMessage()" [color]="toastColor()" [duration]="3000" (didDismiss)="showToast.set(false)"
-    position="top" class="srh-custom-toast"></ion-toast>
+  <ion-toast [isOpen]="showToast()" [message]="toastMessage()" [color]="toastColor()" [duration]="3000"
+    (didDismiss)="showToast.set(false)" position="top" class="srh-custom-toast"></ion-toast>
 </ion-content>

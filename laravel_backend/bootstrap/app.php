@@ -8,7 +8,16 @@ use Illuminate\Foundation\Http\Middleware\PreventRequestsDuringMaintenance;
 // Keep the superadmin panel reachable while maintenance mode is active,
 // so the app can always be brought back online. The maintenance-status
 // probe also stays live so open app pages detect the change instantly.
-PreventRequestsDuringMaintenance::except(['superadmin*', 'maintenance-status']);
+PreventRequestsDuringMaintenance::except([
+    'superadmin*',
+    'api/superadmin*',
+    'maintenance-status',
+    'api/maintenance-status',
+    'broadcasting/*',
+    'api/broadcasting/*',
+    'up',
+    'api/up',
+]);
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,6 +28,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->preventRequestsDuringMaintenance(except: [
+            'superadmin*',
+            'api/superadmin*',
+            'maintenance-status',
+            'api/maintenance-status',
+            'broadcasting/*',
+            'api/broadcasting/*',
+            'up',
+            'api/up',
+        ]);
         $middleware->web(append: [
             \App\Http\Middleware\PreventBackHistory::class,
         ]);

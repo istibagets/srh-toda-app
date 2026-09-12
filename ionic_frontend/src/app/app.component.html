@@ -1,3 +1,25 @@
 <ion-app>
   <ion-router-outlet></ion-router-outlet>
+
+  <!-- Global Edge Swipe-to-Back Visual Indicator for Phones -->
+  @if (swipeBackService.isIndicatorVisible()) {
+    <div
+      class="srh-edge-swipe-indicator"
+      [style.opacity]="swipeBackService.edgeSwipeProgress()"
+      [style.transform]="'translate3d(' + (swipeBackService.edgeSwipeProgress() * 24) + 'px, -50%, 0)'"
+    >
+      <div class="swipe-circle-cue">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+      </div>
+    </div>
+  }
+
+  <!-- Global Full-Screen Attachment Viewer Modal -->
+  <app-attachment-viewer-modal></app-attachment-viewer-modal>
+
+  <!-- Global Full-Screen Maintenance Overlay -->
+  @if (maintenanceService.isMaintenanceActive() && !isSuperAdminRoute()) {
+    <app-maintenance-overlay></app-maintenance-overlay>
+  }
 </ion-app>
+

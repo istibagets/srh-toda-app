@@ -11,12 +11,15 @@ import {
   IonIcon,
   IonModal,
   AlertController,
+  ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   shieldCheckmarkOutline,
   personOutline,
   peopleOutline,
+  listOutline,
+  documentTextOutline,
   searchOutline,
   closeOutline,
   alertCircleOutline,
@@ -37,6 +40,7 @@ import {
   carOutline,
   star,
   refreshOutline,
+  reloadOutline,
   printOutline,
   downloadOutline,
   logOutOutline,
@@ -55,6 +59,7 @@ import {
   AdminAnnouncementItem,
   AdminOverviewResponse,
 } from '../../services/dashboard.service';
+import { AttachmentViewerService } from '../../services/attachment-viewer.service';
 
 @Component({
   selector: 'app-admin',
@@ -79,13 +84,16 @@ export class AdminPage implements OnInit {
   private dashboardService = inject(DashboardService);
   private router = inject(Router);
   private alertController = inject(AlertController);
+  private toastController = inject(ToastController);
 
   // Reactive Navigation & Filter Signals
   isLoading = signal<boolean>(true);
   isProcessing = signal<boolean>(false);
   activeTab = signal<'drivers' | 'queue' | 'reports' | 'broadcast'>('drivers');
   statusFilter = signal<'all' | 'Pending' | 'Approved' | 'Suspended'>('all');
+  reportFilter = signal<'all' | 'pending' | 'investigating' | 'resolved'>('all');
   searchQuery = signal<string>('');
+  reportSearchQuery = signal<string>('');
 
   // Overview Datasets Signals
   summary = signal({
@@ -134,12 +142,19 @@ export class AdminPage implements OnInit {
   private initialPanX = 0;
   private initialPanY = 0;
 
-  openDocPreview(title: string, url?: string | null): void {
+  attachmentViewer = inject(AttachmentViewerService);
+
+  goToReportGenerator(): void {
+    this.router.navigate(['/admin-reports']);
+  }
+
+  goToSuperAdmin(): void {
+    this.router.navigate(['/superadmin']);
+  }
+
+  openDocPreview(title: string, url?: string | null, category: string = 'OFFICIAL VERIFICATION DOCUMENT'): void {
     if (!url) return;
-    this.previewDocTitle.set(title);
-    this.previewDocUrl.set(url);
-    this.resetDocZoom();
-    this.isDocPreviewOpen.set(true);
+    this.attachmentViewer.open(title, url, category);
   }
 
   closeDocPreview(): void {
@@ -307,21 +322,76 @@ export class AdminPage implements OnInit {
     const query = this.searchQuery().trim().toLowerCase();
     let list = this.drivers();
 
-    if (status !== 'all') {
+    if (status === 'Pending') {
+      list = list.filter(
+        (d) =>
+          d.compliance_status === 'Pending' ||
+          d.compliance_status === 'Rejected' ||
+          d.appeal_status === 'pending'
+      );
+    } else if (status !== 'all') {
       list = list.filter((d) => d.compliance_status === status);
     }
 
     if (query) {
       list = list.filter(
         (d) =>
-          d.full_name.toLowerCase().includes(query) ||
-          d.mtop_number.toLowerCase().includes(query) ||
-          d.email.toLowerCase().includes(query) ||
-          d.phone_number.toLowerCase().includes(query)
+          (d.full_name || '').toLowerCase().includes(query) ||
+          (d.mtop_number || '').toLowerCase().includes(query) ||
+          (d.email || '').toLowerCase().includes(query) ||
+          (d.phone_number || '').toLowerCase().includes(query)
       );
     }
 
     return list;
+  });
+
+  // Filtered Reports Computed
+  filteredReports = computed(() => {
+    const filter = this.reportFilter().toLowerCase();
+    const query = this.reportSearchQuery().trim().toLowerCase();
+    let list = this.reports();
+
+    if (filter !== 'all') {
+      list = list.filter((r) => (r.status || '').toLowerCase() === filter);
+    }
+
+    if (query) {
+      list = list.filter(
+        (r) =>
+          (r.report_id || '').toLowerCase().includes(query) ||
+          (r.subject || '').toLowerCase().includes(query) ||
+          (r.description || '').toLowerCase().includes(query) ||
+          (r.reporter_name || '').toLowerCase().includes(query) ||
+          (r.driver_name || '').toLowerCase().includes(query) ||
+          (r.driver_mtop || '').toLowerCase().includes(query) ||
+          (r.category || '').toLowerCase().includes(query)
+      );
+    }
+
+    return list;
+  });
+
+  // Dynamic filter count helpers
+  pendingDriversCount = computed(() => {
+    return this.drivers().filter(
+      (d) =>
+        d.compliance_status === 'Pending' ||
+        d.compliance_status === 'Rejected' ||
+        d.appeal_status === 'pending'
+    ).length;
+  });
+
+  pendingReportsCount = computed(() => {
+    return this.reports().filter((r) => (r.status || '').toLowerCase() === 'pending').length;
+  });
+
+  investigatingReportsCount = computed(() => {
+    return this.reports().filter((r) => (r.status || '').toLowerCase() === 'investigating').length;
+  });
+
+  resolvedReportsCount = computed(() => {
+    return this.reports().filter((r) => (r.status || '').toLowerCase() === 'resolved').length;
   });
 
   // Action Needed Count (Pending Applicants + Open Disputes)
@@ -334,6 +404,8 @@ export class AdminPage implements OnInit {
       shieldCheckmarkOutline,
       personOutline,
       peopleOutline,
+      listOutline,
+      documentTextOutline,
       searchOutline,
       closeOutline,
       alertCircleOutline,
@@ -354,6 +426,7 @@ export class AdminPage implements OnInit {
       carOutline,
       star,
       refreshOutline,
+      reloadOutline,
       printOutline,
       downloadOutline,
       logOutOutline,
@@ -426,27 +499,46 @@ export class AdminPage implements OnInit {
     this.activeTab.set(tab);
   }
 
-  setStatusFilter(status: 'all' | 'Pending' | 'Approved' | 'Suspended'): void {
+  setStatusFilter(status: 'all' | 'Pending' | 'Approved' | 'Suspended', event?: Event): void {
     this.statusFilter.set(status);
+    if (event?.currentTarget) {
+      (event.currentTarget as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    } else {
+      setTimeout(() => {
+        const chips = document.querySelector('.driver-filter-chips');
+        const active = chips?.querySelector('.filter-chip.active') as HTMLElement | null;
+        active?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }, 50);
+    }
+  }
+
+  setReportFilter(filter: 'all' | 'pending' | 'investigating' | 'resolved', event?: Event): void {
+    this.reportFilter.set(filter);
+    if (event?.currentTarget) {
+      (event.currentTarget as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    } else {
+      setTimeout(() => {
+        const chips = document.querySelector('.reports-filter-chips');
+        const active = chips?.querySelector('.filter-chip.active') as HTMLElement | null;
+        active?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }, 50);
+    }
   }
 
   onSearchChange(event: any): void {
     this.searchQuery.set(event?.target?.value || '');
   }
 
-  onActionNeededClick(): void {
-    if (this.summary().pending_applicants > 0) {
-      this.setTab('drivers');
-      this.setStatusFilter('Pending');
-    } else if (this.summary().open_reports > 0) {
-      this.setTab('reports');
-    } else {
-      this.setTab('drivers');
-    }
-  }
-
   clearSearch(): void {
     this.searchQuery.set('');
+  }
+
+  onReportSearchChange(event: any): void {
+    this.reportSearchQuery.set(event?.target?.value || '');
+  }
+
+  clearReportSearch(): void {
+    this.reportSearchQuery.set('');
   }
 
   // ── DRIVER COMPLIANCE ACTIONS ──────────────────────────
@@ -461,7 +553,7 @@ export class AdminPage implements OnInit {
     this.selectedDriver.set(null);
   }
 
-  updateCompliance(status: 'Approved' | 'Pending' | 'Suspended' | 'Rejected', reason?: string): void {
+  updateCompliance(status: 'Approved' | 'Pending' | 'Suspended' | 'Rejected' | 'Removed', reason?: string): void {
     const driver = this.selectedDriver();
     if (!driver) return;
 
@@ -560,11 +652,50 @@ export class AdminPage implements OnInit {
   }
 
   // ── QUEUE MANAGEMENT ACTIONS ──────────────────────────
+  async confirmResetDriverTrip(item: AdminQueueItem): Promise<void> {
+    const alert = await this.alertController.create({
+      header: 'Reset Active Trip?',
+      subHeader: `${item.driver_name} (MTOP #${item.mtop_number})`,
+      message: `This driver is currently on an active trip. Resetting will safely cancel the active ride, clear the passenger trip, and return ${item.driver_name} to the end of the dispatch queue.`,
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+        },
+        {
+          text: 'Reset to End of Queue',
+          role: 'destructive',
+          handler: () => {
+            this.resetDriverTrip(item.driver_id || item.id);
+          },
+        },
+      ],
+    });
+
+    await alert.present();
+  }
+
+  resetDriverTrip(driverId: number): void {
+    this.isProcessing.set(true);
+    this.dashboardService.resetDriverTrip(driverId).subscribe({
+      next: (res) => {
+        this.isProcessing.set(false);
+        this.showToast(res?.message || 'Driver placed at the end of the queue.', 'success');
+        this.loadAdminData();
+      },
+      error: (err) => {
+        console.error('Failed to reset driver trip:', err);
+        this.isProcessing.set(false);
+        this.showToast(err?.error?.message || 'Failed to move driver to end of queue.', 'danger');
+      },
+    });
+  }
+
   async confirmRemoveFromQueue(item: AdminQueueItem): Promise<void> {
     const alert = await this.alertController.create({
       header: 'Remove from Queue?',
       subHeader: `${item.driver_name} (MTOP #${item.mtop_number})`,
-      message: 'Are you sure you want to remove this driver from the active terminal dispatch line and set them offline?',
+      message: `Are you sure you want to remove ${item.driver_name} from the active terminal dispatch line and set them offline?`,
       buttons: [
         {
           text: 'Cancel',
@@ -586,19 +717,27 @@ export class AdminPage implements OnInit {
   removeDriverFromQueue(driverId: number): void {
     this.isProcessing.set(true);
     this.dashboardService.removeFromQueue(driverId).subscribe({
-      next: () => {
+      next: (res) => {
         this.isProcessing.set(false);
+        this.showToast(res?.message || 'Driver removed from queue and set offline.', 'medium');
         this.loadAdminData();
       },
       error: (err) => {
         console.error('Failed to remove driver from queue:', err);
         this.isProcessing.set(false);
+        this.showToast(err?.error?.message || 'Failed to remove driver from queue.', 'danger');
       },
     });
   }
 
-  // ── PRINT & EXPORT FEATURES ────────────────────────────
-  goToReportGenerator(): void {
-    this.router.navigate(['/admin-reports']);
+  private async showToast(message: string, color: 'success' | 'danger' | 'medium' = 'success'): Promise<void> {
+    const toast = await this.toastController.create({
+      message,
+      duration: 3500,
+      position: 'top',
+      color,
+      cssClass: 'srh-custom-toast',
+    });
+    await toast.present();
   }
 }

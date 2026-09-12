@@ -95,7 +95,7 @@ export class PassengerSheetComponent implements AfterViewInit, OnDestroy {
   sheetRef = viewChild<ElementRef<HTMLDivElement>>('sheetElement');
   scrollContentRef = viewChild<ElementRef<HTMLDivElement>>('scrollContentElement');
 
-  snapState = signal<SheetSnap>('min');
+  snapState = signal<SheetSnap>('mid');
 
   async confirmCancelRide(): Promise<void> {
     const alert = await this.alertController.create({
@@ -199,15 +199,8 @@ export class PassengerSheetComponent implements AfterViewInit, OnDestroy {
 
     effect(() => {
       const ride = this.activeRide();
-      const status = ride?.status;
       untracked(() => {
-        if (ride) {
-          this.setSnap('mid');
-        } else {
-          if (this.snapState() === 'mid') {
-            this.setSnap('min');
-          }
-        }
+        this.setSnap('mid');
       });
     });
   }
@@ -216,7 +209,7 @@ export class PassengerSheetComponent implements AfterViewInit, OnDestroy {
     this.ngZone.runOutsideAngular(() => {
       const sheet = this.sheetRef()?.nativeElement;
       if (sheet) {
-        this.activeTranslateY = this.activeRide() ? this.MID_TRANSLATE_Y : this.MAX_TRANSLATE_Y;
+        this.activeTranslateY = this.MID_TRANSLATE_Y;
         sheet.style.transform = `translate3d(0, ${this.activeTranslateY}px, 0)`;
         this.dragSync.emit(this.activeTranslateY);
         this.attachNativeTouchGestures(sheet);

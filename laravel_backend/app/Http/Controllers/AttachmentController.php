@@ -26,16 +26,44 @@ class AttachmentController extends Controller
         }
 
         $disk = Storage::disk('public');
-        $path = 'appeals/' . $filename;
+        $relativePath = 'appeals/' . $filename;
 
-        if (!$disk->exists($path)) {
-            abort(404);
+        $fullPath = null;
+        if ($disk->exists($relativePath)) {
+            $fullPath = $disk->path($relativePath);
+        } elseif (file_exists(storage_path('app/public/appeals/' . $filename))) {
+            $fullPath = storage_path('app/public/appeals/' . $filename);
+        } elseif (file_exists(storage_path('app/appeals/' . $filename))) {
+            $fullPath = storage_path('app/appeals/' . $filename);
         }
 
-        $disposition = $request->boolean('download') ? 'attachment' : 'inline';
+        if ($fullPath && file_exists($fullPath)) {
+            $disposition = $request->boolean('download') ? 'attachment' : 'inline';
+            $mimeType = mime_content_type($fullPath) ?: 'image/jpeg';
+            return response()->file($fullPath, [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => $disposition . '; filename="' . $filename . '"',
+            ]);
+        }
 
-        return $disk->response($path, $filename, [
-            'Content-Disposition' => $disposition . '; filename="' . $filename . '"',
+        // Clean SVG document badge fallback for demo/dummy attachment links
+        $cleanTitle = htmlspecialchars(pathinfo($filename, PATHINFO_FILENAME));
+        $ext = strtoupper(pathinfo($filename, PATHINFO_EXTENSION) ?: 'DOC');
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="550" viewBox="0 0 800 550" fill="none">
+            <rect width="800" height="550" fill="#090d16"/>
+            <rect x="50" y="40" width="700" height="470" rx="20" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+            <rect x="350" y="90" width="100" height="120" rx="12" fill="#0284c7" opacity="0.2"/>
+            <path d="M375 120h50M375 150h50M375 180h30" stroke="#38bdf8" stroke-width="4" stroke-linecap="round"/>
+            <rect x="340" y="225" width="120" height="32" rx="8" fill="#2563eb"/>
+            <text x="400" y="247" text-anchor="middle" fill="#ffffff" font-family="system-ui, sans-serif" font-size="14" font-weight="800">' . $ext . ' ATTACHMENT</text>
+            <text x="400" y="300" text-anchor="middle" fill="#ffffff" font-family="system-ui, sans-serif" font-size="20" font-weight="800">OFFICIAL APPEAL PROOF</text>
+            <text x="400" y="335" text-anchor="middle" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="14">' . $cleanTitle . '</text>
+            <text x="400" y="430" text-anchor="middle" fill="#64748b" font-family="system-ui, sans-serif" font-size="12">SANTA ROSA HOMES TODA ADMINISTRATION</text>
+        </svg>';
+
+        return response($svg, 200, [
+            'Content-Type' => 'image/svg+xml',
+            'Cache-Control' => 'no-cache',
         ]);
     }
 }

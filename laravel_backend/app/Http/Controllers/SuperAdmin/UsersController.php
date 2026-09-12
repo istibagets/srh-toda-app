@@ -74,7 +74,7 @@ class UsersController extends Controller
         $driver = Driver::where('user_id', $user->id)->first();
         if ($newRole !== 'driver' && $driver) {
             $oldPosition = $driver->queue_position;
-            $driver->update(['is_online' => false, 'queue_position' => null]);
+            $driver->update(['is_online' => false, 'queue_position' => null, 'queue_joined_at' => null]);
             if ($oldPosition !== null) {
                 Driver::where('is_online', true)->where('queue_position', '>', $oldPosition)->decrement('queue_position');
             }
@@ -95,7 +95,7 @@ class UsersController extends Controller
             $driver = Driver::where('user_id', $user->id)->first();
             if ($driver && $driver->is_online) {
                 $oldPosition = $driver->queue_position;
-                $driver->update(['is_online' => false, 'queue_position' => null]);
+                $driver->update(['is_online' => false, 'queue_position' => null, 'queue_joined_at' => null]);
                 if ($oldPosition !== null) {
                     Driver::where('is_online', true)->where('queue_position', '>', $oldPosition)->decrement('queue_position');
                 }

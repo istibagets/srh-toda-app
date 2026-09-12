@@ -10,6 +10,7 @@
   z-index: 1000;
   contain: layout size style;
   padding-bottom: max(0px, env(safe-area-inset-bottom, 0px));
+  width: 100%;
 
   .tab-btn {
     --background: transparent;

@@ -1,8 +1,8 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+import { CanActivateFn, Router, UrlTree } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
-export const guestGuard: CanActivateFn = () => {
+export const guestGuard: CanActivateFn = (): boolean | UrlTree => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
@@ -10,6 +10,5 @@ export const guestGuard: CanActivateFn = () => {
     return true;
   }
 
-  router.navigate(['/tabs/home'], { replaceUrl: true });
-  return false;
+  return router.createUrlTree(['/tabs/home']);
 };

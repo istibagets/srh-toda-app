@@ -1,0 +1,132 @@
+@if (isOpen() && item(); as doc) {
+  <div
+    class="srh-fullscreen-viewer-overlay"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Full-Screen Attachment View"
+  >
+    <!-- Top Modern Minimal Header -->
+    <header class="viewer-top-bar">
+      <!-- Top Left: Simple Modern Back Button -->
+      <button
+        type="button"
+        class="viewer-back-btn"
+        (click)="close()"
+        title="Go Back"
+        aria-label="Go Back"
+      >
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </button>
+
+      <!-- Center: Title & Type Kicker -->
+      <div class="viewer-meta-group">
+        <span class="viewer-kicker">{{ doc.category || 'OFFICIAL ATTACHMENT' }}</span>
+        <h1 class="viewer-title">{{ doc.title }}</h1>
+      </div>
+
+      <!-- Top Right: Action Tools -->
+      <div class="viewer-actions-group">
+        <button
+          type="button"
+          class="viewer-tool-btn"
+          (click)="viewerService.downloadCurrent()"
+          title="Download Document"
+          aria-label="Download Document"
+        >
+          <ion-icon name="download-outline"></ion-icon>
+        </button>
+
+        <button
+          type="button"
+          class="viewer-tool-btn"
+          (click)="viewerService.openInBrowser($event)"
+          title="Open in Browser"
+          aria-label="Open in Browser"
+        >
+          <ion-icon name="open-outline"></ion-icon>
+        </button>
+
+        <button
+          type="button"
+          class="viewer-tool-btn"
+          (click)="viewerService.printCurrent()"
+          title="Print Document"
+          aria-label="Print Document"
+        >
+          <ion-icon name="print-outline"></ion-icon>
+        </button>
+
+        <button
+          type="button"
+          class="viewer-close-btn"
+          (click)="close()"
+          title="Close Viewer"
+          aria-label="Close Viewer"
+        >
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+    </header>
+
+    <!-- Floating Zoom Controls Bar -->
+    <div class="viewer-floating-controls">
+      <button
+        type="button"
+        class="zoom-pill-btn"
+        (click)="zoomOut()"
+        [disabled]="zoomScale() <= 1"
+        title="Zoom Out"
+      >
+        <ion-icon name="remove-outline"></ion-icon>
+      </button>
+      <span class="zoom-pct-label" (click)="resetZoom()" title="Click to reset">
+        {{ (zoomScale() * 100) | number:'1.0-0' }}%
+      </span>
+      <button
+        type="button"
+        class="zoom-pill-btn"
+        (click)="zoomIn()"
+        [disabled]="zoomScale() >= 4"
+        title="Zoom In"
+      >
+        <ion-icon name="add-outline"></ion-icon>
+      </button>
+      <button
+        type="button"
+        class="zoom-reset-btn"
+        (click)="resetZoom()"
+        title="Reset 100%"
+      >
+        <ion-icon name="refresh-outline"></ion-icon>
+      </button>
+      <span class="zoom-hint">Double-tap or pinch to zoom</span>
+    </div>
+
+    <!-- Main Fullscreen Viewport Area -->
+    <main
+      class="viewer-body-viewport"
+      (wheel)="onWheelZoom($event)"
+      (touchstart)="onTouchStart($event)"
+      (touchmove)="onTouchMove($event)"
+      (touchend)="onTouchEnd()"
+    >
+      <div class="viewer-canvas-frame">
+        <img
+          [src]="doc.url"
+          [alt]="doc.title"
+          class="viewer-doc-image"
+          [style.transform]="'translate3d(' + panX() + 'px, ' + panY() + 'px, 0) scale(' + zoomScale() + ')'"
+          [style.cursor]="zoomScale() > 1 ? 'grab' : 'default'"
+          (error)="doc.url = '/assets/icon/srh-logo.png'"
+        />
+      </div>
+    </main>
+
+    <!-- Bottom Minimal Footer / Hint -->
+    <footer class="viewer-bottom-bar">
+      <span class="secure-badge">
+        SANTA ROSA HOMES TODA • OFFICIAL DIGITAL VERIFICATION
+      </span>
+    </footer>
+  </div>
+}

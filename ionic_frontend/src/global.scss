@@ -404,17 +404,19 @@ body > .sortable-fallback,
   user-select: none;
 }
 
-/* DRIVER BLUE LOCATION PUCK (Google Maps / Apple Maps / Uber Style) */
+/* DRIVER & PASSENGER LIVE MAP LOCATION MARKER */
 .driver-live-map-marker-container {
   width: 70px;
   height: 70px;
   position: relative;
   pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
 
   .driver-marker-ping {
     position: absolute;
-    top: 13px;
-    left: 13px;
     width: 44px;
     height: 44px;
     border-radius: 50%;
@@ -422,8 +424,10 @@ body > .sortable-fallback,
     border: 1.5px solid rgba(59, 130, 246, 0.55);
     animation: gpsPing 2.2s cubic-bezier(0.1, 0.4, 0.2, 1) infinite;
     pointer-events: none;
+    z-index: 1;
   }
 
+  // PASSENGER: Cone Beam & Center Dot
   .driver-cone-beam {
     position: absolute;
     top: 0;
@@ -434,7 +438,7 @@ body > .sortable-fallback,
     transform: rotate(0deg);
     transform-origin: 35px 35px;
     will-change: transform;
-    transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+    transition: transform 0.22s cubic-bezier(0.25, 1, 0.5, 1);
     z-index: 5;
 
     svg {
@@ -450,8 +454,6 @@ body > .sortable-fallback,
 
   .driver-center-dot {
     position: absolute;
-    top: 26px;
-    left: 26px;
     width: 18px;
     height: 18px;
     border-radius: 50%;
@@ -460,6 +462,59 @@ body > .sortable-fallback,
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3), 0 0 12px rgba(37, 99, 235, 0.6);
     pointer-events: none;
     z-index: 10;
+  }
+
+  // DRIVER: 3D Tricycle Puck
+  .driver-tricycle-puck {
+    width: 48px;
+    height: 48px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    transform: rotate(0deg);
+    transform-origin: center center;
+    will-change: transform;
+    transition: transform 0.22s cubic-bezier(0.25, 1, 0.5, 1);
+    transform-style: preserve-3d;
+    z-index: 5;
+
+    .tricycle-puck-img {
+      width: 44px;
+      height: 44px;
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.35));
+      transition: filter 0.35s ease, opacity 0.35s ease;
+      pointer-events: none;
+      user-select: none;
+    }
+  }
+
+  // Offline state: Grayscale tricycle, no expanding circle animation
+  &.is-offline {
+    .driver-marker-ping {
+      display: none !important;
+      animation: none !important;
+      opacity: 0 !important;
+    }
+
+    .driver-tricycle-puck .tricycle-puck-img {
+      filter: grayscale(100%) opacity(0.65) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    }
+  }
+
+  // Online state: Full color with drop-shadow and active pulse
+  &.is-online,
+  &.is-passenger-puck {
+    .driver-marker-ping {
+      display: block;
+    }
+
+    .driver-tricycle-puck .tricycle-puck-img {
+      filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.35));
+    }
   }
 }
 
@@ -520,21 +575,86 @@ body > .sortable-fallback,
 /* GLOBAL CUSTOM TOAST STYLES                                   */
 /* ══════════════════════════════════════════════════════════════ */
 .srh-custom-toast,
-.queue-override-toast {
-  --background: #333333 !important; /* Neutral black-gray #333333 */
-  --color: #e4e4e7 !important; /* Soft off-white text */
-  --border-radius: 4px !important;
-  --box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+.queue-override-toast,
+ion-toast {
+  --background: #1e293b !important; /* Elegant dark slate */
+  --color: #f8fafc !important; /* Clean off-white text */
+  --border-radius: 10px !important;
+  --box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
   --button-color: #38bdf8 !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
   z-index: 999999 !important;
+  cursor: grab;
+  user-select: none;
 
   &.ion-color-success,
   &[color="success"] {
-    --background: #16a34a !important; /* Nice plain vibrant green */
-    --color: #f4f4f5 !important;
-    --box-shadow: 0 4px 16px rgba(22, 163, 74, 0.4) !important;
+    --background: #15803d !important; /* Rich vibrant emerald */
+    --color: #ffffff !important;
+    --box-shadow: 0 8px 24px rgba(21, 128, 61, 0.35) !important;
+  }
+
+  &.ion-color-danger,
+  &[color="danger"] {
+    --background: #b91c1c !important;
+    --color: #ffffff !important;
+    --box-shadow: 0 8px 24px rgba(185, 28, 28, 0.35) !important;
+  }
+
+  &[position="top"],
+  &.toast-top {
+    --top: calc(14px + env(safe-area-inset-top, 0px)) !important;
+    margin-top: calc(8px + env(safe-area-inset-top, 0px));
+  }
+
+  &[position="bottom"],
+  &.queue-override-toast,
+  &.toast-bottom {
+    --bottom: calc(66px + env(safe-area-inset-bottom, 0px)) !important;
+    margin-bottom: calc(66px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════ */
+/* GLOBAL RADIAL PULL-TO-REFRESH STYLES                         */
+/* ══════════════════════════════════════════════════════════════ */
+ion-refresher {
+  --color: #2563eb !important;
+  --ion-color-primary: #2563eb !important;
+
+  ion-refresher-content {
+    --color: #2563eb !important;
+    --spinner-color: #2563eb !important;
+
+    .refresher-pulling-icon,
+    .refresher-refreshing-icon {
+      color: #2563eb !important;
+    }
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════ */
+/* MULTI-DEVICE RESPONSIVE APP SHELL (ANDROID, IOS, TABLET, PC)  */
+/* ══════════════════════════════════════════════════════════════ */
+.srh-history-header .header-toolbar,
+.srh-admin-header .header-toolbar,
+.srh-profile-header .header-toolbar,
+.srh-earnings-header .header-toolbar,
+.srh-saved-header .header-toolbar {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.history-layout-container,
+.admin-layout-container,
+.profile-layout-container,
+.earnings-layout-container,
+.saved-layout-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
 
 

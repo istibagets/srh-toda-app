@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { IonIcon } from '@ionic/angular';
@@ -26,8 +26,20 @@ export class DriverHeaderComponent {
   authService = inject(AuthService);
   driverService = inject(DriverService);
   notificationService = inject(NotificationService);
+  private elementRef = inject(ElementRef);
 
   showNotifications = false;
+  isClosing = false;
+
+  @HostListener('document:click', ['$event'])
+  @HostListener('document:touchstart', ['$event'])
+  onDocumentClick(event: Event): void {
+    if (!this.showNotifications || this.isClosing) return;
+    const target = event.target as HTMLElement;
+    if (target && !this.elementRef.nativeElement.contains(target)) {
+      this.closeNotifications();
+    }
+  }
 
   constructor() {
     addIcons({
@@ -41,11 +53,21 @@ export class DriverHeaderComponent {
   }
 
   toggleNotifications(): void {
-    this.showNotifications = !this.showNotifications;
+    if (this.showNotifications) {
+      this.closeNotifications();
+    } else {
+      this.isClosing = false;
+      this.showNotifications = true;
+    }
   }
 
   closeNotifications(): void {
-    this.showNotifications = false;
+    if (this.isClosing || !this.showNotifications) return;
+    this.isClosing = true;
+    setTimeout(() => {
+      this.showNotifications = false;
+      this.isClosing = false;
+    }, 180);
   }
 
   markAllRead(): void {

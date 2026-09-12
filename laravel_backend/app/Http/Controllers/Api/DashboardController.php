@@ -179,7 +179,7 @@ class DashboardController extends Controller
                 $driver = Driver::create([
                     'user_id'           => $user->id,
                     'full_name'         => $user->name,
-                    'mtop_number'       => 'ADMIN',
+                    'mtop_number'       => '128491',
                     'compliance_status' => 'Approved',
                     'is_online'         => false,
                 ]);
@@ -288,12 +288,12 @@ class DashboardController extends Controller
                     'is_online'         => (bool) $driver->is_online,
                     'queue_position'    => $driver->queue_position,
                     'suspension_reason' => $driver->suspension_reason,
-                    'rating'            => ($role === 'admin' || $role === 'superadmin')
-                        ? (float) round(Ride::whereNotNull('rating')->avg('rating') ?: 5.0, 1)
-                        : (float) round(Ride::where('driver_id', $user->id)->whereNotNull('rating')->avg('rating') ?: 5.0, 1),
-                    'rating_count'      => ($role === 'admin' || $role === 'superadmin')
-                        ? (int) Ride::whereNotNull('rating')->count()
-                        : (int) Ride::where('driver_id', $user->id)->whereNotNull('rating')->count(),
+                    'appeal_status'     => $driver->appeal_status,
+                    'appeal_message'    => $driver->appeal_message,
+                    'appeal_attachments'=> $driver->appeal_attachments,
+                    'appealed_at'       => $driver->appealed_at ? $driver->appealed_at->format('M d, Y • g:i A') : null,
+                    'rating'            => (float) round(Ride::where('driver_id', $user->id)->whereNotNull('rating')->avg('rating') ?: 5.0, 1),
+                    'rating_count'      => (int) Ride::where('driver_id', $user->id)->whereNotNull('rating')->count(),
                 ] : null,
                 'today_rides_count'   => $todayRides,
                 'today_earnings'      => $todayEarnings,
@@ -353,6 +353,23 @@ class DashboardController extends Controller
                 ];
             });
 
+        $data['geofencing'] = [
+            'terminal_lat'    => (float) \App\Support\SystemSettings::get('geofencing.terminal_lat', 15.429550175641715),
+            'terminal_lng'    => (float) \App\Support\SystemSettings::get('geofencing.terminal_lng', 120.92240292427664),
+            'terminal_radius' => (int) \App\Support\SystemSettings::get('geofencing.terminal_radius', 35),
+            'boundary_name'   => (string) \App\Support\SystemSettings::get('geofencing.boundary_name', 'Santa Rosa Homes TODA Zone'),
+        ];
+
+        $data['fare_matrix'] = [
+            'base_fare'           => (float) \App\Support\SystemSettings::get('fare_matrix.base_fare', 15.00),
+            'per_km_rate'         => (float) \App\Support\SystemSettings::get('fare_matrix.per_km_rate', 3.50),
+            'night_differential'  => (float) \App\Support\SystemSettings::get('fare_matrix.night_differential', 5.00),
+            'surge_multiplier'    => (float) \App\Support\SystemSettings::get('fare_matrix.surge_multiplier', 1.00),
+            'terminal_fee'        => (float) \App\Support\SystemSettings::get('fare_matrix.terminal_fee', 2.00),
+            'student_discount'    => (float) \App\Support\SystemSettings::get('fare_matrix.student_discount', 20),
+            'pwd_senior_discount' => (float) \App\Support\SystemSettings::get('fare_matrix.pwd_senior_discount', 20),
+        ];
+
         $data['announcements'] = $announcements;
 
         return response()->json($data);
@@ -387,19 +404,47 @@ class DashboardController extends Controller
                 : !$driver->is_online);
 
         if ($isOnline) {
+            // Geofence check against dynamic settings
+            $lat = $request->input('lat');
+            $lng = $request->input('lng');
+            if ($lat !== null && $lng !== null) {
+                $terminalLat = (float) \App\Support\SystemSettings::get('geofencing.terminal_lat', 15.429550175641715);
+                $terminalLng = (float) \App\Support\SystemSettings::get('geofencing.terminal_lng', 120.92240292427664);
+                $terminalRadius = (float) \App\Support\SystemSettings::get('geofencing.terminal_radius', 35);
+                
+                $earthRadius = 6371000;
+                $dLat = deg2rad($terminalLat - floatval($lat));
+                $dLng = deg2rad($terminalLng - floatval($lng));
+                $a = sin($dLat / 2) * sin($dLat / 2) +
+                     cos(deg2rad(floatval($lat))) * cos(deg2rad($terminalLat)) *
+                     sin($dLng / 2) * sin($dLng / 2);
+                $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+                $distanceMeters = $earthRadius * $c;
+
+                if ($distanceMeters > $terminalRadius) {
+                    return response()->json([
+                        'status'   => 'error',
+                        'message'  => "Outside {$terminalRadius}m TODA Terminal geofence! You are " . round($distanceMeters) . "m away.",
+                        'distance' => round($distanceMeters),
+                    ], 422);
+                }
+            }
+
             if (!$driver->is_online || !$driver->queue_position) {
                 $lastPos = Driver::where('is_online', true)->where('id', '!=', $driver->id)->max('queue_position') ?? 0;
                 $driver->update([
-                    'is_online'      => true,
-                    'queue_position' => $lastPos + 1,
+                    'is_online'        => true,
+                    'queue_position'   => $lastPos + 1,
+                    'queue_joined_at'  => $driver->queue_joined_at ?? now(),
                 ]);
             }
             $msg = "You are now ON DUTY at Position #{$driver->queue_position}";
         } else {
             $oldPos = $driver->queue_position;
             $driver->update([
-                'is_online'      => false,
-                'queue_position' => null,
+                'is_online'        => false,
+                'queue_position'   => null,
+                'queue_joined_at'  => null,
             ]);
 
             if ($oldPos) {
@@ -775,11 +820,101 @@ class DashboardController extends Controller
             \App\Events\TricycleLocationUpdated::dispatch($user->id, $lat, $lng, $heading, $speed, $rideId);
         } catch (\Throwable $e) {}
 
+        // --- 30-MINUTE GEOFENCE EXIT TIMEOUT LOGIC ---
+        $autoOffDuty = false;
+        $outsideMinutes = 0;
+        $driver = Driver::where('user_id', $user->id)->first();
+        if ($driver && $driver->is_online) {
+            $hasActiveRide = Ride::where('driver_id', $user->id)
+                ->whereIn('status', ['bargaining', 'fare_proposed', 'fare_accepted', 'accepted', 'en_route', 'arrived', 'in_transit', 'returning'])
+                ->exists();
+
+            if (!$hasActiveRide) {
+                $terminalLat = (float) \App\Support\SystemSettings::get('geofencing.terminal_lat', 15.429550175641715);
+                $terminalLng = (float) \App\Support\SystemSettings::get('geofencing.terminal_lng', 120.92240292427664);
+                $terminalRadius = (float) \App\Support\SystemSettings::get('geofencing.terminal_radius', 35);
+                $earthRadius = 6371000;
+                $dLat = deg2rad($terminalLat - $lat);
+                $dLng = deg2rad($terminalLng - $lng);
+                $a = sin($dLat / 2) * sin($dLat / 2) +
+                     cos(deg2rad($lat)) * cos(deg2rad($terminalLat)) *
+                     sin($dLng / 2) * sin($dLng / 2);
+                $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+                $distanceMeters = $earthRadius * $c;
+
+                if ($distanceMeters > $terminalRadius) {
+                    $outsideSince = $driver->outside_geofence_at ?? Cache::get("driver_outside_since_{$driver->id}");
+                    if (!$outsideSince) {
+                        $outsideSince = now();
+                        try {
+                            if (\Illuminate\Support\Facades\Schema::hasColumn('drivers', 'outside_geofence_at')) {
+                                $driver->update(['outside_geofence_at' => $outsideSince]);
+                            }
+                        } catch (\Throwable $e) {}
+                        Cache::put("driver_outside_since_{$driver->id}", $outsideSince, 7200);
+                    } else {
+                        if (is_string($outsideSince)) {
+                            $outsideSince = \Carbon\Carbon::parse($outsideSince);
+                        }
+                    }
+
+                    $outsideMinutes = (int) now()->diffInMinutes($outsideSince);
+
+                    // If outside continuously for 30 minutes or more, auto off-duty
+                    if ($outsideMinutes >= 30) {
+                        $oldPos = $driver->queue_position;
+                        $updateData = [
+                            'is_online' => false,
+                            'queue_position' => null,
+                        ];
+                        try {
+                            if (\Illuminate\Support\Facades\Schema::hasColumn('drivers', 'outside_geofence_at')) {
+                                $updateData['outside_geofence_at'] = null;
+                            }
+                        } catch (\Throwable $e) {}
+                        Cache::forget("driver_outside_since_{$driver->id}");
+
+                        $driver->update($updateData);
+
+                        if ($oldPos) {
+                            Driver::where('is_online', true)
+                                ->where('queue_position', '>', $oldPos)
+                                ->decrement('queue_position');
+                        }
+                        try {
+                            app(\App\Services\QueueService::class)->normalizeQueue();
+                        } catch (\Throwable $e) {}
+
+                        try {
+                            broadcast(new \App\Events\QueueUpdated());
+                        } catch (\Throwable $e) {}
+
+                        $autoOffDuty = true;
+                    }
+                } else {
+                    // Inside terminal radius - reset outside tracker
+                    if ($driver->outside_geofence_at || Cache::has("driver_outside_since_{$driver->id}")) {
+                        try {
+                            if (\Illuminate\Support\Facades\Schema::hasColumn('drivers', 'outside_geofence_at')) {
+                                $driver->update(['outside_geofence_at' => null]);
+                            }
+                        } catch (\Throwable $e) {}
+                        Cache::forget("driver_outside_since_{$driver->id}");
+                    }
+                }
+            } else {
+                // Active ride in progress - exempt from timeout
+                Cache::forget("driver_outside_since_{$driver->id}");
+            }
+        }
+
         return response()->json([
-            'status'  => 'success',
-            'lat'     => $lat,
-            'lng'     => $lng,
-            'heading' => $heading,
+            'status'          => 'success',
+            'lat'             => $lat,
+            'lng'             => $lng,
+            'heading'         => $heading,
+            'auto_off_duty'   => $autoOffDuty,
+            'outside_minutes' => $outsideMinutes,
         ]);
     }
 
@@ -795,10 +930,10 @@ class DashboardController extends Controller
 
         $query = Ride::with(['passenger', 'driver.driverProfile']);
 
-        if ($user->role === 'driver') {
-            $query->where('driver_id', $user->id);
-        } elseif ($user->role === 'passenger') {
+        if ($user->role === 'passenger') {
             $query->where('passenger_id', $user->id);
+        } else {
+            $query->where('driver_id', $user->id);
         }
 
         // Filter by status if provided
@@ -810,7 +945,8 @@ class DashboardController extends Controller
                 $query->where('status', 'cancelled');
             } elseif ($status === 'walkin') {
                 $query->where(function($q) {
-                    $q->whereNull('passenger_id')->orWhere('passenger_id', 0);
+                    $q->whereNull('passenger_id')
+                      ->orWhere('passenger_id', 0);
                 });
             }
         }
@@ -826,14 +962,23 @@ class DashboardController extends Controller
         }
 
         // Search filter
-        $search = $request->input('search');
+        $search = trim($request->input('search', ''));
         if ($search) {
-            $query->where(function($q) use ($search) {
+            $searchId = preg_replace('/[^0-9]/', '', $search);
+            $query->where(function($q) use ($search, $searchId) {
                 $q->where('pickup_location', 'like', "%{$search}%")
-                  ->orWhere('destination', 'like', "%{$search}%")
-                  ->orWhereHas('passenger', function($pq) use ($search) {
-                      $pq->where('name', 'like', "%{$search}%");
-                  });
+                  ->orWhere('destination', 'like', "%{$search}%");
+
+                if (!empty($searchId) && strlen($searchId) <= 10) {
+                    $q->orWhere('id', (int) $searchId);
+                }
+
+                $q->orWhereHas('passenger', function($pq) use ($search) {
+                    $pq->where('name', 'like', "%{$search}%");
+                })
+                ->orWhereHas('driver', function($dq) use ($search) {
+                    $dq->where('name', 'like', "%{$search}%");
+                });
             });
         }
 
@@ -913,12 +1058,17 @@ class DashboardController extends Controller
         $period = $request->input('period', 'week'); // 'today', 'week', 'month', 'all'
         
         $baseQuery = Ride::query();
-        if ($user->role === 'driver') {
-            $baseQuery->where('driver_id', $user->id);
-        } elseif ($user->role === 'passenger') {
+        if ($user->role === 'passenger') {
             $baseQuery->where('passenger_id', $user->id);
+        } else {
+            $baseQuery->where('driver_id', $user->id);
         }
         $completedQuery = (clone $baseQuery)->where('status', 'completed');
+
+        // Lifetime Driver Rating & Metrics for authenticated user
+        $lifetimeRated = (clone $baseQuery)->where('status', 'completed')->whereNotNull('rating')->where('rating', '>', 0);
+        $avgLifetimeRating = $lifetimeRated->count() > 0 ? (float) round($lifetimeRated->avg('rating'), 1) : 5.0;
+        $lifetimeRatingCount = (int) $lifetimeRated->count();
 
         // Total Period Metrics
         $now = Carbon::now();
@@ -1068,6 +1218,8 @@ class DashboardController extends Controller
                 'today_trips_count' => $todayTripsCount,
                 'peak_day_name'     => $peakDay ? $peakDay['day_name'] : 'N/A',
                 'peak_day_earnings' => $peakDay ? $peakDay['earnings'] : 0,
+                'avg_rating'        => $avgLifetimeRating,
+                'rating_count'      => $lifetimeRatingCount,
             ],
             'chart'      => $weeklyChart,
             'sources'    => $sourceBreakdown,
@@ -1113,7 +1265,32 @@ class DashboardController extends Controller
                     'suspension_reason'    => $d->suspension_reason,
                     'appeal_status'        => $d->appeal_status,
                     'appeal_message'       => $d->appeal_message,
-                    'appeal_attachments'   => $d->appeal_attachments,
+                    'appeal_attachments'   => collect($d->appeal_attachments ?? [])->map(function ($att) {
+                        if (!is_array($att) || empty($att['url'])) return $att;
+                        $rawUrl = $att['url'];
+                        // Already a full absolute URL — normalize to use static /storage/ if it's an /attachments/ path
+                        if (str_starts_with($rawUrl, 'http://') || str_starts_with($rawUrl, 'https://')) {
+                            // Rewrite old /attachments/appeals/ URLs to /storage/appeals/ static
+                            if (preg_match('#/attachments/appeals/([A-Za-z0-9._-]+)$#', $rawUrl, $m)) {
+                                $att['url'] = asset('storage/appeals/' . $m[1]);
+                            }
+                            return $att;
+                        }
+                        // /storage/appeals/filename → make full URL
+                        if (str_starts_with($rawUrl, '/storage/appeals/')) {
+                            $att['url'] = url($rawUrl);
+                            return $att;
+                        }
+                        // appeals/filename or /attachments/appeals/filename
+                        if (preg_match('#appeals/([A-Za-z0-9._-]+)$#', $rawUrl, $m)) {
+                            $att['url'] = asset('storage/appeals/' . $m[1]);
+                        } elseif (!str_starts_with($rawUrl, '/')) {
+                            $att['url'] = asset('storage/appeals/' . basename($rawUrl));
+                        } else {
+                            $att['url'] = url($rawUrl);
+                        }
+                        return $att;
+                    })->values()->all(),
                     'appealed_at'          => $d->appealed_at ? $d->appealed_at->format('M d, Y • g:i A') : null,
                     'is_online'            => (bool) $d->is_online,
                     'queue_position'       => $d->queue_position,
@@ -1128,25 +1305,60 @@ class DashboardController extends Controller
                 ];
             });
 
-        // Live Queue List
-        $queue = Driver::with('user')
+        // Live Queue List (Includes both waiting drivers & active-trip drivers for oversight)
+        $onlineDrivers = Driver::with(['user'])
             ->where('is_online', true)
-            ->whereNotNull('queue_position')
-            ->orderBy('queue_position', 'asc')
+            ->get();
+
+        $activeRidesByDriver = Ride::with('passenger')
+            ->whereIn('driver_id', $onlineDrivers->pluck('user_id')->filter())
+            ->whereIn('status', ['bargaining', 'fare_proposed', 'fare_accepted', 'accepted', 'en_route', 'arrived', 'in_transit', 'returning'])
+            ->latest('updated_at')
             ->get()
-            ->map(function ($d) {
-                return [
-                    'id'             => $d->id,
-                    'driver_id'      => $d->id,
-                    'user_id'        => $d->user_id,
-                    'driver_name'    => $d->full_name ?? ($d->user ? $d->user->name : 'Driver'),
-                    'mtop_number'    => $d->mtop_number ?? 'N/A',
-                    'position'       => $d->queue_position,
-                    'status'         => 'Ready',
-                    'avatar_url'     => $d->user ? $d->user->avatar_url : null,
-                    'time_joined'    => $d->updated_at ? $d->updated_at->format('g:i A') : '',
-                ];
-            });
+            ->keyBy('driver_id');
+
+        $queue = $onlineDrivers->map(function ($d) use ($activeRidesByDriver) {
+            $activeRide = $activeRidesByDriver->get($d->user_id);
+            $isOnTrip = $activeRide !== null;
+            $rideStatus = $activeRide ? $activeRide->status : null;
+
+            $statusText = 'Ready';
+            if ($isOnTrip) {
+                $statusText = $rideStatus === 'returning' ? 'Returning' : 'On Trip';
+            } elseif ($d->queue_position && $d->queue_position > 1) {
+                $statusText = 'In Line';
+            }
+
+            return [
+                'id'             => $d->id,
+                'driver_id'      => $d->id,
+                'user_id'        => $d->user_id,
+                'driver_name'    => $d->full_name ?? ($d->user ? $d->user->name : 'Driver'),
+                'mtop_number'    => $d->mtop_number ?? 'N/A',
+                'position'       => $d->queue_position,
+                'status'         => $statusText,
+                'is_on_trip'     => $isOnTrip,
+                'ride_status'    => $rideStatus,
+                'active_ride'    => $activeRide ? [
+                    'id'             => $activeRide->id,
+                    'passenger_name' => $activeRide->passenger ? $activeRide->passenger->name : ($activeRide->passenger_id ? 'Passenger' : 'Walk-In Passenger'),
+                    'pickup'         => $activeRide->pickup_location ?? $activeRide->pickup_address ?? 'Pickup Point',
+                    'destination'    => $activeRide->destination ?? $activeRide->destination_address ?? 'Destination',
+                    'fare'           => (float) $activeRide->fare,
+                    'status'         => $activeRide->status,
+                    'time_started'   => $activeRide->updated_at ? $activeRide->updated_at->format('g:i A') : '',
+                ] : null,
+                'avatar_url'     => $d->user ? $d->user->avatar_url : null,
+                'time_joined'    => $d->queue_joined_at 
+                    ? $d->queue_joined_at->format('g:i A') 
+                    : ($d->updated_at ? $d->updated_at->format('g:i A') : ''),
+            ];
+        })->sort(function ($a, $b) {
+            // Put in-queue units first by position, then on-trip units
+            if (!$a['is_on_trip'] && $b['is_on_trip']) return -1;
+            if ($a['is_on_trip'] && !$b['is_on_trip']) return 1;
+            return ($a['position'] ?? 999) <=> ($b['position'] ?? 999);
+        })->values()->all();
 
         // Incident Reports List
         $reports = Report::with(['reporter', 'driver.driverProfile', 'ride'])
@@ -1217,7 +1429,7 @@ class DashboardController extends Controller
 
         $request->validate([
             'driver_id'         => 'required|integer',
-            'compliance_status' => 'required|string|in:Approved,Pending,Suspended,Rejected',
+            'compliance_status' => 'required|string|in:Approved,Pending,Suspended,Rejected,Removed',
             'suspension_reason' => 'nullable|string',
         ]);
 
@@ -1228,14 +1440,43 @@ class DashboardController extends Controller
 
         $status = $request->compliance_status;
         $driver->compliance_status = $status;
-        $driver->suspension_reason = $status === 'Suspended' ? $request->suspension_reason : null;
-        
-        if ($status === 'Suspended' || $status === 'Rejected') {
+
+        if ($status === 'Approved') {
+            $driver->suspension_reason = null;
+            $driver->appeal_status = null;
+            $driver->appeal_message = null;
+            $driver->appeal_attachments = null;
+        } elseif ($status === 'Removed') {
+            $driver->suspension_reason = $request->suspension_reason ?: 'Permanently removed by TODA Administration';
+            $driver->appeal_status = 'Rejected';
+            $driver->appeal_message = null;
+            $driver->appeal_attachments = null;
             $driver->is_online = false;
             $driver->queue_position = null;
+        } else {
+            $driver->suspension_reason = $status === 'Suspended' ? $request->suspension_reason : null;
+            if ($status === 'Suspended' || $status === 'Rejected') {
+                $driver->is_online = false;
+                $driver->queue_position = null;
+            }
         }
-        
+
         $driver->save();
+
+        // Broadcast realtime compliance update & announcements to all connected clients
+        try {
+            broadcast(new \App\Events\DriverApplicantUpdated($driver->id, $status));
+            broadcast(new \App\Events\QueueUpdated());
+
+            $announcement = \App\Models\Announcement::create([
+                'title' => $status === 'Approved'
+                    ? "✅ Driver Account Reinstated"
+                    : ($status === 'Suspended' ? "⚠️ Driver Account Suspended" : "Notice: Driver Status Updated"),
+                'message' => "Driver {$driver->full_name} (MTOP #{$driver->mtop_number}) compliance status updated to {$status}.",
+                'target_audience' => 'ADMIN',
+            ]);
+            broadcast(new \App\Events\AnnouncementCreated($announcement));
+        } catch (\Throwable $e) {}
 
         return response()->json([
             'status'            => 'success',
@@ -1360,18 +1601,45 @@ class DashboardController extends Controller
             'driver_id' => 'required|integer',
         ]);
 
-        $driver = Driver::where('id', $request->driver_id)
-            ->orWhere('user_id', $request->driver_id)
-            ->first();
+        $driver = Driver::find($request->driver_id);
+        if (!$driver) {
+            $driver = Driver::where('user_id', $request->driver_id)->first();
+        }
         if (!$driver) {
             return response()->json(['status' => 'error', 'message' => 'Driver not found.'], 404);
         }
 
         $oldPos = $driver->queue_position;
-        $driver->update([
-            'is_online'      => false,
-            'queue_position' => null,
-        ]);
+        $driverUpdateData = [
+            'is_online'        => false,
+            'queue_position'   => null,
+            'queue_joined_at'  => null,
+        ];
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('drivers', 'outside_geofence_at')) {
+                $driverUpdateData['outside_geofence_at'] = null;
+            }
+        } catch (\Throwable $e) {}
+        Cache::forget("driver_outside_since_{$driver->id}");
+
+        $driver->update($driverUpdateData);
+
+        // Cancel and clear any active rides tied to this driver (Emergency Admin Reset)
+        $activeRides = Ride::where('driver_id', $driver->user_id)
+            ->whereIn('status', ['bargaining', 'fare_proposed', 'fare_accepted', 'accepted', 'en_route', 'arrived', 'in_transit', 'returning'])
+            ->get();
+
+        $clearedRidesCount = 0;
+        foreach ($activeRides as $ride) {
+            $ride->update([
+                'status' => 'cancelled',
+                'cancellation_reason' => 'Admin emergency override / queue reset',
+            ]);
+            $clearedRidesCount++;
+            try {
+                broadcast(new \App\Events\RideStatusUpdated($ride));
+            } catch (\Throwable $e) {}
+        }
 
         if ($oldPos) {
             Driver::where('is_online', true)
@@ -1387,9 +1655,158 @@ class DashboardController extends Controller
             broadcast(new \App\Events\QueueUpdated());
         } catch (\Throwable $e) {}
 
+        $rideMsg = $clearedRidesCount > 0 ? " and cleared {$clearedRidesCount} active ride(s)" : "";
+
         return response()->json([
             'status'  => 'success',
-            'message' => "Driver {$driver->full_name} removed from queue and set offline.",
+            'message' => "Driver {$driver->full_name} set offline{$rideMsg}.",
+        ]);
+    }
+
+    /**
+     * Admin emergency reset driver trip: safely cancels active ride,
+     * clears stuck trip state, and returns driver to the back of the queue (online).
+     */
+    public function resetDriverTrip(Request $request): JsonResponse
+    {
+        $user = $this->resolveUser($request);
+        if (!$user || ($user->role !== 'admin' && $user->role !== 'superadmin')) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized.'], 403);
+        }
+
+        $request->validate([
+            'driver_id' => 'required|integer',
+        ]);
+
+        $driver = Driver::find($request->driver_id);
+        if (!$driver) {
+            $driver = Driver::where('user_id', $request->driver_id)->first();
+        }
+        if (!$driver) {
+            return response()->json(['status' => 'error', 'message' => 'Driver not found.'], 404);
+        }
+
+        // Cancel and clear ANY lingering active or pending rides tied to this driver
+        $activeRides = Ride::where(function ($q) use ($driver) {
+                $q->where('driver_id', $driver->user_id);
+                if ($driver->id) {
+                    $q->orWhere('driver_id', $driver->id);
+                }
+            })
+            ->whereNotIn('status', ['completed', 'cancelled'])
+            ->get();
+
+        $bargainingRides = $activeRides->filter(fn($r) => $r->status === 'bargaining');
+        $otherActiveRides = $activeRides->filter(fn($r) => $r->status !== 'bargaining');
+
+        $reassignedCount = 0;
+        $clearedRidesCount = 0;
+
+        // If ride was just bargaining (driver hasn't proposed a fare yet), do not cancel for passenger!
+        // Seamlessly link the passenger to the new #1 driver in the queue and send the request to them.
+        foreach ($bargainingRides as $ride) {
+            $nextDriver = Driver::where('is_online', true)
+                ->whereNotNull('queue_position')
+                ->where('id', '!=', $driver->id)
+                ->where('user_id', '!=', $driver->user_id)
+                ->whereNotIn('compliance_status', ['Suspended', 'suspended', 'Rejected', 'rejected'])
+                ->orderBy('queue_position', 'asc')
+                ->first();
+
+            if ($nextDriver) {
+                $ride->update([
+                    'driver_id' => $nextDriver->user_id,
+                    'status'    => 'bargaining',
+                ]);
+                $nextDriver->update([
+                    'queue_position' => null,
+                ]);
+
+                try {
+                    app(\App\Services\PushService::class)->sendToUser(
+                        $nextDriver->user_id,
+                        '🚖 New Ride Request!',
+                        "Passenger requesting trip to {$ride->destination} (₱" . number_format($ride->fare, 2) . ")",
+                        url('/'),
+                        'ride-booking-' . $ride->id,
+                        ['type' => 'incoming_booking', 'ride_id' => $ride->id]
+                    );
+                } catch (\Throwable $e) {}
+
+                try {
+                    broadcast(new \App\Events\RideStatusUpdated($ride->fresh()));
+                } catch (\Throwable $e) {}
+
+                $reassignedCount++;
+            } else {
+                // No other online waiting driver available: keep ride alive in searching state
+                $ride->update([
+                    'driver_id' => null,
+                    'status'    => 'searching',
+                ]);
+                try {
+                    broadcast(new \App\Events\RideStatusUpdated($ride->fresh()));
+                } catch (\Throwable $e) {}
+            }
+        }
+
+        // For any ride past the bargaining stage (fare proposed, accepted, en route, arrived, in transit, returning):
+        // safely cancel it with admin reset notice.
+        foreach ($otherActiveRides as $ride) {
+            $ride->update([
+                'status' => 'cancelled',
+                'cancellation_reason' => 'Admin emergency reset: returned to end of queue',
+            ]);
+            $clearedRidesCount++;
+            try {
+                broadcast(new \App\Events\RideStatusUpdated($ride->fresh()));
+            } catch (\Throwable $e) {}
+        }
+
+        // Ensure driver is online, clear returning flag and geofence timestamps
+        $driverUpdateData = [
+            'is_online'        => true,
+            'is_returning'     => false,
+            'queue_joined_at'  => now(),
+        ];
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('drivers', 'outside_geofence_at')) {
+                $driverUpdateData['outside_geofence_at'] = null;
+            }
+        } catch (\Throwable $e) {}
+        Cache::forget("driver_outside_since_{$driver->id}");
+
+        $driver->update($driverUpdateData);
+
+        // Put driver at the very back of the online waiting queue
+        try {
+            app(\App\Services\QueueService::class)->pushToBack($driver);
+        } catch (\Throwable $e) {
+            try {
+                app(\App\Services\QueueService::class)->normalizeQueue();
+            } catch (\Throwable $e2) {}
+        }
+
+        try {
+            broadcast(new \App\Events\QueueUpdated());
+        } catch (\Throwable $e) {}
+
+        $msgParts = [];
+        if ($reassignedCount > 0) {
+            $msgParts[] = "transferred {$reassignedCount} ride request to new #1 driver";
+        }
+        if ($clearedRidesCount > 0) {
+            $msgParts[] = "cleared {$clearedRidesCount} active ride";
+        }
+        $rideMsg = !empty($msgParts) ? " (" . implode(', ', $msgParts) . ")" : "";
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => "Driver {$driver->full_name} moved to the end of the queue{$rideMsg}.",
+            'driver'  => [
+                'id'             => $driver->id,
+                'queue_position' => $driver->fresh()->queue_position,
+            ],
         ]);
     }
 
@@ -1420,8 +1837,8 @@ class DashboardController extends Controller
         $paxCount = (int) $request->input('passenger_count', 1);
         $pickupLat = (float) $request->input('pickup_lat', 15.42955);
         $pickupLng = (float) $request->input('pickup_lng', 120.92240);
-        $destLat = $request->has('destination_lat') ? (float) $request->input('destination_lat') : null;
-        $destLng = $request->has('destination_lng') ? (float) $request->input('destination_lng') : null;
+        $destLat = ($request->filled('destination_lat') && is_numeric($request->destination_lat)) ? (float) $request->input('destination_lat') : null;
+        $destLng = ($request->filled('destination_lng') && is_numeric($request->destination_lng)) ? (float) $request->input('destination_lng') : null;
 
         // Check if passenger already has an active ride
         $existing = Ride::where('passenger_id', $user->id)
@@ -1566,9 +1983,11 @@ class DashboardController extends Controller
         if (!$cachedLoc) {
             $cachedLoc = Cache::get("ride_driver_location_{$activeRide->id}");
         }
-        $driverLat = $cachedLoc ? (float) $cachedLoc['lat'] : ($driverProfile && $driverProfile->current_lat ? (float)$driverProfile->current_lat : ($driverUser && $driverUser->current_lat ? (float)$driverUser->current_lat : null));
-        $driverLng = $cachedLoc ? (float) $cachedLoc['lng'] : ($driverProfile && $driverProfile->current_lng ? (float)$driverProfile->current_lng : ($driverUser && $driverUser->current_lng ? (float)$driverUser->current_lng : null));
-        $driverHeading = $cachedLoc && isset($cachedLoc['heading']) ? (float) $cachedLoc['heading'] : null;
+        $terminalLat = (float) \App\Support\SystemSettings::get('geofencing.terminal_lat', 15.429550175641715);
+        $terminalLng = (float) \App\Support\SystemSettings::get('geofencing.terminal_lng', 120.92240292427664);
+        $driverLat = $cachedLoc ? (float) $cachedLoc['lat'] : ($driverProfile && $driverProfile->current_lat ? (float)$driverProfile->current_lat : ($driverUser && $driverUser->current_lat ? (float)$driverUser->current_lat : $terminalLat));
+        $driverLng = $cachedLoc ? (float) $cachedLoc['lng'] : ($driverProfile && $driverProfile->current_lng ? (float)$driverProfile->current_lng : ($driverUser && $driverUser->current_lng ? (float)$driverUser->current_lng : $terminalLng));
+        $driverHeading = $cachedLoc && isset($cachedLoc['heading']) ? (float) $cachedLoc['heading'] : 0.0;
 
         $mtop = $driverProfile ? $driverProfile->mtop_number : '101';
         if ($mtop === 'ADMIN' || $mtop === 'PENDING') $mtop = '101';
@@ -1631,14 +2050,19 @@ class DashboardController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Unauthorized.'], 403);
         }
 
+        $oldStatus = $ride->status;
         $ride->update(['status' => 'cancelled']);
 
-        // Restore driver to front of queue if driver was assigned
+        // Restore driver to queue
         if ($ride->driver_id) {
             $driver = Driver::where('user_id', $ride->driver_id)->first();
             if ($driver && $driver->is_online) {
                 try {
-                    app(\App\Services\QueueService::class)->insertAtFront($driver);
+                    if ($user->id === $ride->driver_id && in_array($oldStatus, ['accepted', 'en_route', 'arrived', 'in_transit'])) {
+                        app(\App\Services\QueueService::class)->pushToBack($driver);
+                    } else {
+                        app(\App\Services\QueueService::class)->insertAtFront($driver);
+                    }
                 } catch (\Throwable $e) {}
             }
         }
@@ -1835,13 +2259,43 @@ class DashboardController extends Controller
             broadcast(new \App\Events\RideStatusUpdated($ride));
         } catch (\Throwable $e) {}
 
+        $driverUser = $ride->driver_id ? \App\Models\User::find($ride->driver_id) : null;
+        $driverProfile = $driverUser ? \App\Models\Driver::where('user_id', $driverUser->id)->first() : null;
+        $driverLoc = \Illuminate\Support\Facades\Cache::get("ride_driver_location_{$ride->id}");
+        if (!$driverLoc && $ride->driver_id) {
+            $driverLoc = \Illuminate\Support\Facades\Cache::get("driver_location_{$ride->driver_id}");
+        }
+        $driverLat = $driverLoc ? (float)$driverLoc['lat'] : 15.42955;
+        $driverLng = $driverLoc ? (float)$driverLoc['lng'] : 120.92240;
+        $driverHeading = $driverLoc && isset($driverLoc['heading']) ? (float)$driverLoc['heading'] : 0.0;
+
         return response()->json([
             'status'  => 'success',
             'message' => 'Fare accepted! Driver is en route to your pickup location.',
             'ride'    => [
-                'id'     => $ride->id,
-                'fare'   => (float) $ride->fare,
-                'status' => $ride->status,
+                'id'              => $ride->id,
+                'status'          => $ride->status,
+                'fare'            => (float) $ride->fare,
+                'pickup_location' => $ride->pickup_location,
+                'pickup_lat'      => (float) ($ride->pickup_lat ?? 15.42955),
+                'pickup_lng'      => (float) ($ride->pickup_lng ?? 120.92240),
+                'destination'     => $ride->destination,
+                'destination_lat' => $ride->destination_lat ? (float) $ride->destination_lat : null,
+                'destination_lng' => $ride->destination_lng ? (float) $ride->destination_lng : null,
+                'driver_id'       => $ride->driver_id,
+                'driver'          => $driverUser ? [
+                    'id'          => $driverUser->id,
+                    'name'        => $driverProfile ? $driverProfile->full_name : $driverUser->name,
+                    'phone'       => $driverUser->phone_number ?? '',
+                    'mtop_number' => $driverProfile ? $driverProfile->mtop_number : null,
+                    'avatar_url'  => $driverUser->avatar_url,
+                    'lat'         => $driverLat,
+                    'lng'         => $driverLng,
+                    'heading'     => $driverHeading,
+                ] : null,
+                'driver_lat'      => $driverLat,
+                'driver_lng'      => $driverLng,
+                'driver_heading'  => $driverHeading,
             ],
         ]);
     }
@@ -1873,8 +2327,8 @@ class DashboardController extends Controller
             try {
                 app(\App\Services\PushService::class)->sendToUser(
                     $ride->passenger_id,
-                    '📍 Driver Arrived!',
-                    "Your TODA tricycle driver has arrived at the pickup location.",
+                    '📍 Driver is Waiting Outside!',
+                    "Your TODA driver has arrived and is waiting outside at your pickup location.",
                     url('/'),
                     'ride-arrived-' . $ride->id,
                     ['type' => 'driver_arrived', 'ride_id' => $ride->id]
@@ -2096,6 +2550,12 @@ class DashboardController extends Controller
         ]);
 
         try {
+            \App\Models\Announcement::create([
+                'created_by'      => $user->id,
+                'title'           => "🚨 New Passenger Report #{$report->id}: {$request->category}",
+                'message'         => "Passenger {$user->name} submitted an incident report: \"{$request->subject}\". Description: \"" . \Illuminate\Support\Str::limit($request->description, 120) . "\"",
+                'target_audience' => 'ADMIN',
+            ]);
             broadcast(new \App\Events\ReportUpdated($report));
         } catch (\Throwable $e) {}
 

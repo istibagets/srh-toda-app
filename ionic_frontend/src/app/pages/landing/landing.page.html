@@ -1,0 +1,270 @@
+<!-- Main Sticky Header -->
+<ion-header class="ion-no-border srh-landing-header">
+  <ion-toolbar class="landing-toolbar">
+    <div class="landing-container header-inner">
+      <div class="brand-group" (click)="scrollToSection('hero')">
+        <img [src]="logoUrl()" alt="SRH TODA Seal" class="brand-logo" onerror="this.style.display='none'" />
+        <div class="brand-text">
+          <span class="brand-title">SRH LINK TODA</span>
+          <span class="brand-sub">Santa Rosa Homes TODA</span>
+        </div>
+      </div>
+
+      <nav class="nav-links-desktop">
+        <button type="button" class="nav-link-btn" (click)="scrollToSection('about')">About</button>
+        <button type="button" class="nav-link-btn" (click)="scrollToSection('tariff')">Fare Schedule</button>
+        <button type="button" class="nav-link-btn" (click)="scrollToSection('terminal')">Terminal &amp; Contact</button>
+        <button type="button" class="nav-link-btn" (click)="scrollToSection('faq')">FAQ</button>
+      </nav>
+
+      <div class="nav-actions">
+        <button type="button" class="btn-signin" (click)="onSignIn()">
+          <span>Sign In</span>
+          <ion-icon name="arrow-forward-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="srh-landing-content" [fullscreen]="true">
+  <div class="landing-page-body">
+
+    <!-- ── 1. HERO SECTION ──────────────────────────────────────── -->
+    <section id="hero" class="hero-section">
+      <div class="landing-container">
+        <div class="hero-content">
+          <span class="hero-eyebrow">SANTA ROSA HOMES &bull; MUNICIPAL TRICYCLE TRANSIT</span>
+          <h1 class="hero-headline">
+            The Official Transport Network of Santa Rosa Homes
+          </h1>
+          <p class="hero-narrative">
+            Regulated tricycle mobility ensuring safe rides, standardized municipal fares, and accredited franchise operators for our community.
+          </p>
+
+          <div class="hero-actions">
+            <button type="button" class="btn-hero-primary" (click)="onSignIn()">
+              <span>Access Portal</span>
+              <ion-icon name="arrow-forward-outline"></ion-icon>
+            </button>
+            <a class="hero-secondary-link" (click)="scrollToSection('tariff')">
+              <span>View Official Fare Schedule</span>
+              <ion-icon name="arrow-forward-outline"></ion-icon>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 2. CORE SYSTEM STANDARDS ─────────────────────────────── -->
+    <section id="about" class="standards-section">
+      <div class="landing-container">
+        <div class="section-header">
+          <span class="section-label">COMMUNITY STANDARDS</span>
+          <h2 class="section-title">Built for Safe and Transparent Transit</h2>
+        </div>
+
+        <div class="standards-grid">
+          <div class="standard-card">
+            <div class="standard-icon">
+              <ion-icon name="shield-checkmark-outline"></ion-icon>
+            </div>
+            <h3 class="standard-title">Accredited Fleet</h3>
+            <p class="standard-text">
+              Every driver and tricycle unit is registered with an official 6-digit MTOP franchise number and verified association membership.
+            </p>
+          </div>
+
+          <div class="standard-card">
+            <div class="standard-icon">
+              <ion-icon name="cash-outline"></ion-icon>
+            </div>
+            <h3 class="standard-title">Regulated Fares</h3>
+            <p class="standard-text">
+              Distance-based tariff rates regulated by municipal authority. Statutory 20% discounts are strictly honored for Students, PWDs, and Senior Citizens.
+            </p>
+          </div>
+
+          <div class="standard-card">
+            <div class="standard-icon">
+              <ion-icon name="location-outline"></ion-icon>
+            </div>
+            <h3 class="standard-title">Terminal Dispatch</h3>
+            <p class="standard-text">
+              Continuous operations stationed at the Santa Rosa Homes Main Gate Terminal Center, operating daily from 5:00 AM to 11:00 PM.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 3. OFFICIAL FARE SCHEDULE (CLEAN TABLE) ───────────────── -->
+    <section id="tariff" class="tariff-section">
+      <div class="landing-container">
+        <div class="section-header">
+          <span class="section-label">MUNICIPAL TARIFF MATRIX</span>
+          <h2 class="section-title">Official Regulated Rate Schedule</h2>
+          <p class="section-sub">Standard distance tariffs active across Santa Rosa Homes and adjacent routes.</p>
+        </div>
+
+        <div class="tariff-card">
+          <div class="table-wrap">
+            <table class="tariff-table">
+              <thead>
+                <tr>
+                  <th>Classification</th>
+                  <th>Regulated Rate</th>
+                  <th>Coverage &amp; Conditions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="rate-name"><strong>Base Fare</strong></td>
+                  <td class="rate-val">₱15.00</td>
+                  <td class="rate-note">First 1.0 kilometer distance</td>
+                </tr>
+                <tr>
+                  <td class="rate-name"><strong>Succeeding Distance</strong></td>
+                  <td class="rate-val">₱3.50 / km</td>
+                  <td class="rate-note">Per kilometer after the first km</td>
+                </tr>
+                <tr>
+                  <td class="rate-name"><strong>Night Differential</strong></td>
+                  <td class="rate-val">+ ₱5.00</td>
+                  <td class="rate-note">Applies from 10:00 PM to 5:00 AM</td>
+                </tr>
+                <tr>
+                  <td class="rate-name"><strong>Statutory Discount</strong></td>
+                  <td class="rate-val text-emerald">20% Deduction</td>
+                  <td class="rate-note">For verified Students, PWDs, and Senior Citizens</td>
+                </tr>
+                <tr>
+                  <td class="rate-name"><strong>Terminal Contribution</strong></td>
+                  <td class="rate-val">₱2.00 / trip</td>
+                  <td class="rate-note">TODA terminal maintenance fund</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="tariff-footer-note">
+            <ion-icon name="shield-checkmark-outline"></ion-icon>
+            <span>Fares are strictly regulated by municipal transport authority. Operators are prohibited from charging rates beyond this schedule.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 4. TERMINAL & CONTACT INFORMATION ─────────────────────── -->
+    <section id="terminal" class="terminal-section">
+      <div class="landing-container">
+        <div class="terminal-grid">
+          <div class="terminal-info-card">
+            <span class="section-label">OPERATIONS HUB</span>
+            <h2 class="terminal-heading">Santa Rosa Homes Central Terminal</h2>
+            <p class="terminal-desc">
+              The designated dispatch station for accredited tricycle operators serving Santa Rosa Homes and neighboring drop-off points.
+            </p>
+
+            <div class="info-rows">
+              <div class="info-row">
+                <ion-icon name="location-outline"></ion-icon>
+                <div>
+                  <span class="info-label">Terminal Location</span>
+                  <span class="info-val">Main Gate Terminal Center, Santa Rosa Homes, Santa Rosa, Nueva Ecija</span>
+                </div>
+              </div>
+
+              <div class="info-row">
+                <ion-icon name="time-outline"></ion-icon>
+                <div>
+                  <span class="info-label">Operating Schedule</span>
+                  <span class="info-val">5:00 AM &ndash; 11:00 PM Daily Continuous Operation</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="terminal-contact-card">
+            <span class="section-label">ADMINISTRATION</span>
+            <h3 class="contact-heading">Support &amp; Inquiries</h3>
+            <p class="contact-desc">
+              For incident assistance, fare disputes, or driver accreditation inquiries, contact the TODA administration desk.
+            </p>
+
+            <div class="info-rows">
+              <div class="info-row">
+                <ion-icon name="call-outline"></ion-icon>
+                <div>
+                  <span class="info-label">Administration Hotline</span>
+                  <span class="info-val">(044) 791-2345 / 0917-123-4567</span>
+                </div>
+              </div>
+
+              <div class="info-row">
+                <ion-icon name="mail-outline"></ion-icon>
+                <div>
+                  <span class="info-label">Official Email</span>
+                  <span class="info-val">srh.toda.official&#64;gmail.com</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 5. FAQ SECTION ────────────────────────────────────────── -->
+    <section id="faq" class="faq-section">
+      <div class="landing-container">
+        <div class="section-header">
+          <span class="section-label">HELP &amp; INFORMATION</span>
+          <h2 class="section-title">Frequently Asked Questions</h2>
+        </div>
+
+        <div class="faq-list">
+          @for (faq of faqs(); track faq.question; let i = $index) {
+            <div class="faq-item" [class.open]="faq.isOpen">
+              <button type="button" class="faq-question-btn" (click)="toggleFaq(i)">
+                <span class="faq-q-text">{{ faq.question }}</span>
+                <ion-icon [name]="faq.isOpen ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+              </button>
+              @if (faq.isOpen) {
+                <div class="faq-answer-pane animate-fade-in">
+                  <p>{{ faq.answer }}</p>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 6. MINIMAL CORPORATE FOOTER ──────────────────────────── -->
+    <footer class="srh-footer">
+      <div class="landing-container footer-inner">
+        <div class="footer-left">
+          <div class="brand-group">
+            <img [src]="logoUrl()" alt="SRH Seal" class="brand-logo" onerror="this.style.display='none'" />
+            <div class="brand-text">
+              <span class="brand-title">SRH LINK TODA</span>
+              <span class="brand-sub">Santa Rosa Homes TODA</span>
+            </div>
+          </div>
+          <p class="footer-copy">
+            &copy; 2026 Santa Rosa Homes TODA (SRH-TODA). Regulated Municipal Community Transit.
+          </p>
+        </div>
+
+        <div class="footer-nav">
+          <a (click)="scrollToSection('about')">About</a>
+          <a (click)="scrollToSection('tariff')">Fare Schedule</a>
+          <a (click)="scrollToSection('terminal')">Terminal &amp; Contact</a>
+          <a (click)="scrollToSection('faq')">FAQ</a>
+          <a (click)="onSignIn()">Sign In</a>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+</ion-content>

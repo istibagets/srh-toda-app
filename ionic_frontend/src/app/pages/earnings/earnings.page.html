@@ -43,8 +43,8 @@
 </ion-header>
 
 <ion-content class="srh-earnings-content" [fullscreen]="true">
-  <ion-refresher slot="fixed" (ionRefresh)="loadEarningsData($event)">
-    <ion-refresher-content pullingIcon="chevron-down-circle-outline"></ion-refresher-content>
+  <ion-refresher slot="fixed" type="radial" (ionRefresh)="loadEarningsData($event)">
+    <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
   <div class="earnings-layout-container">
@@ -52,13 +52,12 @@
     @if (isLoading()) {
       <div class="skeleton-stream-container">
         <!-- Hero Shimmer -->
-        <div class="skeleton-card skeleton-hero">
-          <div class="skeleton-line shimmer sm-width"></div>
-          <div class="skeleton-line shimmer lg-title"></div>
-          <div class="skeleton-pill-row">
-            <div class="skeleton-pill shimmer"></div>
-            <div class="skeleton-pill shimmer"></div>
-            <div class="skeleton-pill shimmer"></div>
+        <div class="skeleton-card skeleton-hero-rating">
+          <div class="skeleton-circle shimmer"></div>
+          <div class="skeleton-hero-right">
+            <div class="skeleton-line shimmer sm-width"></div>
+            <div class="skeleton-line shimmer md-width"></div>
+            <div class="skeleton-box shimmer"></div>
           </div>
         </div>
 
@@ -95,37 +94,78 @@
         </div>
       </div>
     } @else {
-      <!-- ── 1. EXECUTIVE FINANCIAL HERO DECK ──────────────── -->
-      <div class="earnings-hero-card">
-        <div class="hero-top-row">
-          <div class="hero-label-group">
-            <span class="hero-eyebrow">{{ authService.isPassenger() ? 'TOTAL FARES PAID' : 'GROSS REVENUE' }}</span>
-            <div class="hero-amount-block">
-              <span class="currency-symbol">₱</span>
-              <span class="amount-number">{{ summary().total_earnings.toFixed(2) }}</span>
+      <!-- ── 1. EXECUTIVE OVERALL RATING & DRIVER METRICS DECK ──────────────── -->
+      <div class="driver-rating-hero-deck">
+        <!-- Left: Animated Radial Progress Ring with Profile Avatar -->
+        <div class="radial-score-container">
+          <div class="radial-ring-wrapper">
+            <svg class="radial-svg" viewBox="0 0 100 100">
+              <defs>
+                <mask id="scoreArcMaskEarnings">
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="42"
+                    fill="none"
+                    stroke="#ffffff"
+                    stroke-width="7.5"
+                    stroke-linecap="round"
+                    stroke-dasharray="263.89"
+                    [style.strokeDashoffset]="animatedDashoffset()"
+                    transform="rotate(-90 50 50)"
+                  />
+                </mask>
+              </defs>
+
+              <!-- Background Track Circle -->
+              <circle class="ring-bg" cx="50" cy="50" r="42" />
+
+              <!-- Conic Gradient Fill Masked by Arc Stroke -->
+              <g mask="url(#scoreArcMaskEarnings)">
+                <foreignObject x="0" y="0" width="100" height="100">
+                  <div class="conic-ring-gradient"></div>
+                </foreignObject>
+              </g>
+            </svg>
+
+            <!-- Center Profile Avatar / Fallback Initials -->
+            <div class="radial-avatar-center">
+              @if (userAvatarUrl()) {
+                <img [src]="userAvatarUrl()" alt="User Profile" class="radial-avatar-img" />
+              } @else {
+                <div class="radial-avatar-fallback">
+                  {{ userInitials() }}
+                </div>
+              }
             </div>
+          </div>
+
+          <!-- Rating Score Badge -->
+          <div class="radial-score-badge">
+            <span class="score-num">{{ displayRatingNumber().toFixed(1) }}</span>
+            <ion-icon name="star" class="star-gold"></ion-icon>
           </div>
         </div>
 
-        <!-- 3-Column Metrics Strip -->
-        <div class="hero-metrics-strip">
-          <div class="metric-cell">
-            <span class="cell-label">{{ authService.isPassenger() ? 'RIDES' : 'TRIPS' }}</span>
-            <span class="cell-value">{{ summary().total_trips }}</span>
+        <!-- Right: Performance Metrics & User Bio Stack -->
+        <div class="hero-metrics-column">
+          <div class="user-greeting-row">
+            <span class="user-role-label">{{ authService.isPassenger() ? 'PASSENGER RATING' : 'OVERALL RATING' }}</span>
+            <h2 class="user-display-name">{{ userName() }}</h2>
           </div>
 
-          <div class="metric-cell-divider"></div>
+          <div class="metric-tiles-row">
+            <div class="tile-box">
+              <span class="tile-lbl">{{ authService.isPassenger() ? 'TOTAL RIDES' : 'TRIPS DONE' }}</span>
+              <span class="tile-val">{{ summary().total_trips }}</span>
+            </div>
 
-          <div class="metric-cell">
-            <span class="cell-label">AVG FARE</span>
-            <span class="cell-value">₱{{ summary().avg_fare.toFixed(2) }}</span>
-          </div>
+            <div class="tile-divider"></div>
 
-          <div class="metric-cell-divider"></div>
-
-          <div class="metric-cell">
-            <span class="cell-label">TODAY</span>
-            <span class="cell-value text-emerald">₱{{ summary().today_earnings.toFixed(2) }}</span>
+            <div class="tile-box">
+              <span class="tile-lbl">{{ authService.isPassenger() ? 'TOTAL SPENT' : 'REVENUE' }}</span>
+              <span class="tile-val text-emerald">₱{{ summary().total_earnings.toFixed(0) }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -205,7 +245,6 @@
             <div class="source-item">
               <div class="source-item-top">
                 <div class="source-meta">
-                  <div class="source-color-dot" [style.background]="source.color"></div>
                   <span class="source-title">{{ source.label }}</span>
                   <span class="source-trips-tag">({{ source.trips_count }} trips)</span>
                 </div>
@@ -228,71 +267,7 @@
           }
         </div>
       </div>
-
-      <!-- ── 4. PASSENGER RATINGS & REVIEWS STREAM ──────────────────── -->
-      <div class="analytics-card ratings-card">
-        <div class="card-header-row">
-          <div class="card-title-group">
-            <h3 class="card-title">Passenger Reviews & Ratings</h3>
-            <span class="card-subtitle">Verified feedback from completed trips</span>
-          </div>
-        </div>
-
-        @if (ratings().length === 0) {
-          <div class="empty-ledger-state">
-            <ion-icon name="star-outline" class="empty-star-icon"></ion-icon>
-            <span class="empty-text">No passenger reviews recorded for this period.</span>
-          </div>
-        } @else {
-          <div class="reviews-items-stream">
-            @for (rev of ratings(); track rev.id) {
-              <div class="review-item-card">
-                <div class="review-top-row">
-                  <div class="stars-badge" [class.five-stars]="rev.rating >= 5">
-                    <span class="star-score">{{ rev.rating | number:'1.1-1' }}</span>
-                    <div class="star-icons-wrap">
-                      @for (s of [1, 2, 3, 4, 5]; track s) {
-                        <ion-icon
-                          [name]="s <= rev.rating ? 'star' : 'star-outline'"
-                          class="review-star-icon"
-                          [class.filled]="s <= rev.rating"
-                        ></ion-icon>
-                      }
-                    </div>
-                  </div>
-                  <span class="review-time">{{ rev.time_only || rev.created_at }}</span>
-                </div>
-
-                @if (rev.feedback_tags && rev.feedback_tags.length > 0) {
-                  <div class="review-tags-wrap">
-                    @for (tag of rev.feedback_tags; track tag) {
-                      <span class="review-tag-chip">
-                        <ion-icon name="thumbs-up-outline"></ion-icon>
-                        {{ tag }}
-                      </span>
-                    }
-                  </div>
-                }
-
-                @if (rev.review_comment) {
-                  <div class="review-comment-bubble">
-                    <ion-icon name="chatbubble-ellipses-outline" class="quote-icon"></ion-icon>
-                    <p class="comment-text">"{{ rev.review_comment }}"</p>
-                  </div>
-                }
-
-                <div class="review-trip-meta">
-                  <span class="meta-dest">{{ rev.destination }}</span>
-                  <span class="meta-dot">•</span>
-                  <span class="meta-fare">₱{{ rev.fare.toFixed(2) }}</span>
-                  <span class="meta-dot">•</span>
-                  <span class="meta-id">{{ rev.trip_id }}</span>
-                </div>
-              </div>
-            }
-          </div>
-        }
-      </div>
     }
   </div>
 </ion-content>
+

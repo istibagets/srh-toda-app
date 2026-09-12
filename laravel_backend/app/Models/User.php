@@ -97,6 +97,38 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the rides requested as a passenger.
+     */
+    public function passengerRides()
+    {
+        return $this->hasMany(Ride::class, 'passenger_id');
+    }
+
+    /**
+     * Get the rides served as a driver.
+     */
+    public function driverRides()
+    {
+        return $this->hasMany(Ride::class, 'driver_id');
+    }
+
+    /**
+     * Get incident reports submitted by this user.
+     */
+    public function reportsSubmitted()
+    {
+        return $this->hasMany(Report::class, 'reporter_id');
+    }
+
+    /**
+     * Get incident reports filed against this driver.
+     */
+    public function reportsReceived()
+    {
+        return $this->hasMany(Report::class, 'driver_id');
+    }
+
+    /**
      * Get the user's saved locations.
      */
     public function savedLocations()

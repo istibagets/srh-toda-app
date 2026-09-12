@@ -1,0 +1,60 @@
+<div class="maintenance-backdrop-wrapper">
+  <div class="maintenance-card-modal">
+    <!-- Clean Icon Badge -->
+    <div class="maintenance-icon-badge">
+      <ion-icon name="construct-outline"></ion-icon>
+    </div>
+
+    <!-- Header Section -->
+    <div class="header-group">
+      <div class="kicker-pill">
+        <span class="indicator-pip"></span>
+        <span>MAINTENANCE ADVISORY</span>
+      </div>
+      <h1 class="main-title">System Under Maintenance</h1>
+      <p class="description-text">
+        {{ maintenanceService.maintenanceMessage() }}
+      </p>
+    </div>
+
+    <!-- Event-Driven Stream Info -->
+    <div class="event-stream-card">
+      <div class="stream-icon-col">
+        <ion-icon name="radio-outline"></ion-icon>
+      </div>
+      <div class="stream-content-col">
+        <span class="stream-title">Live Event Stream Connected</span>
+        <span class="stream-desc">Dispatch operations are paused. The system will automatically resume instantly once maintenance concludes.</span>
+      </div>
+    </div>
+
+    <!-- Action Controls -->
+    <div class="action-footer">
+      <button
+        type="button"
+        class="retry-btn"
+        (click)="onRetry()"
+        [disabled]="maintenanceService.isChecking()"
+      >
+        @if (maintenanceService.isChecking()) {
+          <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
+          <span>Checking Platform Status...</span>
+        } @else {
+          <ion-icon name="refresh-outline" class="btn-icon"></ion-icon>
+          <span>Check Status Now</span>
+        }
+      </button>
+
+      <button
+        type="button"
+        class="superadmin-link-btn"
+        (click)="onGoToSuperAdmin()"
+      >
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <span>Superadmin Console Access</span>
+        <ion-icon name="arrow-forward-outline" class="arr-icon"></ion-icon>
+      </button>
+    </div>
+  </div>
+</div>
+

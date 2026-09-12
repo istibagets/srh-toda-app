@@ -145,7 +145,7 @@
                   </div>
                 }
 
-                <span class="queue-number-badge" [class.first]="item.position === 1 || idx === 0">
+                <span class="queue-number-badge" [class.first]="item.position === 1">
                   #{{ item.position || (idx + 1) }}
                 </span>
 
@@ -165,9 +165,10 @@
 
           <!-- Unsaved Queue Order Changes Toast (Admin only) -->
           <ion-toast
-            [isOpen]="authService.isAdmin() && (hasPendingChanges() || driverService.hasUnsavedQueueOrder())"
+            [isOpen]="authService.isAdmin() && (hasPendingChanges() || driverService.hasUnsavedQueueOrder()) && !isOverrideToastDismissed()"
+            (didDismiss)="isOverrideToastDismissed.set(true)"
             message="Unsaved queue order changes."
-            position="top"
+            position="bottom"
             [buttons]="unsavedToastButtons"
             class="srh-custom-toast queue-override-toast"
           ></ion-toast>

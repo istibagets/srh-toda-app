@@ -158,7 +158,7 @@ class DriverController extends Controller
                 $driver = \App\Models\Driver::create([
                     'user_id' => auth()->id(),
                     'full_name' => auth()->user()->name,
-                    'mtop_number' => 'ADMIN',
+                    'mtop_number' => '128491',
                     'compliance_status' => 'Approved',
                     'is_online' => false,
                 ]);
@@ -177,13 +177,14 @@ class DriverController extends Controller
         $isOnline = !$driver->is_online;
 
         if ($isOnline) {
-            // Geofence check: Must be within 35m of TODA Terminal (15.429550175641715, 120.92240292427664)
+            // Geofence check: Must be within configured TODA Terminal geofence
             $lat = $request->input('lat');
             $lng = $request->input('lng');
 
             if ($lat !== null && $lng !== null) {
-                $terminalLat = 15.429550175641715;
-                $terminalLng = 120.92240292427664;
+                $terminalLat = (float) \App\Support\SystemSettings::get('geofencing.terminal_lat', 15.429550175641715);
+                $terminalLng = (float) \App\Support\SystemSettings::get('geofencing.terminal_lng', 120.92240292427664);
+                $terminalRadius = (float) \App\Support\SystemSettings::get('geofencing.terminal_radius', 35);
                 
                 $earthRadius = 6371000;
                 $dLat = deg2rad($terminalLat - floatval($lat));
@@ -194,8 +195,8 @@ class DriverController extends Controller
                 $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
                 $distanceMeters = $earthRadius * $c;
 
-                if ($distanceMeters > 35) {
-                    $msg = "Outside 35m TODA Terminal geofence! You are " . round($distanceMeters) . "m away.";
+                if ($distanceMeters > $terminalRadius) {
+                    $msg = "Outside {$terminalRadius}m TODA Terminal geofence! You are " . round($distanceMeters) . "m away.";
                     if ($request->wantsJson() || $request->header('X-SPA-Request')) {
                         return response()->json(['is_online' => false, 'error' => $msg, 'message' => $msg], 422);
                     }
@@ -207,12 +208,13 @@ class DriverController extends Controller
             $lastPos = \App\Models\Driver::where('is_online', true)->max('queue_position') ?? 0;
             $driver->update([
                 'is_online' => true,
-                'queue_position' => $lastPos + 1
+                'queue_position' => $lastPos + 1,
+                'queue_joined_at' => now(),
             ]);
             $message = "On Duty! Position: " . ($lastPos + 1);
         } else {
             $oldPos = $driver->queue_position;
-            $driver->update(['is_online' => false, 'queue_position' => null]);
+            $driver->update(['is_online' => false, 'queue_position' => null, 'queue_joined_at' => null]);
             
             // Shift everyone else up so there are no gaps in the queue
             if ($oldPos) {
@@ -264,7 +266,8 @@ class DriverController extends Controller
         $oldPos = $driver->queue_position;
         $driver->update([
             'is_online' => false,
-            'queue_position' => null
+            'queue_position' => null,
+            'queue_joined_at' => null,
         ]);
 
         if ($oldPos) {
@@ -303,7 +306,8 @@ class DriverController extends Controller
             'compliance_status' => 'Suspended',
             'suspension_reason' => $request->suspension_reason,
             'is_online' => false,
-            'queue_position' => null
+            'queue_position' => null,
+            'queue_joined_at' => null,
         ]);
 
         if ($request->wantsJson() || $request->header('X-SPA-Request')) {
@@ -351,10 +355,34 @@ class DriverController extends Controller
             'appeal_attachments.*' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,pdf,doc,docx|max:10240',
         ]);
 
-        $driver = Driver::where('user_id', auth()->id())->firstOrFail();
+        $user = auth()->user();
+        if (!$user) {
+            $token = $request->bearerToken();
+            if ($token) {
+                $userId = \Illuminate\Support\Facades\Cache::get('api_token_' . $token);
+                if ($userId) {
+                    $user = \App\Models\User::find($userId);
+                }
+                if (!$user) {
+                    $user = \App\Models\User::where('remember_token', $token)->first();
+                }
+            }
+        }
+
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $driver = Driver::where('user_id', $user->id)->first() ?? Driver::where('id', $user->id)->first();
+        if (!$driver) {
+            return response()->json(['status' => 'error', 'message' => 'Driver profile not found.'], 404);
+        }
 
         if ($driver->compliance_status !== 'Suspended' && $driver->compliance_status !== 'Rejected') {
-            return back()->with('error', 'Your account is not currently suspended or rejected.');
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Your account is not currently suspended or rejected.',
+            ], 400);
         }
 
         $attachments = [];
@@ -362,9 +390,10 @@ class DriverController extends Controller
             foreach ($request->file('appeal_attachments') as $file) {
                 if ($file && $file->isValid()) {
                     $path = $file->store('appeals', 'public');
+                    $filename = basename($path);
                     $attachments[] = [
                         'name' => $file->getClientOriginalName(),
-                        'url' => '/attachments/appeals/' . basename($path),
+                        'url' => asset('storage/appeals/' . $filename),
                         'extension' => strtolower($file->getClientOriginalExtension()),
                     ];
                 }
@@ -378,24 +407,25 @@ class DriverController extends Controller
             'appeal_attachments' => count($attachments) > 0 ? $attachments : $driver->appeal_attachments,
         ]);
 
-        // Notify Admin of new appeal
+        // Notify Admin of new appeal with realtime broadcast
         try {
-            \App\Models\Announcement::create([
-                'title' => "Appeal Submitted: Driver {$driver->full_name}",
+            broadcast(new \App\Events\DriverApplicantUpdated($driver->id, 'Pending'));
+            broadcast(new \App\Events\QueueUpdated());
+            $announcement = \App\Models\Announcement::create([
+                'title' => "🚨 New Driver Appeal: {$driver->full_name}",
                 'message' => "Driver {$driver->full_name} (MTOP #{$driver->mtop_number}) submitted an appeal: \"{$request->appeal_message}\"",
-                'target_audience' => 'admin',
+                'target_audience' => 'ADMIN',
             ]);
+            broadcast(new \App\Events\AnnouncementCreated($announcement));
         } catch (\Throwable $e) {}
 
-        if ($request->wantsJson() || $request->header('X-SPA-Request')) {
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Your appeal has been submitted to TODA Admin for review.',
-                'appeal_message' => $driver->appeal_message,
-                'appeal_status' => 'Pending',
-                'appeal_attachments' => $driver->appeal_attachments,
-            ]);
-        }
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Your appeal has been submitted to TODA Admin for review.',
+            'appeal_message' => $driver->appeal_message,
+            'appeal_status' => 'Pending',
+            'appeal_attachments' => $driver->appeal_attachments,
+        ]);
 
         return back()->with('status', 'Your appeal has been submitted to TODA Admin for review.');
     }
@@ -501,8 +531,9 @@ class DriverController extends Controller
                 $lat = $request->query('lat');
                 $lng = $request->query('lng');
                 if ($lat !== null && $lng !== null) {
-                    $terminalLat = 15.429550175641715;
-                    $terminalLng = 120.92240292427664;
+                    $terminalLat = (float) \App\Support\SystemSettings::get('geofencing.terminal_lat', 15.429550175641715);
+                    $terminalLng = (float) \App\Support\SystemSettings::get('geofencing.terminal_lng', 120.92240292427664);
+                    $terminalRadius = (float) \App\Support\SystemSettings::get('geofencing.terminal_radius', 35);
                     $earthRadius = 6371000;
                     $dLat = deg2rad($terminalLat - floatval($lat));
                     $dLng = deg2rad($terminalLng - floatval($lng));
@@ -512,27 +543,64 @@ class DriverController extends Controller
                     $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
                     $distanceMeters = $earthRadius * $c;
 
-                    if ($distanceMeters > 35) {
+                    if ($distanceMeters > $terminalRadius) {
                         $hasActiveRide = \App\Models\Ride::where('driver_id', $userId)
-                            ->whereIn('status', ['accepted', 'arrived', 'in_transit', 'returning'])
+                            ->whereIn('status', ['bargaining', 'fare_proposed', 'fare_accepted', 'accepted', 'en_route', 'arrived', 'in_transit', 'returning'])
                             ->exists();
 
                         if (!$hasActiveRide) {
-                            $oldPos = $driver->queue_position;
-                            $driver->update([
-                                'is_online' => false,
-                                'queue_position' => null
-                            ]);
-                            if ($oldPos) {
-                                Driver::where('is_online', true)
-                                    ->where('queue_position', '>', $oldPos)
-                                    ->decrement('queue_position');
+                            $outsideSince = $driver->outside_geofence_at ?? \Illuminate\Support\Facades\Cache::get("driver_outside_since_{$driver->id}");
+                            if (!$outsideSince) {
+                                $outsideSince = now();
+                                try {
+                                    if (\Illuminate\Support\Facades\Schema::hasColumn('drivers', 'outside_geofence_at')) {
+                                        $driver->update(['outside_geofence_at' => $outsideSince]);
+                                    }
+                                } catch (\Throwable $e) {}
+                                \Illuminate\Support\Facades\Cache::put("driver_outside_since_{$driver->id}", $outsideSince, 7200);
+                            } else {
+                                if (is_string($outsideSince)) {
+                                    $outsideSince = \Carbon\Carbon::parse($outsideSince);
+                                }
                             }
-                            $queueService->normalizeQueue();
-                            try { broadcast(new QueueUpdated()); } catch (\Throwable $e) {}
 
-                            $autoOffDuty = true;
-                            $msg = '📍 Auto Off Duty: You left the 35m TODA Terminal radius.';
+                            $outsideMinutes = (int) now()->diffInMinutes($outsideSince);
+
+                            if ($outsideMinutes >= 30) {
+                                $oldPos = $driver->queue_position;
+                                $updateData = [
+                                    'is_online' => false,
+                                    'queue_position' => null,
+                                ];
+                                try {
+                                    if (\Illuminate\Support\Facades\Schema::hasColumn('drivers', 'outside_geofence_at')) {
+                                        $updateData['outside_geofence_at'] = null;
+                                    }
+                                } catch (\Throwable $e) {}
+                                \Illuminate\Support\Facades\Cache::forget("driver_outside_since_{$driver->id}");
+
+                                $driver->update($updateData);
+
+                                if ($oldPos) {
+                                    \App\Models\Driver::where('is_online', true)
+                                        ->where('queue_position', '>', $oldPos)
+                                        ->decrement('queue_position');
+                                }
+                                $queueService->normalizeQueue();
+                                try { broadcast(new \App\Events\QueueUpdated()); } catch (\Throwable $e) {}
+
+                                $autoOffDuty = true;
+                                $msg = "📍 Auto Off Duty: You have been outside the {$terminalRadius}m TODA Terminal radius for 30 minutes.";
+                            }
+                        }
+                    } else {
+                        if ($driver->outside_geofence_at || \Illuminate\Support\Facades\Cache::has("driver_outside_since_{$driver->id}")) {
+                            try {
+                                if (\Illuminate\Support\Facades\Schema::hasColumn('drivers', 'outside_geofence_at')) {
+                                    $driver->update(['outside_geofence_at' => null]);
+                                }
+                            } catch (\Throwable $e) {}
+                            \Illuminate\Support\Facades\Cache::forget("driver_outside_since_{$driver->id}");
                         }
                     }
                 }
@@ -612,8 +680,8 @@ class DriverController extends Controller
                 'destination' => $incomingRide->destination,
                 'pickup_lat' => (float) ($incomingRide->pickup_lat ?? 15.4265),
                 'pickup_lng' => (float) ($incomingRide->pickup_lng ?? 120.9405),
-                'destination_lat' => (float) ($incomingRide->destination_lat ?? 15.4215),
-                'destination_lng' => (float) ($incomingRide->destination_lng ?? 120.9350),
+                'destination_lat' => $incomingRide->destination_lat !== null ? (float) $incomingRide->destination_lat : null,
+                'destination_lng' => $incomingRide->destination_lng !== null ? (float) $incomingRide->destination_lng : null,
                 'driver_id' => $incomingRide->driver_id,
                 'passenger_id' => $incomingRide->passenger_id,
             ] : null,

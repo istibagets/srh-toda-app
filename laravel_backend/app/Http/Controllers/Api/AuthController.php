@@ -274,8 +274,9 @@ class AuthController extends Controller
                 if ($driver) {
                     $oldPosition = $driver->queue_position;
                     $driver->update([
-                        'is_online'      => false,
-                        'queue_position' => null,
+                        'is_online'        => false,
+                        'queue_position'   => null,
+                        'queue_joined_at'  => null,
                     ]);
 
                     if ($oldPosition !== null) {
@@ -378,6 +379,40 @@ class AuthController extends Controller
             'status'     => 'success',
             'message'    => 'Profile photo uploaded successfully.',
             'avatar_url' => asset('storage/' . $path),
+        ]);
+    }
+
+    /**
+     * Permanently delete user account and associated credentials.
+     */
+    public function deleteAccount(Request $request): JsonResponse
+    {
+        $user = $this->resolveUser($request);
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+        }
+
+        if ($user->role === 'superadmin') {
+            return response()->json(['status' => 'error', 'message' => 'Superadmin account cannot be deleted.'], 403);
+        }
+
+        $token = $request->bearerToken();
+        if ($token) {
+            Cache::forget('api_token_' . $token);
+        }
+
+        // If driver profile exists, remove queue / driver profile
+        if ($user->driverProfile) {
+            $user->driverProfile->delete();
+        }
+
+        ActivityLogger::log('account_deleted', $user->id, ['email' => $user->email]);
+
+        $user->delete();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Your account has been deleted permanently.',
         ]);
     }
 

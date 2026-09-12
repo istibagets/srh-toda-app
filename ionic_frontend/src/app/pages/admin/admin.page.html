@@ -5,27 +5,40 @@
         <h1 class="header-title">Admin</h1>
       </div>
 
-      <!-- Quick Print Action in Header -->
-      <button
-        type="button"
-        class="header-print-btn"
-        (click)="goToReportGenerator()"
-        title="Official Report Generator"
-      >
-        <ion-icon name="print-outline"></ion-icon>
-        <span>Print</span>
-      </button>
+      <!-- Quick Action Buttons in Header -->
+      <div class="header-action-btn-group">
+        <button
+          type="button"
+          class="header-superadmin-btn"
+          (click)="goToSuperAdmin()"
+          title="Superadmin Master Console & CMS"
+        >
+          <ion-icon name="shield-checkmark-outline"></ion-icon>
+          <span class="btn-label-full">Superadmin CMS</span>
+          <span class="btn-label-short">CMS</span>
+        </button>
+        <button
+          type="button"
+          class="header-print-btn"
+          (click)="goToReportGenerator()"
+          title="Official Report Generator"
+        >
+          <ion-icon name="print-outline"></ion-icon>
+          <span class="btn-label-full">Print Report</span>
+          <span class="btn-label-short">Print</span>
+        </button>
+      </div>
     </div>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="srh-admin-content" [fullscreen]="true">
-  <ion-refresher slot="fixed" (ionRefresh)="loadAdminData($event)">
-    <ion-refresher-content pullingIcon="chevron-down-circle-outline"></ion-refresher-content>
+  <ion-refresher slot="fixed" type="radial" (ionRefresh)="loadAdminData($event)">
+    <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
   <div class="admin-layout-container">
-    <!-- ── 1. SEGMENTED TOP-LEVEL NAVIGATION (2x2 GRID) ────── -->
+    <!-- ── 1. SEGMENTED TOP-LEVEL NAVIGATION (1x4 HORIZONTAL ROW) ────── -->
     <div class="admin-segmented-nav">
       <button
         type="button"
@@ -33,8 +46,11 @@
         [class.active]="activeTab() === 'drivers'"
         (click)="setTab('drivers')"
       >
+        <div class="tab-icon-wrap">
+          <ion-icon name="people-outline" class="tab-icon"></ion-icon>
+          <span class="tab-corner-badge">{{ drivers().length }}</span>
+        </div>
         <span class="tab-label">Drivers</span>
-        <span class="tab-badge">{{ drivers().length }}</span>
       </button>
       <button
         type="button"
@@ -42,8 +58,11 @@
         [class.active]="activeTab() === 'queue'"
         (click)="setTab('queue')"
       >
+        <div class="tab-icon-wrap">
+          <ion-icon name="list-outline" class="tab-icon"></ion-icon>
+          <span class="tab-corner-badge">{{ queue().length }}</span>
+        </div>
         <span class="tab-label">Queue</span>
-        <span class="tab-badge">{{ queue().length }}</span>
       </button>
       <button
         type="button"
@@ -51,10 +70,13 @@
         [class.active]="activeTab() === 'reports'"
         (click)="setTab('reports')"
       >
+        <div class="tab-icon-wrap">
+          <ion-icon name="document-text-outline" class="tab-icon"></ion-icon>
+          @if (summary().open_reports > 0) {
+            <span class="tab-corner-badge alert">{{ summary().open_reports }}</span>
+          }
+        </div>
         <span class="tab-label">Reports</span>
-        @if (summary().open_reports > 0) {
-          <span class="tab-badge alert">{{ summary().open_reports }}</span>
-        }
       </button>
       <button
         type="button"
@@ -62,6 +84,9 @@
         [class.active]="activeTab() === 'broadcast'"
         (click)="setTab('broadcast')"
       >
+        <div class="tab-icon-wrap">
+          <ion-icon name="megaphone-outline" class="tab-icon"></ion-icon>
+        </div>
         <span class="tab-label">Broadcast</span>
       </button>
     </div>
@@ -84,7 +109,10 @@
           <div class="tab-search-box">
             <ion-icon name="search-outline" class="search-icon"></ion-icon>
             <input
-              type="text"
+              type="search"
+              id="admin-driver-search"
+              name="driver_search"
+              aria-label="Search drivers by name, MTOP, or phone"
               class="search-input"
               placeholder="Search driver by name, MTOP, or phone..."
               [ngModel]="searchQuery()"
@@ -103,7 +131,7 @@
               type="button"
               class="filter-chip"
               [class.active]="statusFilter() === 'all'"
-              (click)="setStatusFilter('all')"
+              (click)="setStatusFilter('all', $event)"
             >
               All ({{ drivers().length }})
             </button>
@@ -111,15 +139,15 @@
               type="button"
               class="filter-chip"
               [class.active]="statusFilter() === 'Pending'"
-              (click)="setStatusFilter('Pending')"
+              (click)="setStatusFilter('Pending', $event)"
             >
-              Pending ({{ summary().pending_applicants }})
+              Pending ({{ pendingDriversCount() }})
             </button>
             <button
               type="button"
               class="filter-chip"
               [class.active]="statusFilter() === 'Approved'"
-              (click)="setStatusFilter('Approved')"
+              (click)="setStatusFilter('Approved', $event)"
             >
               Approved
             </button>
@@ -127,7 +155,7 @@
               type="button"
               class="filter-chip"
               [class.active]="statusFilter() === 'Suspended'"
-              (click)="setStatusFilter('Suspended')"
+              (click)="setStatusFilter('Suspended', $event)"
             >
               Suspended ({{ summary().suspended_drivers }})
             </button>
@@ -157,17 +185,17 @@
                       }
                     </div>
 
-                    <!-- Meta -->
+                    <!-- Meta: Name, MTOP underneath (no container), Phone/Rating -->
                     <div class="driver-meta">
-                      <div class="name-mtop-row">
-                        <h4 class="driver-name">{{ driver.full_name }}</h4>
+                      <h4 class="driver-name">{{ driver.full_name }}</h4>
+                      <div class="driver-mtop-row">
                         <span class="mtop-tag">MTOP #{{ driver.mtop_number }}</span>
                       </div>
                       <div class="driver-sub-details">
-                        <span class="contact-text">{{ driver.phone_number }}</span>
+                        <span class="contact-text">{{ driver.phone_number || 'N/A' }}</span>
                         <div class="rating-strip">
                           <ion-icon name="star" class="star-icon"></ion-icon>
-                          <span>{{ driver.average_rating.toFixed(1) }}</span>
+                          <span>{{ driver.average_rating ? driver.average_rating.toFixed(1) : '5.0' }}</span>
                         </div>
                       </div>
                     </div>
@@ -177,10 +205,11 @@
                       <span
                         class="compliance-status-pill"
                         [class.approved]="driver.compliance_status === 'Approved'"
-                        [class.pending]="driver.compliance_status === 'Pending'"
-                        [class.suspended]="driver.compliance_status === 'Suspended'"
+                        [class.pending]="driver.compliance_status === 'Pending' || driver.appeal_status === 'pending'"
+                        [class.appeal-pending]="driver.appeal_status === 'pending'"
+                        [class.suspended]="driver.compliance_status === 'Suspended' && driver.appeal_status !== 'pending'"
                       >
-                        {{ driver.compliance_status }}
+                        {{ driver.appeal_status === 'pending' ? 'Appeal Pending' : driver.compliance_status }}
                       </span>
                       <ion-icon name="chevron-forward-outline" class="card-arrow"></ion-icon>
                     </div>
@@ -192,12 +221,12 @@
         </div>
       }
 
-      <!-- ── 3. TAB 2: LIVE TERMINAL QUEUE ─────────────────── -->
+      <!-- ── 3. TAB 2: LIVE TERMINAL QUEUE & ACTIVE TRIPS ─────────────────── -->
       @if (activeTab() === 'queue') {
         <div class="tab-view-container animate-fade-in">
           <div class="queue-overview-bar">
-            <span class="queue-heading">Terminal Dispatch Line</span>
-            <span class="queue-count-badge">{{ queue().length }} Units On Duty</span>
+            <span class="queue-heading">Terminal Dispatch Line & Active Trips</span>
+            <span class="queue-count-badge">{{ queue().length }} Active Units</span>
           </div>
 
           @if (queue().length === 0) {
@@ -206,31 +235,69 @@
                 <ion-icon name="time-outline"></ion-icon>
               </div>
               <span class="empty-title">Queue Is Currently Empty</span>
-              <span class="empty-sub">No drivers are currently clocked on-duty in the terminal queue.</span>
+              <span class="empty-sub">No drivers are currently clocked on-duty or on active trips.</span>
             </div>
           } @else {
             <div class="queue-stream">
               @for (item of queue(); track item.id; let idx = $index) {
-                <div class="queue-item-card">
-                  <div class="queue-position-pill">
-                    #{{ item.position }}
-                  </div>
+                <div class="queue-item-card" [class.on-trip-card]="item.is_on_trip">
+                  <!-- Position Pill or Trip Status Pill -->
+                  @if (item.is_on_trip) {
+                    <div class="queue-position-pill trip-pill" [class.returning]="item.ride_status === 'returning'">
+                      <ion-icon [name]="item.ride_status === 'returning' ? 'arrow-back-outline' : 'car-outline'"></ion-icon>
+                    </div>
+                  } @else {
+                    <div class="queue-position-pill" [class.ready-pill]="item.position === 1">
+                      #{{ item.position }}
+                    </div>
+                  }
 
                   <div class="queue-driver-info">
-                    <span class="queue-driver-name">{{ item.driver_name }}</span>
+                    <div class="queue-driver-title-row">
+                      <span class="queue-driver-name">{{ item.driver_name }}</span>
+                      @if (item.is_on_trip) {
+                        <span class="trip-status-badge" [class.returning]="item.ride_status === 'returning'">
+                          {{ item.ride_status === 'returning' ? 'RETURNING' : 'ON TRIP' }}
+                        </span>
+                      } @else if (item.position === 1) {
+                        <span class="ready-status-badge">READY</span>
+                      }
+                    </div>
                     <span class="queue-driver-mtop">MTOP #{{ item.mtop_number }} • Joined {{ item.time_joined }}</span>
+
+                    <!-- Active Trip Details Snippet if on trip -->
+                    @if (item.is_on_trip && item.active_ride) {
+                      <div class="queue-active-trip-snippet">
+                        <span class="trip-dest-text">📍 {{ item.active_ride.destination }}</span>
+                        <span class="trip-passenger-text">({{ item.active_ride.passenger_name }} • ₱{{ item.active_ride.fare | number:'1.2-2' }})</span>
+                      </div>
+                    }
                   </div>
 
-                  <!-- Remove / Offline Button with Confirmation Prompt -->
-                  <button
-                    type="button"
-                    class="queue-remove-btn"
-                    (click)="confirmRemoveFromQueue(item)"
-                    title="Remove driver from queue and set offline"
-                  >
-                    <ion-icon name="log-out-outline"></ion-icon>
-                    <span>Offline</span>
-                  </button>
+                  <!-- Queue Action: Reset when on trip, Offline when waiting -->
+                  <div class="queue-actions-group">
+                    @if (item.is_on_trip) {
+                      <button
+                        type="button"
+                        class="queue-action-btn emergency-reset-btn"
+                        (click)="confirmResetDriverTrip(item)"
+                        title="Reset active trip and return driver to end of queue"
+                      >
+                        <ion-icon name="refresh-outline"></ion-icon>
+                        <span>Reset</span>
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        class="queue-action-btn offline-queue-btn"
+                        (click)="confirmRemoveFromQueue(item)"
+                        title="Remove driver from queue and set offline"
+                      >
+                        <ion-icon name="log-out-outline"></ion-icon>
+                        <span>Offline</span>
+                      </button>
+                    }
+                  </div>
                 </div>
               }
             </div>
@@ -241,17 +308,73 @@
       <!-- ── 4. TAB 3: INCIDENT & DISPUTE REPORTS ──────────── -->
       @if (activeTab() === 'reports') {
         <div class="tab-view-container animate-fade-in">
-          @if (reports().length === 0) {
+          <!-- Contextual Report Search Input -->
+          <div class="tab-search-box">
+            <ion-icon name="search-outline" class="search-icon"></ion-icon>
+            <input
+              type="search"
+              id="admin-report-search"
+              name="report_search"
+              aria-label="Search reports by ID, subject, passenger, or driver"
+              class="search-input"
+              placeholder="Search reports by ID, subject, passenger, or driver..."
+              [ngModel]="reportSearchQuery()"
+              (input)="onReportSearchChange($event)"
+            />
+            @if (reportSearchQuery()) {
+              <button type="button" class="clear-search-btn" (click)="clearReportSearch()">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            }
+          </div>
+
+          <!-- Reports Filter Chips (Same 2x2 grid / layout as drivers) -->
+          <div class="driver-filter-chips">
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="reportFilter() === 'all'"
+              (click)="setReportFilter('all', $event)"
+            >
+              All ({{ reports().length }})
+            </button>
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="reportFilter() === 'pending'"
+              (click)="setReportFilter('pending', $event)"
+            >
+              Pending ({{ pendingReportsCount() }})
+            </button>
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="reportFilter() === 'investigating'"
+              (click)="setReportFilter('investigating', $event)"
+            >
+              Investigating ({{ investigatingReportsCount() }})
+            </button>
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="reportFilter() === 'resolved'"
+              (click)="setReportFilter('resolved', $event)"
+            >
+              Resolved ({{ resolvedReportsCount() }})
+            </button>
+          </div>
+
+          @if (filteredReports().length === 0) {
             <div class="empty-tab-state">
               <div class="empty-icon-wrap">
                 <ion-icon name="alert-circle-outline"></ion-icon>
               </div>
-              <span class="empty-title">No Incident Reports</span>
-              <span class="empty-sub">Zero active passenger reports or fare disputes filed.</span>
+              <span class="empty-title">No Reports Found</span>
+              <span class="empty-sub">No reports match the current search or status filter.</span>
             </div>
           } @else {
             <div class="reports-stream">
-              @for (rpt of reports(); track rpt.id) {
+              @for (rpt of filteredReports(); track rpt.id) {
                 <div class="report-card" (click)="openReportModal(rpt)">
                   <div class="report-card-top">
                     <div class="report-id-group">
@@ -293,10 +416,11 @@
       <!-- ── 5. TAB 4: BROADCAST ANNOUNCEMENTS ─────────────── -->
       @if (activeTab() === 'broadcast') {
         <div class="tab-view-container animate-fade-in">
-          <div class="broadcast-action-bar">
+          <div class="broadcast-header-row">
+            <span class="broadcast-count">{{ announcements().length }} Announcement{{ announcements().length === 1 ? '' : 's' }}</span>
             <button type="button" class="create-broadcast-btn" (click)="openBroadcastModal()">
-              <ion-icon name="megaphone-outline"></ion-icon>
-              <span>Create Announcement</span>
+              <ion-icon name="add-outline"></ion-icon>
+              <span>Create</span>
             </button>
           </div>
 
@@ -313,7 +437,9 @@
               @for (ann of announcements(); track ann.id) {
                 <div class="announcement-card">
                   <div class="ann-top">
-                    <span class="ann-audience-pill">{{ ann.target_audience }}</span>
+                    <span class="ann-audience-pill" [attr.data-audience]="ann.target_audience">
+                      {{ ann.target_audience }}
+                    </span>
                     <span class="ann-time">{{ ann.created_at }}</span>
                   </div>
                   <h4 class="ann-title">{{ ann.title }}</h4>
@@ -378,7 +504,7 @@
                 }
 
                 @if (driver.drivers_license_url) {
-                  <button type="button" (click)="openDocPreview('Driver\'s License (LTO)', driver.drivers_license_url)" class="doc-link-card">
+                  <button type="button" (click)="openDocPreview('Driver\'s License (LTO)', driver.drivers_license_url, 'OFFICIAL DRIVER LICENSE')" class="doc-link-card">
                     <ion-icon name="document-attach-outline"></ion-icon>
                     <div class="doc-meta">
                       <span class="doc-name">Driver's License (LTO)</span>
@@ -392,10 +518,44 @@
               </div>
             </div>
 
+            <!-- Appeal Section if Driver Submitted an Appeal -->
+            @if (driver.appeal_status === 'pending' || driver.appeal_message || (driver.appeal_attachments && driver.appeal_attachments.length > 0)) {
+              <div class="docs-section appeal-docs-section">
+                <span class="section-heading">REINSTATEMENT APPEAL &amp; SUPPORTING PROOF</span>
+                @if (driver.appeal_message) {
+                  <div class="appeal-message-card">
+                    <span class="appeal-quote-label">DRIVER EXPLANATION:</span>
+                    <p class="appeal-quote-text">"{{ driver.appeal_message }}"</p>
+                  </div>
+                }
+
+                @if (driver.appeal_attachments && driver.appeal_attachments.length > 0) {
+                  <div class="docs-links-grid">
+                    @for (att of driver.appeal_attachments; track att.name) {
+                      <button
+                        type="button"
+                        (click)="openDocPreview(att.name, att.url || ('/api/attachments/appeal/' + att.name), 'APPEAL SUPPORTING PROOF')"
+                        class="doc-link-card appeal-card-item"
+                      >
+                        <ion-icon name="image-outline"></ion-icon>
+                        <div class="doc-meta">
+                          <span class="doc-name">{{ att.name }}</span>
+                          <span class="doc-action">Click to inspect appeal proof</span>
+                        </div>
+                        <ion-icon name="eye-outline" class="open-icon"></ion-icon>
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            }
+
             <!-- Suspension Reason Input if Suspending -->
             <div class="suspension-input-section">
-              <label class="section-heading">SUSPENSION REASON / ADMINISTRATIVE NOTE</label>
+              <label class="section-heading" for="admin-suspension-reason">SUSPENSION REASON / ADMINISTRATIVE NOTE</label>
               <textarea
+                id="admin-suspension-reason"
+                name="suspension_reason"
                 class="styled-textarea"
                 rows="3"
                 placeholder="Specify violation or suspension reason..."
@@ -441,6 +601,40 @@
               >
                 Reinstate
               </button>
+              <button
+                type="button"
+                class="modal-btn remove-permanent"
+                [disabled]="isProcessing()"
+                (click)="updateCompliance('Removed', suspensionReasonInput())"
+              >
+                Remove Permanently
+              </button>
+            } @else if (driver.compliance_status === 'Rejected') {
+              <button
+                type="button"
+                class="modal-btn reinstate"
+                [disabled]="isProcessing()"
+                (click)="updateCompliance('Approved')"
+              >
+                Reinstate &amp; Approve
+              </button>
+              <button
+                type="button"
+                class="modal-btn remove-permanent"
+                [disabled]="isProcessing()"
+                (click)="updateCompliance('Removed', suspensionReasonInput())"
+              >
+                Remove Permanently
+              </button>
+            } @else if (driver.compliance_status === 'Removed') {
+              <button
+                type="button"
+                class="modal-btn reinstate"
+                [disabled]="isProcessing()"
+                (click)="updateCompliance('Approved')"
+              >
+                Restore &amp; Approve
+              </button>
             }
           </div>
         </div>
@@ -481,7 +675,7 @@
             </div>
 
             <div class="status-select-section">
-              <label class="section-heading">UPDATE REPORT STATUS</label>
+              <span class="section-heading">UPDATE REPORT STATUS</span>
               <div class="status-radio-group">
                 <button
                   type="button"
@@ -511,8 +705,10 @@
             </div>
 
             <div class="notes-input-section">
-              <label class="section-heading">ADMINISTRATIVE ACTION NOTES</label>
+              <label class="section-heading" for="admin-report-notes">ADMINISTRATIVE ACTION NOTES</label>
               <textarea
+                id="admin-report-notes"
+                name="report_notes"
                 class="styled-textarea"
                 rows="3"
                 placeholder="Enter investigation notes or resolution details..."
@@ -563,7 +759,7 @@
 
         <div class="modal-sheet-body">
           <div class="input-group">
-            <label class="section-heading">TARGET AUDIENCE</label>
+            <span class="section-heading">TARGET AUDIENCE</span>
             <div class="status-radio-group">
               <button
                 type="button"
@@ -593,9 +789,11 @@
           </div>
 
           <div class="input-group">
-            <label class="section-heading">ANNOUNCEMENT TITLE</label>
+            <label class="section-heading" for="admin-broadcast-title">ANNOUNCEMENT TITLE</label>
             <input
               type="text"
+              id="admin-broadcast-title"
+              name="broadcast_title"
               class="styled-input"
               placeholder="e.g. TODA Meeting Notice"
               [ngModel]="broadcastTitle()"
@@ -604,8 +802,10 @@
           </div>
 
           <div class="input-group">
-            <label class="section-heading">MESSAGE CONTENT</label>
+            <label class="section-heading" for="admin-broadcast-message">MESSAGE CONTENT</label>
             <textarea
+              id="admin-broadcast-message"
+              name="broadcast_message"
               class="styled-textarea"
               rows="4"
               placeholder="Write announcement message..."
@@ -623,92 +823,6 @@
             (click)="submitBroadcast()"
           >
             Publish Broadcast
-          </button>
-        </div>
-      </div>
-    </ng-template>
-  </ion-modal>
-
-  <!-- ── 10. IN-APP DOCUMENT PREVIEW MODAL ─────────────────── -->
-  <ion-modal
-    [isOpen]="isDocPreviewOpen()"
-    (didDismiss)="closeDocPreview()"
-    [initialBreakpoint]="1"
-    [breakpoints]="[0, 1]"
-    [handle]="false"
-    class="admin-sheet-modal doc-preview-modal"
-  >
-    <ng-template>
-      <div class="modal-sheet-container doc-preview-container">
-        <div class="modal-drag-handle"></div>
-
-        <div class="modal-sheet-header">
-          <div class="header-title-block">
-            <button type="button" class="back-pill-btn" (click)="closeDocPreview()" title="Back">
-              <ion-icon name="arrow-back-outline"></ion-icon>
-              <span>Back</span>
-            </button>
-            <div class="header-text-group">
-              <span class="kicker">OFFICIAL DOCUMENT INSPECTOR</span>
-              <h2 class="driver-title">{{ previewDocTitle() }}</h2>
-            </div>
-          </div>
-
-          <div class="header-action-group">
-            <button type="button" class="tool-circle-btn" (click)="downloadDoc()" title="Download Document">
-              <ion-icon name="download-outline"></ion-icon>
-            </button>
-            <button type="button" class="tool-circle-btn" (click)="printDoc()" title="Print Document">
-              <ion-icon name="print-outline"></ion-icon>
-            </button>
-            <button type="button" class="modal-close-btn" (click)="closeDocPreview()" title="Close">
-              <ion-icon name="close-outline"></ion-icon>
-            </button>
-          </div>
-        </div>
-
-        <!-- Zoom & Inspection Controls Pill -->
-        <div class="doc-controls-floating-bar">
-          <button type="button" class="zoom-btn" (click)="zoomDocOut()" [disabled]="docZoomScale() <= 1" title="Zoom Out">
-            <ion-icon name="remove-outline"></ion-icon>
-          </button>
-          <span class="zoom-pct" (click)="resetDocZoom()" title="Click to reset zoom">{{ (docZoomScale() * 100) | number:'1.0-0' }}%</span>
-          <button type="button" class="zoom-btn" (click)="zoomDocIn()" [disabled]="docZoomScale() >= 4" title="Zoom In">
-            <ion-icon name="add-outline"></ion-icon>
-          </button>
-          <button type="button" class="zoom-reset-btn" (click)="resetDocZoom()" title="Reset Zoom">
-            <ion-icon name="refresh-outline"></ion-icon>
-          </button>
-          <span class="pinch-hint">Pinch or double-tap to zoom</span>
-        </div>
-
-        <div
-          class="modal-sheet-body doc-preview-body"
-          (wheel)="onWheelZoom($event)"
-          (touchstart)="onImageTouchStart($event)"
-          (touchmove)="onImageTouchMove($event)"
-          (touchend)="onImageTouchEnd()"
-        >
-          <div class="doc-image-frame">
-            <img
-              [src]="previewDocUrl()"
-              [alt]="previewDocTitle()"
-              class="doc-preview-img"
-              [style.transform]="'translate3d(' + docPanX() + 'px, ' + docPanY() + 'px, 0) scale(' + docZoomScale() + ')'"
-              [style.cursor]="docZoomScale() > 1 ? 'grab' : 'default'"
-              (error)="previewDocUrl.set('/assets/icon/srh-logo.png')"
-            />
-          </div>
-        </div>
-
-        <div class="modal-sheet-footer doc-preview-footer">
-          <button type="button" class="modal-btn outline" (click)="openInExternalBrowser(previewDocUrl(), $event)">
-            <ion-icon name="open-outline"></ion-icon>
-            <span>Open in Browser</span>
-          </button>
-          <button type="button" class="modal-btn approve" (click)="closeDocPreview()">
-            <ion-icon name="checkmark-outline"></ion-icon>
-            <span>Done Inspecting</span>
           </button>
         </div>
       </div>

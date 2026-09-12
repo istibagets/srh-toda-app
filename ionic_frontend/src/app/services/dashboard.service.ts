@@ -249,6 +249,11 @@ export class DashboardService {
     const headers = this.getAuthHeaders();
     return this.http.post<any>(`${environment.apiUrl}/admin/remove-from-queue`, { driver_id: driverId }, { headers });
   }
+
+  resetDriverTrip(driverId: number): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.post<any>(`${environment.apiUrl}/admin/reset-driver-trip`, { driver_id: driverId }, { headers });
+  }
 }
 
 export interface HistoryRideItem {
@@ -345,6 +350,8 @@ export interface EarningsSummaryResponse {
     today_trips_count: number;
     peak_day_name: string;
     peak_day_earnings: number;
+    avg_rating?: number;
+    rating_count?: number;
   };
   chart: DailyEarningsBar[];
   sources: TripSourceItem[];
@@ -378,10 +385,22 @@ export interface AdminDriverItem {
 export interface AdminQueueItem {
   id: number;
   driver_id: number;
+  user_id?: number;
   driver_name: string;
   mtop_number: string;
-  position: number;
+  position?: number | null;
   status: string;
+  is_on_trip?: boolean;
+  ride_status?: string | null;
+  active_ride?: {
+    id: number;
+    passenger_name: string;
+    pickup: string;
+    destination: string;
+    fare: number;
+    status: string;
+    time_started?: string;
+  } | null;
   avatar_url?: string | null;
   time_joined: string;
 }

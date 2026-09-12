@@ -49,4 +49,20 @@ class Ride extends Model
     {
         return $this->belongsTo(Driver::class, 'driver_id', 'user_id');
     }
+
+    /**
+     * Relationship: A ride has many in-app chat messages.
+     */
+    public function chatMessages()
+    {
+        return $this->hasMany(ChatMessage::class, 'ride_id')->oldest();
+    }
+
+    /**
+     * Relationship: A ride may have incident reports.
+     */
+    public function reports()
+    {
+        return $this->hasMany(Report::class, 'ride_id');
+    }
 }

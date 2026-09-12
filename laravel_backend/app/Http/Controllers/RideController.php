@@ -31,8 +31,8 @@ class RideController extends Controller
             'pickup_lat' => $request->filled('pickup_lat') ? floatval($request->pickup_lat) : 15.4265,
             'pickup_lng' => $request->filled('pickup_lng') ? floatval($request->pickup_lng) : 120.9405,
             'destination' => $request->destination,
-            'destination_lat' => $request->filled('destination_lat') ? floatval($request->destination_lat) : 15.4215,
-            'destination_lng' => $request->filled('destination_lng') ? floatval($request->destination_lng) : 120.9350,
+            'destination_lat' => ($request->filled('destination_lat') && is_numeric($request->destination_lat)) ? floatval($request->destination_lat) : null,
+            'destination_lng' => ($request->filled('destination_lng') && is_numeric($request->destination_lng)) ? floatval($request->destination_lng) : null,
             'fare' => 30.00,
         ]);
 

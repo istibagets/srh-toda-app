@@ -73,6 +73,9 @@
       <div class="input-shell">
         <input
           type="text"
+          id="trip-chat-message-input"
+          name="trip_chat_message"
+          aria-label="Type a message to driver or passenger"
           [ngModel]="newMessage()"
           (ngModelChange)="newMessage.set($event)"
           (keyup.enter)="sendMessage()"

@@ -68,8 +68,12 @@ class QueueUpdated implements ShouldBroadcastNow
 
     public function broadcastOn(): array
     {
-        // Everyone (Drivers/Admins) listens to this same public channel
-        return [new Channel('srh-toda-queue')];
+        // Broadcast across all public channels so passengers, drivers, and admins receive queue changes immediately
+        return [
+            new Channel('srh-toda-queue'),
+            new Channel('srh-toda-rides'),
+            new Channel('srh-system-status'),
+        ];
     }
 
     public function broadcastAs(): string

@@ -1,0 +1,1265 @@
+<ion-content class="srh-superadmin-content" [fullscreen]="true">
+  <!-- ═════════════════════════════════════════════════════════════════ -->
+  <!-- 0. SECURITY GATE / LOGIN (When not authenticated)              -->
+  <!-- ═════════════════════════════════════════════════════════════════ -->
+  @if (!superAdminService.isAuthenticated()) {
+    <div class="auth-gate-container">
+      <div class="auth-gate-card">
+        <div class="gate-brand-head">
+          <div class="gate-logo-icon">
+            <ion-icon name="shield-checkmark-outline"></ion-icon>
+          </div>
+          <div>
+            <h2 class="gate-title">Superadmin Login</h2>
+            <span class="gate-subtitle">SRH LINK-TODA Governance Console</span>
+          </div>
+        </div>
+        <p class="gate-desc">
+          Sign in to access platform configuration, tariffs, and governance.
+        </p>
+
+        @if (loginError()) {
+          <div class="gate-error-banner">
+            <ion-icon name="warning-outline"></ion-icon>
+            <span>{{ loginError() }}</span>
+          </div>
+        }
+
+        <form (ngSubmit)="onLoginSubmit()" class="gate-form">
+          <div class="form-field-group">
+            <label class="field-label">Email or Username</label>
+            <input
+              type="text"
+              [value]="loginUsername()"
+              (input)="loginUsername.set($any($event.target).value)"
+              placeholder="superadmin@gmail.com"
+              class="custom-gate-input"
+              required
+            />
+          </div>
+
+          <div class="form-field-group">
+            <label class="field-label">Password</label>
+            <input
+              type="password"
+              [value]="loginPassword()"
+              (input)="loginPassword.set($any($event.target).value)"
+              placeholder="Password"
+              class="custom-gate-input"
+              required
+            />
+          </div>
+
+          <p class="gate-quick-hint">
+            Default credentials: <strong>superadmin@gmail.com</strong> / <strong>admin123</strong>
+          </p>
+
+          <button type="submit" class="gate-submit-btn" [disabled]="superAdminService.isLoading()">
+            @if (superAdminService.isLoading()) {
+              <ion-spinner name="crescent"></ion-spinner>
+              <span>Signing in...</span>
+            } @else {
+              <span>Sign In</span>
+            }
+          </button>
+        </form>
+
+        <div class="gate-footer">
+          <button type="button" class="gate-back-btn" (click)="onBackToApp()">
+            <ion-icon name="arrow-back-outline"></ion-icon>
+            <span>Return to Passenger/Driver App</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ═════════════════════════════════════════════════════════════════ -->
+  <!-- AUTHENTICATED SUPERADMIN SAAS SIDEBAR WORKSPACE                 -->
+  <!-- ═════════════════════════════════════════════════════════════════ -->
+  @if (superAdminService.isAuthenticated()) {
+    <div class="sa-app-layout" [class.sidebar-open]="isSidebarOpen()">
+      <!-- Mobile Backdrop Overlay -->
+      @if (isSidebarOpen()) {
+        <div class="sa-sidebar-backdrop animate-fade-in" (click)="closeSidebar()"></div>
+      }
+
+      <!-- ── 1. SAAS SIDEBAR (Desktop Left Nav / Mobile Off-Canvas Drawer) ── -->
+      <aside class="sa-sidebar" [class.open]="isSidebarOpen()">
+        <!-- Sidebar Brand Box -->
+        <div class="sidebar-brand-box">
+          <div class="brand-badge">
+            <ion-icon name="shield-checkmark-outline"></ion-icon>
+          </div>
+          <div class="brand-text">
+            <h2 class="brand-title">SRH LINK-TODA</h2>
+            <span class="brand-subtitle">Superadmin Console</span>
+          </div>
+          <button type="button" class="sidebar-close-btn" (click)="closeSidebar()" title="Close menu" aria-label="Close">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        <!-- Sidebar Navigation List -->
+        <div class="sidebar-nav-container">
+          <span class="nav-group-label">CONSOLE MODULES</span>
+          <nav class="sidebar-nav-list" aria-label="Superadmin Modules">
+            <!-- 1. Overview -->
+            <button
+              type="button"
+              class="sidebar-nav-item"
+              [class.active]="activeTab() === 'overview'"
+              (click)="selectTab('overview')"
+              title="Executive Pulse & System Metrics"
+            >
+              <div class="nav-icon-wrap"><ion-icon name="pulse-outline"></ion-icon></div>
+              <span class="nav-label">Overview</span>
+              <ion-icon name="chevron-forward-outline" class="nav-arrow"></ion-icon>
+            </button>
+
+            <!-- 2. Users -->
+            <button
+              type="button"
+              class="sidebar-nav-item"
+              [class.active]="activeTab() === 'users'"
+              (click)="selectTab('users')"
+              title="User Accounts & Permissions"
+            >
+              <div class="nav-icon-wrap"><ion-icon name="people-outline"></ion-icon></div>
+              <span class="nav-label">Users</span>
+              <span class="nav-count-badge">{{ superAdminService.pulse()?.total_users || 0 }}</span>
+            </button>
+
+            <!-- 3. Tariffs & Geofence Radar -->
+            <button
+              type="button"
+              class="sidebar-nav-item"
+              [class.active]="activeTab() === 'fares'"
+              (click)="selectTab('fares')"
+              title="Tariff Calculation & Terminal Geofence Radar"
+            >
+              <div class="nav-icon-wrap"><ion-icon name="cash-outline"></ion-icon></div>
+              <span class="nav-label">Tariffs &amp; Radar</span>
+              <ion-icon name="chevron-forward-outline" class="nav-arrow"></ion-icon>
+            </button>
+
+            <!-- 4. MTOP Fleet -->
+            <button
+              type="button"
+              class="sidebar-nav-item"
+              [class.active]="activeTab() === 'franchise'"
+              (click)="selectTab('franchise')"
+              title="MTOP Franchises & Registered Tricycle Units"
+            >
+              <div class="nav-icon-wrap"><ion-icon name="car-sport-outline"></ion-icon></div>
+              <span class="nav-label">MTOP Fleet</span>
+              <span class="nav-count-badge">{{ superAdminService.pulse()?.total_drivers || 0 }}</span>
+            </button>
+
+            <!-- 5. Bylaws & Policies -->
+            <button
+              type="button"
+              class="sidebar-nav-item"
+              [class.active]="activeTab() === 'bylaws'"
+              (click)="selectTab('bylaws')"
+              title="TODA Association Bylaws & Operating Policies"
+            >
+              <div class="nav-icon-wrap"><ion-icon name="document-text-outline"></ion-icon></div>
+              <span class="nav-label">Bylaws &amp; Policies</span>
+              <ion-icon name="chevron-forward-outline" class="nav-arrow"></ion-icon>
+            </button>
+
+            <!-- 6. Branding CMS -->
+            <button
+              type="button"
+              class="sidebar-nav-item"
+              [class.active]="activeTab() === 'branding'"
+              (click)="selectTab('branding')"
+              title="Custom Branding, Contacts & App Texts"
+            >
+              <div class="nav-icon-wrap"><ion-icon name="image-outline"></ion-icon></div>
+              <span class="nav-label">Branding CMS</span>
+              <ion-icon name="chevron-forward-outline" class="nav-arrow"></ion-icon>
+            </button>
+
+            <!-- 7. Audit Logs -->
+            <button
+              type="button"
+              class="sidebar-nav-item"
+              [class.active]="activeTab() === 'logs'"
+              (click)="selectTab('logs')"
+              title="Governance Audit Logs & System Activity"
+            >
+              <div class="nav-icon-wrap"><ion-icon name="server-outline"></ion-icon></div>
+              <span class="nav-label">System Audit Logs</span>
+              <ion-icon name="chevron-forward-outline" class="nav-arrow"></ion-icon>
+            </button>
+          </nav>
+        </div>
+
+        <!-- Sidebar Footer Controls -->
+        <div class="sidebar-footer-box">
+          <div class="system-quick-actions">
+            <button type="button" class="sys-btn" (click)="onClearSystemCache()" title="Clear System Cache">
+              <ion-icon name="refresh-outline"></ion-icon>
+              <span>Flush Cache</span>
+            </button>
+            <button
+              type="button"
+              class="sys-btn maint-btn"
+              [class.active]="isMaintenanceMode()"
+              (click)="onToggleMaintenance()"
+              title="Toggle Maintenance Mode"
+            >
+              <ion-icon name="construct-outline"></ion-icon>
+              <span>{{ isMaintenanceMode() ? 'Exit Maint' : 'Maintenance' }}</span>
+            </button>
+            <button type="button" class="sys-btn" (click)="openSuperAdminPasswordModal()" title="Change Master Password">
+              <ion-icon name="key-outline"></ion-icon>
+              <span>Password</span>
+            </button>
+          </div>
+
+          <div class="sidebar-user-pill">
+            <div class="user-avatar-circle">SA</div>
+            <div class="user-text-col">
+              <span class="user-role-text">Super Administrator</span>
+              <span class="user-email-text">superadmin&#64;gmail.com</span>
+            </div>
+            <button type="button" class="user-logout-btn" (click)="onLogout()" title="Logout" aria-label="Logout">
+              <ion-icon name="log-out-outline"></ion-icon>
+            </button>
+          </div>
+
+          <button type="button" class="back-app-btn" (click)="onBackToApp()" title="Return to Passenger/Driver App">
+            <ion-icon name="arrow-back-outline"></ion-icon>
+            <span>Return to Application</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- ── 2. MAIN WORKSPACE / CONTENT VIEWPORT ── -->
+      <div class="sa-main-viewport">
+        <!-- Top Sticky Header with Hamburger & Breadcrumb -->
+        <header class="sa-topbar">
+          <div class="topbar-left">
+            <button
+              type="button"
+              class="hamburger-btn"
+              (click)="toggleSidebar()"
+              title="Toggle Navigation Menu"
+              aria-label="Menu"
+            >
+              <ion-icon name="menu-outline"></ion-icon>
+            </button>
+            <div class="breadcrumb-col">
+              <span class="breadcrumb-pre">Governance Console</span>
+              <h1 class="breadcrumb-title">{{ activeTabTitle }}</h1>
+            </div>
+          </div>
+
+          <div class="topbar-right">
+            <button type="button" class="topbar-action-btn" (click)="loadAllSuperAdminData()" title="Reload Data">
+              <ion-icon name="refresh-outline"></ion-icon>
+              <span class="btn-text">Refresh</span>
+            </button>
+            <button type="button" class="topbar-action-btn back-btn" (click)="onBackToApp()" title="Return to Application">
+              <ion-icon name="arrow-back-outline"></ion-icon>
+              <span class="btn-text">App View</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- Main Body -->
+        <main class="sa-main-body">
+          <div class="portal-container animate-fade-in">
+
+      <!-- ── TAB 1: OVERVIEW & PULSE ──────────────────────────────── -->
+      @if (activeTab() === 'overview') {
+        <div class="tab-pane animate-fade-in">
+          <!-- System Status Bar -->
+          <div class="executive-pulse-banner">
+            <div class="pulse-left">
+              <div class="pulse-icon-box">
+                <ion-icon name="server-outline"></ion-icon>
+              </div>
+              <div class="pulse-text-group">
+                <div class="pulse-header-line">
+                  <h2 class="pulse-headline">Santa Rosa Homes TODA Core Administration</h2>
+                  <span class="pulse-status-badge" [class.maint]="isMaintenanceMode()">
+                    {{ isMaintenanceMode() ? 'System in Maintenance' : 'Operational' }}
+                  </span>
+                </div>
+                <p class="pulse-sub">
+                  PHP {{ superAdminService.pulse()?.php_version || '8.3' }} &bull;
+                  Laravel {{ superAdminService.pulse()?.laravel_version || '13.0' }} &bull;
+                  Database: {{ superAdminService.pulse()?.db_size || '12.4 MB' }} &bull;
+                  Server Uptime: {{ superAdminService.pulse()?.uptime || '99.98%' }}
+                </p>
+              </div>
+            </div>
+            <div class="pulse-right">
+              <button type="button" class="refresh-pulse-btn" (click)="loadAllSuperAdminData()" title="Reload System Metrics">
+                <ion-icon name="refresh-outline"></ion-icon>
+                <span>Refresh Metrics</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Key Metrics Grid -->
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-head">
+                <span class="metric-label">Total Dispatched Volume</span>
+                <div class="metric-icon-wrap blue"><ion-icon name="cash-outline"></ion-icon></div>
+              </div>
+              <h3 class="metric-val">₱{{ (superAdminService.pulse()?.total_revenue || 0).toFixed(2) }}</h3>
+              <span class="metric-meta">Today: ₱{{ (superAdminService.pulse()?.today_revenue || 0).toFixed(2) }}</span>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-head">
+                <span class="metric-label">TODA Terminal Fund</span>
+                <div class="metric-icon-wrap emerald"><ion-icon name="business-outline"></ion-icon></div>
+              </div>
+              <h3 class="metric-val">₱{{ (superAdminService.pulse()?.terminal_dues_total || 0).toFixed(2) }}</h3>
+              <span class="metric-meta">₱2.00 / trip maintenance dues</span>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-head">
+                <span class="metric-label">Active Operating Fleet</span>
+                <div class="metric-icon-wrap indigo"><ion-icon name="car-sport-outline"></ion-icon></div>
+              </div>
+              <h3 class="metric-val">{{ superAdminService.pulse()?.active_online_drivers || 0 }} <span class="val-sub">/ {{ superAdminService.pulse()?.total_drivers || 0 }}</span></h3>
+              <span class="metric-meta">{{ superAdminService.pulse()?.pending_applicants || 0 }} Pending Verification</span>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-head">
+                <span class="metric-label">Registered Accounts</span>
+                <div class="metric-icon-wrap amber"><ion-icon name="people-outline"></ion-icon></div>
+              </div>
+              <h3 class="metric-val">{{ superAdminService.pulse()?.total_users || 0 }}</h3>
+              <span class="metric-meta">{{ superAdminService.pulse()?.total_passengers || 0 }} Passengers &bull; {{ superAdminService.pulse()?.total_admins || 0 }} Admins</span>
+            </div>
+          </div>
+
+          <!-- ── VISUAL ANALYTICS & ACTIVITY ROW (MATCHING SAMPLES 1 & 2) ── -->
+          <div class="analytics-dashboard-row">
+            <!-- Left Card: Dispatch Activity Area Chart -->
+            <div class="chart-panel-card">
+              <div class="panel-header">
+                <div class="panel-title-wrap">
+                  <h3 class="panel-title">Dispatch Volume &amp; Activity Trends</h3>
+                  <span class="panel-subtitle">Daily completed tricycle trips across Santa Rosa Homes</span>
+                </div>
+                <div class="panel-pill-badge">
+                  <span>Last 7 Days</span>
+                </div>
+              </div>
+
+              <div class="chart-svg-container">
+                <svg viewBox="0 0 500 150" class="activity-svg" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="blueGradientArea" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#2563eb" stop-opacity="0.18" />
+                      <stop offset="100%" stop-color="#2563eb" stop-opacity="0.0" />
+                    </linearGradient>
+                  </defs>
+
+                  <!-- Horizontal Reference Grid Lines -->
+                  <line x1="40" y1="30" x2="480" y2="30" stroke="#f1f5f9" stroke-dasharray="3 3" />
+                  <line x1="40" y1="75" x2="480" y2="75" stroke="#f1f5f9" stroke-dasharray="3 3" />
+                  <line x1="40" y1="120" x2="480" y2="120" stroke="#f1f5f9" />
+
+                  <!-- Area Path -->
+                  <path [attr.d]="trendAreaPath" fill="url(#blueGradientArea)" />
+
+                  <!-- Line Curve -->
+                  <path [attr.d]="trendLinePath" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+
+                  <!-- Data Point Circles & Tooltips -->
+                  @for (pt of trendPoints; track pt.date; let idx = $index) {
+                    <g class="chart-point-group" (mouseenter)="hoveredTrendIndex.set(idx)" (mouseleave)="hoveredTrendIndex.set(null)">
+                      <circle
+                        [attr.cx]="pt.x"
+                        [attr.cy]="pt.y"
+                        r="4"
+                        class="chart-dot"
+                        [class.active]="hoveredTrendIndex() === idx"
+                      />
+                      <!-- Hover Indicator Bubble -->
+                      @if (hoveredTrendIndex() === idx) {
+                        <g class="chart-tooltip-group">
+                          <rect
+                            [attr.x]="pt.x - 38"
+                            [attr.y]="pt.y - 32"
+                            width="76"
+                            height="22"
+                            rx="5"
+                            class="tooltip-bg"
+                          />
+                          <text
+                            [attr.x]="pt.x"
+                            [attr.y]="pt.y - 17"
+                            class="tooltip-text"
+                            text-anchor="middle"
+                          >
+                            {{ pt.rides }} rides &bull; ₱{{ pt.revenue }}
+                          </text>
+                        </g>
+                      }
+                    </g>
+                  }
+                </svg>
+
+                <!-- X-Axis Labels -->
+                <div class="chart-x-axis">
+                  @for (pt of trendPoints; track pt.date) {
+                    <span class="x-label">{{ pt.day }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Card: TODA Operational Composition -->
+            <div class="demographics-panel-card">
+              <div class="panel-header">
+                <div class="panel-title-wrap">
+                  <h3 class="panel-title">TODA Fleet &amp; Passenger Mix</h3>
+                  <span class="panel-subtitle">Dispatched fare types &amp; terminal radar</span>
+                </div>
+              </div>
+
+              <div class="demographics-bars-stack">
+                <div class="demo-item">
+                  <div class="demo-head">
+                    <span class="demo-name">Regular Passenger Trips</span>
+                    <span class="demo-pct">68%</span>
+                  </div>
+                  <div class="demo-bar-track">
+                    <div class="demo-bar-fill primary" style="width: 68%;"></div>
+                  </div>
+                </div>
+
+                <div class="demo-item">
+                  <div class="demo-head">
+                    <span class="demo-name">Student Discount (20%)</span>
+                    <span class="demo-pct">22%</span>
+                  </div>
+                  <div class="demo-bar-track">
+                    <div class="demo-bar-fill indigo" style="width: 22%;"></div>
+                  </div>
+                </div>
+
+                <div class="demo-item">
+                  <div class="demo-head">
+                    <span class="demo-name">Senior / PWD Discount (20%)</span>
+                    <span class="demo-pct">10%</span>
+                  </div>
+                  <div class="demo-bar-track">
+                    <div class="demo-bar-fill amber" style="width: 10%;"></div>
+                  </div>
+                </div>
+
+                <div class="geofence-status-mini">
+                  <ion-icon name="location-outline"></ion-icon>
+                  <div class="geo-info">
+                    <span class="geo-label">Active Terminal Geofence</span>
+                    <span class="geo-val">35m Dynamic Radar &bull; Central Gate Anchor</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── RECENT DISPATCHED TRIPS TABLE (MATCHING SAMPLE 2 ORDER LIST) ── -->
+          <div class="recent-trips-card">
+            <div class="card-head-row">
+              <div class="head-left">
+                <h3 class="card-heading">Recent Dispatched Trips</h3>
+                <span class="card-subheading">Live feed of completed and ongoing commuter dispatches</span>
+              </div>
+              <button type="button" class="view-all-btn" (click)="loadAllSuperAdminData()">
+                <ion-icon name="refresh-outline"></ion-icon>
+                <span>Refresh Feed</span>
+              </button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="recent-trips-table">
+                <thead>
+                  <tr>
+                    <th>TRIP ID</th>
+                    <th>PASSENGER</th>
+                    <th>ASSIGNED DRIVER &amp; MTOP</th>
+                    <th>ROUTE / DESTINATION</th>
+                    <th>FARE</th>
+                    <th>STATUS</th>
+                    <th>TIME</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (r of superAdminService.pulse()?.recent_rides || []; track r.id) {
+                    <tr>
+                      <td data-label="Trip ID">
+                        <span class="trip-id-badge">#{{ r.id }}</span>
+                      </td>
+                      <td data-label="Passenger">
+                        <span class="trip-p-name">{{ r.passenger_name }}</span>
+                      </td>
+                      <td data-label="Driver & MTOP">
+                        <div class="trip-driver-info">
+                          <span class="trip-d-name">{{ r.driver_name || 'Juan Dela Cruz' }}</span>
+                          <span class="trip-mtop-pill">#{{ r.mtop_number }}</span>
+                        </div>
+                      </td>
+                      <td data-label="Route">
+                        <span class="trip-dest">{{ r.destination }}</span>
+                      </td>
+                      <td data-label="Fare">
+                        <span class="trip-fare">₱{{ r.fare.toFixed(2) }}</span>
+                      </td>
+                      <td data-label="Status">
+                        <span class="trip-status-pill" [class.completed]="r.status === 'completed'" [class.active]="r.status !== 'completed'">
+                          {{ r.status === 'completed' ? 'Completed' : 'In-Transit' }}
+                        </span>
+                      </td>
+                      <td data-label="Time">
+                        <span class="trip-time">{{ r.created_at }}</span>
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="7" class="empty-table-cell">
+                        <ion-icon name="car-sport-outline"></ion-icon>
+                        <p>No trip records recorded yet for today.</p>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Quick System Control Strip -->
+          <div class="system-controls-strip">
+            <div class="strip-header">
+              <h3 class="strip-title">Platform Maintenance Operations</h3>
+              <p class="strip-desc">Manage system cache, data synchronization, and server diagnostics</p>
+            </div>
+            <div class="strip-buttons">
+              <button type="button" class="tool-btn" (click)="onClearSystemCache()">
+                <ion-icon name="refresh-outline"></ion-icon>
+                <span>Flush System Cache</span>
+              </button>
+              <button type="button" class="tool-btn" (click)="loadAllSuperAdminData()">
+                <ion-icon name="time-outline"></ion-icon>
+                <span>Refresh Live Metrics</span>
+              </button>
+              <button type="button" class="tool-btn danger" (click)="onToggleMaintenance()">
+                <ion-icon name="construct-outline"></ion-icon>
+                <span>{{ isMaintenanceMode() ? 'Exit Maintenance' : 'Toggle Maintenance Mode' }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- ── TAB 2: BRANDING & IDENTITY CMS ───────────────────────── -->
+      @if (activeTab() === 'branding') {
+        <div class="tab-pane animate-fade-in">
+          <div class="section-top-bar">
+            <div class="section-title-group">
+              <h2 class="section-title">Branding, Identity &amp; Application Texts</h2>
+              <p class="section-subtitle">Customize the system logo, title, association name, hotlines, and terminal address</p>
+            </div>
+            <button type="button" class="save-action-btn" (click)="onSaveCms()" [disabled]="isSavingCms()">
+              <ion-icon name="save-outline"></ion-icon>
+              <span>{{ isSavingCms() ? 'Saving...' : 'Save Branding Changes' }}</span>
+            </button>
+          </div>
+
+          <form [formGroup]="cmsForm" class="cms-form-stack">
+            <!-- Logo Editor Card -->
+            <div class="cms-card">
+              <div class="cms-card-header">
+                <ion-icon name="image-outline"></ion-icon>
+                <div>
+                  <h3 class="cms-card-title">System Logo &amp; Official Seal</h3>
+                  <p class="cms-card-desc">The primary logo displayed on the landing page, header, and document exports</p>
+                </div>
+              </div>
+              <div class="cms-card-body">
+                <div class="logo-preview-row">
+                  <div class="logo-display-frame">
+                    <img [src]="cmsForm.get('logo_url')?.value || 'assets/images/srh-logo.png'" alt="System Logo" class="preview-logo-img" />
+                  </div>
+                  <div class="logo-controls">
+                    <div class="form-group">
+                      <label class="form-label">Logo Image Path / URL</label>
+                      <input type="text" formControlName="logo_url" placeholder="assets/images/srh-logo.png" class="custom-form-input" />
+                    </div>
+                    <div class="logo-btn-row">
+                      <label class="btn-secondary-upload">
+                        <ion-icon name="cloudUploadOutline"></ion-icon>
+                        <span>Upload New Image</span>
+                        <input type="file" accept="image/*" (change)="onLogoFileSelect($event)" style="display: none;" />
+                      </label>
+                      <button type="button" class="btn-neutral-reset" (click)="onResetLogoDefault()">
+                        <span>Reset to Default Seal</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Application Name & Slogans -->
+            <div class="cms-card">
+              <div class="cms-card-header">
+                <ion-icon name="business-outline"></ion-icon>
+                <div>
+                  <h3 class="cms-card-title">System Titles &amp; Association Names</h3>
+                  <p class="cms-card-desc">Public naming conventions applied across the application</p>
+                </div>
+              </div>
+              <div class="cms-card-body">
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">Application Name</label>
+                    <input type="text" formControlName="app_title" class="custom-form-input" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Application Slogan / Tagline</label>
+                    <input type="text" formControlName="app_slogan" class="custom-form-input" />
+                  </div>
+                </div>
+
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">TODA Association Name</label>
+                    <input type="text" formControlName="toda_association" class="custom-form-input" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Terminal Operating Hours</label>
+                    <input type="text" formControlName="dispatch_hours" class="custom-form-input" />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Official Terminal Physical Address</label>
+                  <input type="text" formControlName="office_address" class="custom-form-input" />
+                </div>
+
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">Administration Hotline Phone</label>
+                    <input type="text" formControlName="hotline_phone" class="custom-form-input" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Official Support Email</label>
+                    <input type="email" formControlName="support_email" class="custom-form-input" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      }
+
+      <!-- ── TAB 3: FARE MATRIX & GEOFENCE CMS ────────────────────── -->
+      @if (activeTab() === 'fares') {
+        <div class="tab-pane animate-fade-in">
+          <div class="section-top-bar">
+            <div class="section-title-group">
+              <h2 class="section-title">Fare Matrix &amp; Dispatch Geofencing</h2>
+              <p class="section-subtitle">Calibrate regulated base fares, per-kilometer tariff, discounts, and terminal geofence</p>
+            </div>
+            <button type="button" class="save-action-btn" (click)="onSaveCms()" [disabled]="isSavingCms()">
+              <ion-icon name="save-outline"></ion-icon>
+              <span>{{ isSavingCms() ? 'Saving...' : 'Save Fare Matrix' }}</span>
+            </button>
+          </div>
+
+          <form [formGroup]="cmsForm" class="cms-form-stack">
+            <!-- Tariff Rates -->
+            <div class="cms-card">
+              <div class="cms-card-header">
+                <ion-icon name="cash-outline"></ion-icon>
+                <div>
+                  <h3 class="cms-card-title">Municipal Distance Tariffs &amp; Fees</h3>
+                  <p class="cms-card-desc">Standard fare calculations applied to all dispatched passenger rides</p>
+                </div>
+              </div>
+              <div class="cms-card-body">
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">Base Fare Rate (₱)</label>
+                    <input type="number" formControlName="base_fare" step="0.5" class="custom-form-input" />
+                    <span class="input-hint">Covers initial 1.0 kilometer</span>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Per-Kilometer Increment (₱/km)</label>
+                    <input type="number" formControlName="per_km_rate" step="0.25" class="custom-form-input" />
+                    <span class="input-hint">Additional distance increments</span>
+                  </div>
+                </div>
+
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">Night Differential (₱)</label>
+                    <input type="number" formControlName="night_differential" step="1" class="custom-form-input" />
+                    <span class="input-hint">10:00 PM to 5:00 AM differential</span>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">TODA Terminal Fee (₱)</label>
+                    <input type="number" formControlName="terminal_fee" step="0.5" class="custom-form-input" />
+                    <span class="input-hint">Terminal maintenance share per ride</span>
+                  </div>
+                </div>
+
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">Student Discount Rate (%)</label>
+                    <input type="number" formControlName="student_discount" class="custom-form-input" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Senior / PWD Discount Rate (%)</label>
+                    <input type="number" formControlName="pwd_senior_discount" class="custom-form-input" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Geofencing -->
+            <div class="cms-card">
+              <div class="cms-card-header">
+                <ion-icon name="location-outline"></ion-icon>
+                <div>
+                  <h3 class="cms-card-title">Terminal Geofence Radar &amp; Coordinates</h3>
+                  <p class="cms-card-desc">Configure the physical terminal center location and proximity radius required for driver queueing</p>
+                </div>
+              </div>
+              <div class="cms-card-body">
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">Terminal Latitude (°N)</label>
+                    <input type="number" formControlName="terminal_lat" step="0.0000001" class="custom-form-input" />
+                    <span class="input-hint">SRH Default: 15.429550175641715</span>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Terminal Longitude (°E)</label>
+                    <input type="number" formControlName="terminal_lng" step="0.0000001" class="custom-form-input" />
+                    <span class="input-hint">SRH Default: 120.92240292427664</span>
+                  </div>
+                </div>
+
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">Terminal Queue Geofence Radius (Meters)</label>
+                    <input type="number" formControlName="terminal_radius" min="10" max="500" class="custom-form-input" />
+                    <span class="input-hint">Recommended: 35 meters for accurate terminal check-in</span>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Boundary / Terminal Zone Name</label>
+                    <input type="text" formControlName="boundary_name" class="custom-form-input" />
+                    <span class="input-hint">Official association terminal tag</span>
+                  </div>
+                </div>
+
+                <div class="geofence-preset-box">
+                  <div class="preset-header-row">
+                    <span class="preset-label">Quick Terminal Coordinate Actions:</span>
+                    <button type="button" class="preset-btn" (click)="resetTerminalCoordinatesToDefault()">
+                      <ion-icon name="refresh-outline"></ion-icon>
+                      <span>Reset to SRH Main Gate</span>
+                    </button>
+                  </div>
+                  <p class="preset-coords">Current Active Anchor: {{ cmsForm.get('terminal_lat')?.value || '15.429550' }}, {{ cmsForm.get('terminal_lng')?.value || '120.922402' }} (Radius: {{ cmsForm.get('terminal_radius')?.value || 35 }}m)</p>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      }
+
+      <!-- ── TAB 4: BYLAWS & POLICIES CMS ─────────────────────────── -->
+      @if (activeTab() === 'bylaws') {
+        <div class="tab-pane animate-fade-in">
+          <div class="section-top-bar">
+            <div class="section-title-group">
+              <h2 class="section-title">Bylaws, Code of Conduct &amp; Policies CMS</h2>
+              <p class="section-subtitle">Official regulatory text displayed in user settings, registration, and driver dashboards</p>
+            </div>
+            <button type="button" class="save-action-btn" (click)="onSaveCms()" [disabled]="isSavingCms()">
+              <ion-icon name="save-outline"></ion-icon>
+              <span>{{ isSavingCms() ? 'Saving...' : 'Publish Policies' }}</span>
+            </button>
+          </div>
+
+          <form [formGroup]="cmsForm" class="cms-form-stack">
+            <div class="cms-card">
+              <div class="cms-card-header">
+                <ion-icon name="document-text-outline"></ion-icon>
+                <div>
+                  <h3 class="cms-card-title">Policy &amp; Guidelines Content</h3>
+                  <p class="cms-card-desc">Manage system terms, driver queue regulations, and passenger guide</p>
+                </div>
+              </div>
+              <div class="cms-card-body">
+                <div class="form-group">
+                  <label class="form-label">Terms of Service</label>
+                  <textarea formControlName="terms_of_service" rows="4" class="custom-form-textarea"></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Driver Code of Conduct &amp; Rules</label>
+                  <textarea formControlName="driver_rules" rows="4" class="custom-form-textarea"></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Passenger Fare &amp; Boarding Guide</label>
+                  <textarea formControlName="passenger_guide" rows="4" class="custom-form-textarea"></textarea>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      }
+
+      <!-- ── TAB 5: USER ACCOUNTS MASTER ─────────────────────────── -->
+      @if (activeTab() === 'users') {
+        <div class="tab-pane animate-fade-in">
+          <div class="section-top-bar">
+            <div class="section-title-group">
+              <h2 class="section-title">Master User &amp; Role Directory</h2>
+              <p class="section-subtitle">Manage administrative privileges, driver registrations, and user accounts</p>
+            </div>
+            <button type="button" class="add-action-btn" (click)="openAddUserModal()">
+              <ion-icon name="add-outline"></ion-icon>
+              <span>Add New User / Admin</span>
+            </button>
+          </div>
+
+          <!-- Filters & Search -->
+          <div class="filter-search-row">
+            <div class="role-pill-filters">
+              <button type="button" class="filter-pill" [class.active]="userRoleFilter() === 'all'" (click)="onFilterUsers('all')">All</button>
+              <button type="button" class="filter-pill" [class.active]="userRoleFilter() === 'superadmin'" (click)="onFilterUsers('superadmin')">Superadmin</button>
+              <button type="button" class="filter-pill" [class.active]="userRoleFilter() === 'admin'" (click)="onFilterUsers('admin')">Admin</button>
+              <button type="button" class="filter-pill" [class.active]="userRoleFilter() === 'driver'" (click)="onFilterUsers('driver')">Driver</button>
+              <button type="button" class="filter-pill" [class.active]="userRoleFilter() === 'passenger'" (click)="onFilterUsers('passenger')">Passenger</button>
+            </div>
+
+            <div class="search-input-wrap">
+              <ion-icon name="search-outline"></ion-icon>
+              <input
+                type="text"
+                placeholder="Search by name, email, or phone..."
+                [value]="userSearchQuery()"
+                (input)="onSearchUsers($event)"
+                class="search-input"
+              />
+            </div>
+          </div>
+
+          <!-- User Table Card -->
+          <div class="data-table-card">
+            <div class="table-responsive">
+              <table class="superadmin-table">
+                <thead>
+                  <tr>
+                    <th>USER / CONTACT</th>
+                    <th>ROLE</th>
+                    <th>MTOP NUMBER</th>
+                    <th>COMPLIANCE</th>
+                    <th>STATUS</th>
+                    <th>CREATED</th>
+                    <th>ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (u of superAdminService.users(); track u.id) {
+                    <tr>
+                      <td data-label="User">
+                        <div class="user-meta-cell">
+                          <div class="user-avatar-mini">
+                            {{ (u.name || 'U').charAt(0).toUpperCase() }}
+                          </div>
+                          <div class="user-name-box">
+                            <span class="u-name">{{ u.name }}</span>
+                            <span class="u-email">{{ u.email }} &bull; {{ u.phone_number }}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td data-label="Role">
+                        <span class="role-tag" [ngClass]="'role-' + u.role">
+                          {{ u.role | uppercase }}
+                        </span>
+                      </td>
+                      <td data-label="MTOP">
+                        @if (u.mtop_number) {
+                          <span class="mtop-cell-badge">#{{ u.mtop_number }}</span>
+                        } @else {
+                          <span class="text-muted">&mdash;</span>
+                        }
+                      </td>
+                      <td data-label="Compliance">
+                        <span class="status-cell-badge" [class.approved]="u.compliance === 'Approved'" [class.pending]="u.compliance === 'Pending'">
+                          {{ u.compliance || 'Active' }}
+                        </span>
+                      </td>
+                      <td data-label="Status">
+                        <span class="active-cell-pill" [class.active]="u.is_active" [class.suspended]="!u.is_active">
+                          {{ u.is_active ? 'Active' : 'Suspended' }}
+                        </span>
+                      </td>
+                      <td data-label="Created">
+                        <span class="date-cell">{{ u.created_at }}</span>
+                      </td>
+                      <td data-label="Actions">
+                        <div class="table-actions">
+                          <button type="button" class="tbl-btn edit" (click)="openEditUserModal(u)" title="Edit User Account">
+                            <ion-icon name="create-outline"></ion-icon>
+                            <span>Edit</span>
+                          </button>
+                          <button
+                            type="button"
+                            class="tbl-btn"
+                            [class.warn]="u.is_active"
+                            [class.green]="!u.is_active"
+                            (click)="onToggleUserActive(u)"
+                            title="Toggle Status"
+                          >
+                            <ion-icon [name]="u.is_active ? 'close-circle-outline' : 'checkmark-circle-outline'"></ion-icon>
+                          </button>
+                          <button type="button" class="tbl-btn danger" (click)="onDeleteUser(u)" title="Delete User">
+                            <ion-icon name="trash-outline"></ion-icon>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="7" class="empty-table-cell">
+                        <ion-icon name="people-outline"></ion-icon>
+                        <p>No user accounts found matching your filter criteria.</p>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- ── TAB 6: MTOP FLEET & FRANCHISE REGISTRY ───────────────── -->
+      @if (activeTab() === 'franchise') {
+        <div class="tab-pane animate-fade-in">
+          <div class="section-top-bar">
+            <div class="section-title-group">
+              <h2 class="section-title">TODA Franchise (MTOP) Master Fleet</h2>
+              <p class="section-subtitle">Accredited Motorized Tricycle Operator Permits across Santa Rosa Homes</p>
+            </div>
+          </div>
+
+          <div class="franchise-fleet-grid">
+            @for (u of superAdminService.users(); track u.id) {
+              @if (u.role === 'driver' || u.role === 'admin') {
+                <div class="franchise-card">
+                  <div class="franchise-card-header">
+                    <span class="mtop-huge-pill">#{{ u.mtop_number || '128491' }}</span>
+                    <span class="compliance-pill" [class.approved]="u.compliance === 'Approved'">
+                      {{ u.compliance || 'Approved' }}
+                    </span>
+                  </div>
+                  <div class="franchise-card-body">
+                    <h3 class="operator-name">{{ u.name }}</h3>
+                    <p class="operator-role">{{ u.role === 'admin' ? 'TODA Administration Unit' : 'Accredited TODA Operator' }}</p>
+                    <div class="operator-contacts">
+                      <span class="op-item"><ion-icon name="mail-outline"></ion-icon> {{ u.email }}</span>
+                      <span class="op-item"><ion-icon name="call-outline"></ion-icon> {{ u.phone_number }}</span>
+                    </div>
+                  </div>
+                  <div class="franchise-card-footer">
+                    <span class="association-tag">Santa Rosa Central TODA</span>
+                    <span class="franchise-status-text">{{ u.is_active ? 'Permit Valid' : 'Suspended' }}</span>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+      }
+
+      <!-- ── TAB 7: SECURITY AUDIT LOGS ───────────────────────────── -->
+      @if (activeTab() === 'logs') {
+        <div class="tab-pane animate-fade-in">
+          <div class="section-top-bar">
+            <div class="section-title-group">
+              <h2 class="section-title">Security Stream &amp; Audit Trail</h2>
+              <p class="section-subtitle">Immutable log of administrative operations, policy changes, and system events</p>
+            </div>
+            <button type="button" class="tool-btn" (click)="loadAllSuperAdminData()">
+              <ion-icon name="refresh-outline"></ion-icon>
+              <span>Refresh Logs</span>
+            </button>
+          </div>
+
+          <div class="audit-log-list">
+            @for (log of superAdminService.logs(); track log.id) {
+              <div class="audit-log-card">
+                <div class="log-indicator"></div>
+                <div class="log-main">
+                  <div class="log-header">
+                    <span class="log-action-badge">{{ log.action }}</span>
+                    <span class="log-time">{{ log.created_at }}</span>
+                  </div>
+                  <p class="log-details">{{ log.details }}</p>
+                  <div class="log-footer">
+                    <span class="log-user"><ion-icon name="people-outline"></ion-icon> {{ log.user }}</span>
+                    <span class="log-ip"><ion-icon name="server-outline"></ion-icon> IP: {{ log.ip_address }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+          </div>
+        </main>
+      </div>
+    </div>
+  }
+
+  <!-- ═════════════════════════════════════════════════════════════════ -->
+  <!-- ADD USER / NEW ADMIN MODAL                                      -->
+  <!-- ═════════════════════════════════════════════════════════════════ -->
+  @if (isAddUserModalOpen()) {
+    <div class="modal-backdrop animate-fade-in" (click)="closeAddUserModal()">
+      <div class="modal-card-dialog" (click)="$event.stopPropagation()">
+        <div class="modal-dialog-header">
+          <div class="dialog-title-wrap">
+            <span class="dialog-badge">USER CREATION MASTER</span>
+            <h3 class="dialog-title">Add New Admin or User</h3>
+          </div>
+          <button type="button" class="dialog-close-btn" (click)="closeAddUserModal()">
+            <ion-icon name="close-circle-outline"></ion-icon>
+          </button>
+        </div>
+
+        <form [formGroup]="newUserForm" (ngSubmit)="onCreateUser()" class="dialog-form">
+          <div class="dialog-form-body">
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input type="text" formControlName="name" placeholder="e.g. John Santos" class="custom-form-input" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <input type="email" formControlName="email" placeholder="e.g. admin.srh@gmail.com" class="custom-form-input" />
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">Mobile Phone Number</label>
+                <input type="text" formControlName="phone_number" placeholder="09171234567" class="custom-form-input" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">System Role</label>
+                <select formControlName="role" class="custom-form-select">
+                  <option value="admin">TODA Admin (President / Officer)</option>
+                  <option value="driver">TODA Driver</option>
+                  <option value="passenger">Passenger / Commuter</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">MTOP Permit Number</label>
+                <input type="text" formControlName="mtop_number" placeholder="128491" class="custom-form-input" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Initial Password</label>
+                <input type="password" formControlName="password" placeholder="admin123" class="custom-form-input" />
+              </div>
+            </div>
+          </div>
+
+          <div class="dialog-actions">
+            <button type="button" class="btn-cancel" (click)="closeAddUserModal()">Cancel</button>
+            <button type="submit" class="btn-submit">Create Account</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- ═════════════════════════════════════════════════════════════════ -->
+  <!-- EDIT USER / ROLE / MTOP / COMPLIANCE / STATUS MODAL              -->
+  <!-- ═════════════════════════════════════════════════════════════════ -->
+  @if (isEditUserModalOpen()) {
+    <div class="modal-backdrop animate-fade-in" (click)="closeEditUserModal()">
+      <div class="modal-card-dialog" (click)="$event.stopPropagation()">
+        <div class="modal-dialog-header">
+          <div class="dialog-title-wrap">
+            <span class="dialog-badge">USER GOVERNANCE</span>
+            <h3 class="dialog-title">Edit Account &bull; #{{ selectedEditUser()?.id }}</h3>
+          </div>
+          <button type="button" class="dialog-close-btn" (click)="closeEditUserModal()">
+            <ion-icon name="close-circle-outline"></ion-icon>
+          </button>
+        </div>
+
+        <form [formGroup]="editUserForm" (ngSubmit)="onUpdateUserSubmit()" class="dialog-form">
+          <div class="dialog-form-body">
+            @if (selectedEditUser()?.role === 'superadmin') {
+              <div class="superadmin-notice-card">
+                <ion-icon name="shield-checkmark-outline"></ion-icon>
+                <div class="notice-text">
+                  <span class="notice-title">Master Executive Superadmin</span>
+                  <p class="notice-desc">This is the root system administration account. The superadmin role cannot be altered or deactivated. You can update your contact information and password below.</p>
+                </div>
+              </div>
+            }
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" formControlName="name" class="custom-form-input" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" formControlName="email" class="custom-form-input" />
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">Mobile Phone Number</label>
+                <input type="text" formControlName="phone_number" class="custom-form-input" />
+              </div>
+              @if (selectedEditUser()?.role !== 'superadmin') {
+                <div class="form-group">
+                  <label class="form-label">System Role</label>
+                  <select formControlName="role" class="custom-form-select">
+                    <option value="admin">TODA Admin (President / Officer)</option>
+                    <option value="driver">TODA Driver</option>
+                    <option value="passenger">Passenger / Commuter</option>
+                  </select>
+                </div>
+              }
+            </div>
+
+            @if (selectedEditUser()?.role !== 'superadmin') {
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label class="form-label">MTOP Permit Number</label>
+                  <input type="text" formControlName="mtop_number" placeholder="128491" class="custom-form-input" />
+                  <span class="input-hint">Required for Driver / Admin roles</span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Compliance Status</label>
+                  <select formControlName="compliance_status" class="custom-form-select">
+                    <option value="Approved">Approved (Accredited)</option>
+                    <option value="Pending">Pending Verification</option>
+                    <option value="Suspended">Suspended</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Account Active Status</label>
+                <select formControlName="is_active" class="custom-form-select">
+                  <option [ngValue]="true">Active (Allowed to Login)</option>
+                  <option [ngValue]="false">Suspended / Deactivated</option>
+                </select>
+              </div>
+            }
+
+            <div class="form-group">
+              <label class="form-label">{{ selectedEditUser()?.role === 'superadmin' ? 'Change Superadmin Password' : 'Reset Password (Optional)' }}</label>
+              <input type="password" formControlName="password" placeholder="Leave blank to keep current password" class="custom-form-input" />
+            </div>
+          </div>
+
+          <div class="dialog-actions">
+            <button type="button" class="btn-cancel" (click)="closeEditUserModal()">Cancel</button>
+            <button type="submit" class="btn-submit" [disabled]="isSubmittingEdit()">
+              {{ isSubmittingEdit() ? 'Saving Changes...' : 'Save User Updates' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- ═════════════════════════════════════════════════════════════════ -->
+  <!-- DEDICATED SUPERADMIN PASSWORD CHANGE MODAL                       -->
+  <!-- ═════════════════════════════════════════════════════════════════ -->
+  @if (isPasswordModalOpen()) {
+    <div class="modal-backdrop animate-fade-in" (click)="closeSuperAdminPasswordModal()">
+      <div class="modal-card-dialog" (click)="$event.stopPropagation()">
+        <div class="modal-dialog-header">
+          <div class="dialog-title-wrap">
+            <span class="dialog-badge">SECURITY CONTROL</span>
+            <h3 class="dialog-title">Change Superadmin Password</h3>
+          </div>
+          <button type="button" class="dialog-close-btn" (click)="closeSuperAdminPasswordModal()">
+            <ion-icon name="close-circle-outline"></ion-icon>
+          </button>
+        </div>
+
+        <form [formGroup]="superAdminPasswordForm" (ngSubmit)="onUpdateSuperAdminPassword()" class="dialog-form">
+          <div class="dialog-form-body">
+            <p class="dialog-instruction-text">
+              Update the master security credentials for the Superadmin governance account.
+            </p>
+
+            <div class="form-group">
+              <label class="form-label">New Master Password</label>
+              <input
+                type="password"
+                formControlName="new_password"
+                placeholder="Minimum 6 characters"
+                class="custom-form-input"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Confirm New Password</label>
+              <input
+                type="password"
+                formControlName="confirm_password"
+                placeholder="Re-enter new password"
+                class="custom-form-input"
+              />
+            </div>
+          </div>
+
+          <div class="dialog-actions">
+            <button type="button" class="btn-cancel" (click)="closeSuperAdminPasswordModal()">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="btn-submit"
+              [disabled]="superAdminPasswordForm.invalid || isUpdatingPassword()"
+            >
+              @if (isUpdatingPassword()) {
+                Updating...
+              } @else {
+                Update Password
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</ion-content>

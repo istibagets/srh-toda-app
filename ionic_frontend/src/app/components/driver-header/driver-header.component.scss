@@ -189,6 +189,11 @@
   background: rgba(15, 23, 42, 0.45);
   z-index: 199;
   pointer-events: auto;
+  animation: fadeInBackdrop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+  &.is-closing {
+    animation: fadeOutBackdrop 0.18s cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
 }
 
 .notif-dropdown {
@@ -205,7 +210,11 @@
   z-index: 200;
   overflow: hidden;
   pointer-events: auto;
-  animation: dropDownSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: dropDownSlideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+  &.is-closing {
+    animation: dropDownSlideOut 0.18s cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
 
   .notif-dropdown-header {
     display: flex;
@@ -229,11 +238,12 @@
       }
 
       .unread-pill {
-        font-size: 9px;
+        font-size: 10px;
         font-weight: 800;
-        padding: 2px 7px;
-        background: #fee2e2;
-        color: #b91c1c;
+        padding: 2px 8px;
+        background: #eff6ff;
+        color: #2563eb;
+        border: 1px solid #bfdbfe;
         border-radius: 999px;
       }
     }
@@ -241,18 +251,19 @@
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
 
       .mark-read-btn {
         background: none;
         border: none;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 700;
         color: #2563eb;
         cursor: pointer;
         padding: 0;
 
         &:hover {
+          color: #1d4ed8;
           text-decoration: underline;
         }
       }
@@ -265,36 +276,45 @@
         cursor: pointer;
         display: flex;
         align-items: center;
+        transition: color 0.15s ease;
+
+        &:hover {
+          color: #0f172a;
+        }
       }
     }
   }
 
   .notif-list {
-    max-height: 50vh;
+    max-height: 52vh;
     overflow-y: auto;
     overscroll-behavior: contain;
+    padding: 8px 10px;
 
     .empty-notif {
       padding: 32px 16px;
       text-align: center;
       font-size: 12px;
       color: #94a3b8;
-      font-style: italic;
     }
 
     .notif-item {
-      padding: 12px 16px;
-      border-bottom: 1px solid #f1f5f9;
-      background: #f0fdf4;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      margin-bottom: 6px;
       cursor: pointer;
-      transition: background-color 0.15s ease;
+      transition: all 0.15s ease;
 
       &.read {
         background: #ffffff;
+        border: 1px solid #f1f5f9;
+        opacity: 0.85;
       }
 
       &:active {
-        background: #f8fafc;
+        transform: scale(0.99);
       }
 
       .item-top {
@@ -313,12 +333,16 @@
           color: #1d4ed8;
 
           &[data-tag='DRIVERS'] {
-            background: #ffedd5;
-            color: #c2410c;
+            background: #e0f2fe;
+            color: #0284c7;
+          }
+          &[data-tag='PASSENGERS'] {
+            background: #f0fdf4;
+            color: #16a34a;
           }
           &[data-tag='RATING'] {
-            background: #fef3c7;
-            color: #b45309;
+            background: #ecfdf5;
+            color: #047857;
           }
         }
 
@@ -348,30 +372,69 @@
         }
       }
 
-      .notif-title {
-        margin: 0 0 2px 0;
-        font-size: 13px;
-        font-weight: 800;
-        color: #0f172a;
+      .notif-title-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 3px 0 2px;
+
+        .unread-blue-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #2563eb;
+          flex-shrink: 0;
+          display: inline-block;
+          box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+        }
+
+        .notif-title {
+          margin: 0;
+          font-size: 13px;
+          font-weight: 800;
+          color: #0f172a;
+          line-height: 1.3;
+        }
       }
 
       .notif-msg {
         margin: 0;
         font-size: 11.5px;
         color: #475569;
-        line-height: 1.4;
+        line-height: 1.45;
       }
     }
   }
 }
 
-@keyframes dropDownSlide {
+@keyframes dropDownSlideIn {
   from {
     opacity: 0;
-    transform: translateY(-8px) scale(0.97);
+    transform: translateY(-10px) scale(0.97);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+@keyframes dropDownSlideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.97);
+  }
+}
+
+@keyframes fadeInBackdrop {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOutBackdrop {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }

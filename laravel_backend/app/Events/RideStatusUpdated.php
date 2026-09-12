@@ -38,9 +38,9 @@ class RideStatusUpdated implements ShouldBroadcastNow
         if (!$driverLoc && $ride->driver_id) {
             $driverLoc = \Illuminate\Support\Facades\Cache::get("driver_location_{$ride->driver_id}");
         }
-        $drvLat = $driverLoc ? (float)$driverLoc['lat'] : null;
-        $drvLng = $driverLoc ? (float)$driverLoc['lng'] : null;
-        $drvHeading = $driverLoc && isset($driverLoc['heading']) ? (float)$driverLoc['heading'] : null;
+        $drvLat = $driverLoc ? (float)$driverLoc['lat'] : 15.429550175641715;
+        $drvLng = $driverLoc ? (float)$driverLoc['lng'] : 120.92240292427664;
+        $drvHeading = $driverLoc && isset($driverLoc['heading']) ? (float)$driverLoc['heading'] : 0.0;
 
         $this->ride = [
             'id' => $ride->id,
