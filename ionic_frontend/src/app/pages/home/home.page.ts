@@ -154,7 +154,6 @@ export class HomePage implements AfterViewInit, OnDestroy {
   private gpsRetryCount = 0;
   private gpsRetryTimeout: any = null;
   private gpsEscalationTimeout: any = null;
-  private gpsWakeTimeout: any = null;
   private gpsListenersRegistered = false;
   private gpsLastCamFollowAt = 0;
   private lastProcessedGpsCoords: { lat: number; lng: number; time: number } | null = null;
@@ -2034,6 +2033,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
           if (hasActiveTrip) return;
 
           this.isLocationOverridden.set(true);
+          this.stopGpsWatchOnly();
           this.hasGpsFix.set(true);
           this.driverLat.set(rawLat);
           this.driverLng.set(rawLng);
@@ -2054,6 +2054,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
         }
 
         this.isLocationOverridden.set(true);
+        this.stopGpsWatchOnly();
         this.isUserPanned.set(false);
 
         // 1. When returning: snap marker to road route line and orient along road segment
@@ -2862,29 +2863,82 @@ export class HomePage implements AfterViewInit, OnDestroy {
     const dist = this.calculateDistanceMeters(center.lat, center.lng, lat, lng);
     const sinceLast = now - this.gpsLastCamFollowAt;
 
-    // Avoid redundant eases: skip camera work when already centered on a near-identical spot.
-    // Coarse fixes (cell/Wi-Fi hops) get a slower, wider cadence so the view doesn't jitter.
+    // COMPASS CHASE MODE (3D free-roam): the compass owns bearing/pitch. GPS only
+    // re-centers when the vehicle drifts toward the viewport edge, so it NEVER interrupts
+    // an active sensor rotation. This is what keeps the compass perfectly smooth.
+    if (this.isCompassControllingCamera) {
+      if (sinceLast < 800) return;
+      const container = this.map.getContainer();
+      const w = container.clientWidth || 400;
+      const h = container.clientHeight || 800;
+      const px = this.map.project([lng, lat]);
+      const dx = Math.abs(px.x - w / 2);
+      const dy = Math.abs(px.y - h / 2);
+      if (dx < w * 0.32 && dy < h * 0.32) return;
+      this.gpsLastCamFollowAt = now;
+      this.map.easeTo({
+        center: [lng, lat],
+        padding: this.getVisibleMapPadding(),
+        duration: 500,
+        easing: (t: number) => 1 - Math.pow(1 - t, 3),
+        essential: true,
+      });
+      return;
+    }
+
+    const is3D = this.mapControlState() === 3;
+
+    // Coarse (cell/Wi-Fi) fixes: slow, wide cadence so noisy hops can't jitter the view
     if (this.gpsFixIsCoarse) {
       if (dist < 12 && sinceLast < 2500) return;
-    } else if (dist < 0.7 && sinceLast < 2000) {
+      this.gpsLastCamFollowAt = now;
+      this.map.easeTo({
+        center: [lng, lat],
+        bearing: is3D ? bearing : 0,
+        pitch: is3D ? pitch : 0,
+        padding: this.getVisibleMapPadding(),
+        duration: duration,
+        easing: (t: number) => 1 - Math.pow(1 - t, 3),
+        essential: true,
+      });
+      return;
+    }
+
+    // Precise fixes: tight, immediate follow — skip only when already dead-center on the vehicle
+    if (dist < 0.25) {
       return;
     }
     this.gpsLastCamFollowAt = now;
-
-    // Honor the user's selected viewport: 2D stays north-up & flat, 3D keeps route/device heading
-    const is3D = this.mapControlState() === 3;
-    const targetBearing = is3D ? bearing : 0;
-    const targetPitch = is3D ? pitch : 0;
-
     this.map.easeTo({
       center: [lng, lat],
-      bearing: targetBearing,
-      pitch: targetPitch,
+      bearing: is3D ? bearing : 0,
+      pitch: is3D ? pitch : 0,
       padding: this.getVisibleMapPadding(),
       duration: duration,
       easing: (t: number) => 1 - Math.pow(1 - t, 3),
       essential: true,
     });
+  }
+
+  // True only when the device compass is the active camera controller: 3D free-roam with
+  // no returning state, no routeline, and no active trip (mirrors handleDeviceOrientation's guards).
+  private get isCompassControllingCamera(): boolean {
+    if (this.mapControlState() !== 3) return false;
+    if (this.driverService.isReturning()) return false;
+    if (this.currentActiveRouteCoordinates && this.currentActiveRouteCoordinates.length >= 2) return false;
+
+    if (this.authService.isPassenger()) {
+      const pRide = this.activePassengerRide();
+      if (pRide && ['accepted', 'en_route', 'arrived', 'in_transit'].includes(String(pRide?.status || '').toLowerCase().trim())) {
+        return false;
+      }
+    } else {
+      const dTrip = this.driverService.activeTrip();
+      if (dTrip && ['en_route', 'in_transit', 'arrived', 'accepted'].includes(String(dTrip.status || '').toLowerCase().trim())) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private createDriverBeamConeGeoJSON(centerLng: number, centerLat: number, headingDeg: number): any {
@@ -2936,6 +2990,12 @@ export class HomePage implements AfterViewInit, OnDestroy {
       this.isGpsFetching.set(false);
       return;
     }
+    // A manual location override (tap on map) must persist until the target button is pressed.
+    // Never restart GPS activity while the user is in override — location only comes from GPS again
+    // once fetchAndRecenterGpsLocation() clears the override.
+    if (this.isLocationOverridden()) {
+      return;
+    }
     if (this.gpsWatchId !== null) {
       return;
     }
@@ -2948,10 +3008,6 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
     // 2. Subscribe the single authoritative, event-driven watcher
     this.subscribeGpsWatch();
-
-    // 3. Stale-fix supervisor: pokes once (a single getCurrentPosition) whenever no event
-    //    has arrived, instead of hammering the GPS with a fixed-interval poller.
-    this.scheduleGpsWakeGuard();
   }
 
   private subscribeGpsWatch(): void {
@@ -3042,21 +3098,6 @@ export class HomePage implements AfterViewInit, OnDestroy {
     }, 25000);
   }
 
-  private scheduleGpsWakeGuard(): void {
-    if (this.gpsWakeTimeout !== null) clearTimeout(this.gpsWakeTimeout);
-    this.gpsWakeTimeout = setTimeout(() => {
-      this.gpsWakeTimeout = null;
-      if (typeof document !== 'undefined' && document.hidden) {
-        this.scheduleGpsWakeGuard();
-        return;
-      }
-      if (this.gpsWatchId !== null && Date.now() - this.gpsLastFixAt > 12000) {
-        this.requestFreshGpsFix();
-      }
-      this.scheduleGpsWakeGuard();
-    }, 12000);
-  }
-
   private requestFreshGpsFix(initial = false): void {
     if (typeof navigator === 'undefined' || typeof navigator.geolocation === 'undefined') return;
     if (initial) this.isGpsFetching.set(true);
@@ -3133,7 +3174,6 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
   private stopGpsTracking(): void {
     this.stopGpsWatchOnly();
-    if (this.gpsWakeTimeout !== null) { clearTimeout(this.gpsWakeTimeout); this.gpsWakeTimeout = null; }
     this.unregisterGpsLifecycleListeners();
     this.lastProcessedGpsCoords = null;
   }
@@ -3465,6 +3505,15 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
   private handleGpsUpdate(pos: GeolocationPosition): void {
     if (!pos || !pos.coords) return;
+
+    // A manual location override (tap on map) persists until the user explicitly re-fetches
+    // via the target button. Live GPS events are fully ignored while overridden so the
+    // marker never "returns" to the real position on its own.
+    if (this.isLocationOverridden()) {
+      this.isGpsFetching.set(false);
+      return;
+    }
+
     const rawLat = pos.coords.latitude;
     const rawLng = pos.coords.longitude;
     const accuracy = pos.coords.accuracy;
@@ -3686,7 +3735,15 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
     this.driverLat.set(rawLat);
     this.driverLng.set(rawLng);
-    this.driverHeading.set(moveHeading);
+
+    // In 3D free-roam the compass is the sole authority over heading/cone — never let GPS
+    // sniffing override the sensor's smooth rotation.
+    const is3D = this.mapControlState() === 3;
+    const compassControls = is3D && this.isCompassControllingCamera;
+    const effectiveHeading = compassControls ? this.driverHeading() : moveHeading;
+    if (!compassControls) {
+      this.driverHeading.set(moveHeading);
+    }
 
     const distToTerminal = this.calculateDistanceMeters(rawLat, rawLng, this.TERMINAL_LAT, this.TERMINAL_LNG);
     this.isInsideTerminal.set(distToTerminal <= this.TERMINAL_RADIUS_METERS);
@@ -3694,13 +3751,12 @@ export class HomePage implements AfterViewInit, OnDestroy {
     if (isPassenger) {
       this.animatePassengerMarkerTo(rawLng, rawLat, 450);
     } else {
-      this.animateDriverMarkerTo(rawLng, rawLat, moveHeading, 450);
-      this.broadcastDriverLocationThrottled(rawLat, rawLng, moveHeading, speed);
+      this.animateDriverMarkerTo(rawLng, rawLat, effectiveHeading, 450);
+      this.broadcastDriverLocationThrottled(rawLat, rawLng, effectiveHeading, speed);
     }
 
     if (!this.isUserPanned()) {
-      const is3D = this.mapControlState() === 3;
-      this.smoothCameraFollow(rawLng, rawLat, is3D ? moveHeading : 0, is3D ? 60 : 0, 600);
+      this.smoothCameraFollow(rawLng, rawLat, moveHeading, 60, 600);
     }
   }
 
