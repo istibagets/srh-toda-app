@@ -39,6 +39,12 @@ import {
   createOutline,
   add,
   remove,
+  locate,
+  locateOutline,
+  layersOutline,
+  layers,
+  earthOutline,
+  earth,
   informationCircleOutline,
 } from 'ionicons/icons';
 import { SavedLocationService, SavedLocation, NeighborhoodLandmark } from '../../services/saved-location.service';
@@ -75,9 +81,37 @@ export class SavedPage implements OnInit, OnDestroy {
   isSaving = signal<boolean>(false);
   editingLocationId = signal<number | null>(null);
 
-  // Map coordinates tracking
+  // Map coordinates & satellite mode tracking
   selectedLat = signal<number>(15.42780);
   selectedLng = signal<number>(120.92450);
+  isSatelliteMode = signal<boolean>(false);
+
+  readonly MAP_STREET_STYLE: any = 'https://api.maptiler.com/maps/streets-v2/style.json?key=fUp084w51J2w3A1tlAXq';
+  readonly MAP_SATELLITE_STYLE: any = {
+    version: 8,
+    sources: {
+      'google-satellite-hybrid': {
+        type: 'raster',
+        tiles: [
+          'https://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
+          'https://mt1.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
+          'https://mt2.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
+          'https://mt3.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
+        ],
+        tileSize: 256,
+        maxzoom: 20,
+      },
+    },
+    layers: [
+      {
+        id: 'google-satellite-layer',
+        type: 'raster',
+        source: 'google-satellite-hybrid',
+        minzoom: 0,
+        maxzoom: 24,
+      },
+    ],
+  };
 
   modalMapContainer = viewChild<ElementRef<HTMLDivElement>>('modalMapContainer');
   private miniMap: any = null;
@@ -98,6 +132,12 @@ export class SavedPage implements OnInit, OnDestroy {
       addOutline,
       add,
       remove,
+      locate,
+      locateOutline,
+      layersOutline,
+      layers,
+      earthOutline,
+      earth,
       homeOutline,
       businessOutline,
       schoolOutline,
@@ -189,7 +229,7 @@ export class SavedPage implements OnInit, OnDestroy {
   onModalPresented(): void {
     setTimeout(() => {
       this.initMiniMap();
-    }, 120);
+    }, 150);
   }
 
   private initMiniMap(): void {
@@ -205,45 +245,46 @@ export class SavedPage implements OnInit, OnDestroy {
       return;
     }
 
+    const maptilerStyleUrl = 'https://api.maptiler.com/maps/streets-v2/style.json?key=fUp084w51J2w3A1tlAXq';
+
     try {
       this.miniMap = new maplibregl.Map({
         container: container,
-        style: {
-          version: 8,
-          sources: {
-            'carto-voyager': {
-              type: 'raster',
-              tiles: [
-                'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
-                'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
-                'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
-              ],
-              tileSize: 256,
-            },
-          },
-          layers: [
-            {
-              id: 'carto-layer',
-              type: 'raster',
-              source: 'carto-voyager',
-              minzoom: 0,
-              maxzoom: 20,
-            },
-          ],
-        },
+        style: maptilerStyleUrl,
         center: [this.selectedLng(), this.selectedLat()],
-        zoom: 15.5,
+        zoom: 16.5,
+        maxZoom: 20,
+        minZoom: 10,
         attributionControl: false,
+        dragPan: true,
+        touchZoomRotate: true,
+        scrollZoom: true,
       });
 
-      // Pin marker element
+      // Pin marker element with robust standalone styling and vivid blue gradient
       const pinEl = document.createElement('div');
-      pinEl.className = 'modal-map-pin-pulse';
+      pinEl.className = 'saved-map-marker-pin';
+      pinEl.style.width = '36px';
+      pinEl.style.height = '50px';
+      pinEl.style.cursor = 'grab';
+      pinEl.style.display = 'block';
+      pinEl.style.position = 'relative';
+      pinEl.style.userSelect = 'none';
+      pinEl.style.webkitUserSelect = 'none';
+      pinEl.style.touchAction = 'none';
       pinEl.innerHTML = `
-        <div class="pin-dot">
-          <svg viewBox="0 0 24 24" fill="currentColor" class="pin-svg">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
+        <div style="display:flex;flex-direction:column;align-items:center;position:relative;filter:drop-shadow(0 4px 8px rgba(37,99,235,0.45));">
+          <svg viewBox="0 0 24 24" width="36" height="44" style="display:block;">
+            <defs>
+              <linearGradient id="saved-pin-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#3b82f6"/>
+                <stop offset="100%" stop-color="#1d4ed8"/>
+              </linearGradient>
+            </defs>
+            <path d="M12 1.5C7.3 1.5 3.5 5.3 3.5 10c0 5.8 7.5 12.8 8.5 13.5.2.2.5.2.7 0 1-.7 8.5-7.7 8.5-13.5 0-4.7-3.8-8.5-8.5-8.5z" fill="url(#saved-pin-grad)" stroke="#ffffff" stroke-width="1.8"/>
+            <circle cx="12" cy="10" r="3.6" fill="#ffffff"/>
           </svg>
+          <div style="width:16px;height:4px;background:rgba(15,23,42,0.35);border-radius:50%;margin-top:-3px;"></div>
         </div>
       `;
 
@@ -251,9 +292,15 @@ export class SavedPage implements OnInit, OnDestroy {
         element: pinEl,
         draggable: true,
         anchor: 'bottom',
+        offset: [0, 0],
       })
         .setLngLat([this.selectedLng(), this.selectedLat()])
         .addTo(this.miniMap);
+
+      this.miniMapMarker.on('drag', () => {
+        const lngLat = this.miniMapMarker!.getLngLat();
+        this.updateSelectedCoords(lngLat.lat, lngLat.lng);
+      });
 
       this.miniMapMarker.on('dragend', () => {
         const lngLat = this.miniMapMarker!.getLngLat();
@@ -262,15 +309,44 @@ export class SavedPage implements OnInit, OnDestroy {
 
       this.miniMap.on('click', (e: any) => {
         const { lng, lat } = e.lngLat;
-        this.miniMapMarker?.setLngLat([lng, lat]);
+        if (this.miniMapMarker) {
+          this.miniMapMarker.setLngLat([lng, lat]);
+        }
         this.updateSelectedCoords(lat, lng);
       });
 
       this.miniMap.on('load', () => {
         this.miniMap?.resize();
       });
+
+      // Prevent parent gestures/pull on the container and canvas
+      const stopProp = (e: Event) => {
+        e.stopPropagation();
+      };
+      ['touchstart', 'touchmove', 'touchend', 'pointerdown', 'pointermove', 'mousedown', 'mousemove'].forEach((evt) => {
+        container.addEventListener(evt, stopProp, { passive: true });
+      });
     } catch (err) {
       console.warn('Mini map init notice:', err);
+    }
+  }
+
+  recenterOnSelected(): void {
+    if (this.miniMap) {
+      this.miniMap.flyTo({
+        center: [this.selectedLng(), this.selectedLat()],
+        zoom: 16.5,
+        essential: true,
+      });
+    }
+  }
+
+  toggleSatelliteMode(): void {
+    const nextState = !this.isSatelliteMode();
+    this.isSatelliteMode.set(nextState);
+    if (this.miniMap) {
+      const style = nextState ? this.MAP_SATELLITE_STYLE : this.MAP_STREET_STYLE;
+      this.miniMap.setStyle(style);
     }
   }
 

@@ -91,16 +91,20 @@ class DashboardController extends Controller
                     ];
                 }
 
-                // Driver Live Location lookup from Cache or Terminal Fallback
+                // Driver Live Location lookup from Cache
                 $driverLoc = null;
                 if ($driverUser) {
                     $driverLoc = Cache::get("driver_location_{$driverUser->id}");
-                    if (!$driverLoc) {
-                        $driverLoc = Cache::get("ride_driver_location_{$activeRideModel->id}");
-                    }
                 }
-                $driverLat = $driverLoc ? (float) $driverLoc['lat'] : 15.42955;
-                $driverLng = $driverLoc ? (float) $driverLoc['lng'] : 120.92240;
+                if (!$driverLoc) {
+                    $driverLoc = Cache::get("ride_driver_location_{$activeRideModel->id}");
+                }
+                if (!$driverLoc && $activeRideModel->driver_id) {
+                    $driverLoc = Cache::get("driver_location_{$activeRideModel->driver_id}");
+                }
+
+                $driverLat = $driverLoc ? (float) $driverLoc['lat'] : null;
+                $driverLng = $driverLoc ? (float) $driverLoc['lng'] : null;
                 $driverHeading = $driverLoc && isset($driverLoc['heading']) ? (float) $driverLoc['heading'] : 0.0;
 
                 $activeRide = [
@@ -139,14 +143,7 @@ class DashboardController extends Controller
                     ];
                 });
 
-            $landmarks = [
-                ['name' => 'Main Gate Guard House', 'desc' => 'Main Entrance & TODA Bay', 'fare' => 20],
-                ['name' => 'Phase 1 Clubhouse', 'desc' => 'Central Recreation Area', 'fare' => 25],
-                ['name' => 'Phase 2 Community Park', 'desc' => 'Playground & Basketball Court', 'fare' => 30],
-                ['name' => 'Commercial Strip / Plaza', 'desc' => 'Groceries & Stores', 'fare' => 20],
-                ['name' => 'Santa Rosa Public Market', 'desc' => 'Town Center Terminal', 'fare' => 35],
-                ['name' => 'TODA Central Terminal', 'desc' => 'Queue Dispatch Point', 'fare' => 20],
-            ];
+            $landmarks = \App\Support\SystemSettings::getLandmarks();
 
             $activeQueue = Driver::where('is_online', true)
                 ->whereNotNull('queue_position')
@@ -361,7 +358,7 @@ class DashboardController extends Controller
         ];
 
         $data['fare_matrix'] = [
-            'base_fare'           => (float) \App\Support\SystemSettings::get('fare_matrix.base_fare', 15.00),
+            'base_fare'           => (float) \App\Support\SystemSettings::get('fare_matrix.base_fare', 50.00),
             'per_km_rate'         => (float) \App\Support\SystemSettings::get('fare_matrix.per_km_rate', 3.50),
             'night_differential'  => (float) \App\Support\SystemSettings::get('fare_matrix.night_differential', 5.00),
             'surge_multiplier'    => (float) \App\Support\SystemSettings::get('fare_matrix.surge_multiplier', 1.00),

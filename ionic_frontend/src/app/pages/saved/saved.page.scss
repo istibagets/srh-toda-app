@@ -626,15 +626,25 @@
 .srh-saved-place-modal {
   --border-radius: 28px 28px 0 0;
   --background: #ffffff;
+  --height: auto;
+  --max-height: 92vh;
+  align-items: flex-end;
+
+  @media (min-width: 640px) {
+    --border-radius: 28px;
+    --width: 520px;
+    align-items: center;
+  }
 }
 
 .modal-card-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  max-height: 90vh;
   background: #ffffff;
-  padding: 18px 18px 24px 18px;
+  padding: 18px 18px calc(24px + env(safe-area-inset-bottom, 8px)) 18px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal-head-bar {
@@ -812,16 +822,45 @@
 
   .modal-mini-map-frame {
     width: 100%;
-    height: 180px;
+    height: 195px;
     border-radius: 16px;
     overflow: hidden;
     position: relative;
     border: 1.5px solid #e2e8f0;
     background: #f1f5f9;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
 
     .modal-mini-map-canvas {
       width: 100%;
       height: 100%;
+      touch-action: none;
+    }
+
+    .map-recenter-btn {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      color: #2563eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+      z-index: 10;
+      transition: all 0.15s ease;
+
+      &:active {
+        transform: scale(0.92);
+        background: #eff6ff;
+      }
     }
 
     .map-coords-pill {
@@ -830,13 +869,15 @@
       left: 8px;
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(8px);
-      padding: 3px 8px;
+      padding: 4px 10px;
       border-radius: 8px;
-      font-size: 0.68rem;
-      font-weight: 700;
+      font-size: 0.7rem;
+      font-weight: 800;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       color: #1e293b;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
       z-index: 10;
+      border: 1px solid rgba(226, 232, 240, 0.8);
     }
 
     .map-zoom-stack {
@@ -845,53 +886,58 @@
       right: 8px;
       display: flex;
       flex-direction: column;
-      border-radius: 8px;
+      border-radius: 10px;
       overflow: hidden;
       background: #ffffff;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      border: 1px solid #e2e8f0;
       z-index: 10;
 
       .zoom-btn {
-        width: 28px;
-        height: 28px;
+        width: 30px;
+        height: 30px;
         border: none;
         background: #ffffff;
         color: #1e293b;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1rem;
+        font-size: 1.05rem;
         cursor: pointer;
+        border-bottom: 1px solid #f1f5f9;
 
-        &:first-child {
-          border-bottom: 1px solid #f1f5f9;
+        &:last-child {
+          border-bottom: none;
+        }
+
+        &.is-active-layer {
+          background: #0f172a;
+          color: #38bdf8;
         }
 
         &:active {
-          background: #f1f5f9;
+          background: #eff6ff;
+          color: #2563eb;
         }
       }
     }
   }
 }
 
-/* Marker pulse for mini-map */
-.modal-map-pin-pulse {
-  .pin-dot {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: #2563eb;
-    border: 2.5px solid #ffffff;
-    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #ffffff;
+/* Marker for mini-map */
+:host ::ng-deep {
+  .saved-map-marker-pin {
+    width: 36px !important;
+    height: 50px !important;
+    cursor: grab;
+    display: block !important;
+    position: relative;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
 
-    .pin-svg {
-      width: 14px;
-      height: 14px;
+    &:active {
+      cursor: grabbing;
     }
   }
 }

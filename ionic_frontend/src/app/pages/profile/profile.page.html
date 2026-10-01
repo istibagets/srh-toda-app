@@ -266,22 +266,12 @@
             </div>
 
             <div class="fare-chips-list">
-              <div class="fare-chip-item">
-                <span class="chip-dest">Main Gate Guard House</span>
-                <span class="chip-price">₱20.00</span>
-              </div>
-              <div class="fare-chip-item">
-                <span class="chip-dest">Phase 1 Clubhouse &amp; Pool</span>
-                <span class="chip-price">₱25.00</span>
-              </div>
-              <div class="fare-chip-item">
-                <span class="chip-dest">Commercial Strip / Plaza</span>
-                <span class="chip-price">₱20.00</span>
-              </div>
-              <div class="fare-chip-item">
-                <span class="chip-dest">Santa Rosa Public Market</span>
-                <span class="chip-price">₱35.00</span>
-              </div>
+              @for (landmark of savedLocationService.neighborhoodLandmarks(); track landmark.name) {
+                <div class="fare-chip-item">
+                  <span class="chip-dest">{{ landmark.name }}</span>
+                  <span class="chip-price">₱{{ landmark.fare.toFixed(2) }}</span>
+                </div>
+              }
             </div>
           </div>
 

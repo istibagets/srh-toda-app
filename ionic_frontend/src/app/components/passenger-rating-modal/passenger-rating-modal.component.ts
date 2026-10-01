@@ -1,4 +1,4 @@
-import { Component, input, output, signal, inject } from '@angular/core';
+import { Component, input, output, signal, inject, effect, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonIcon } from '@ionic/angular';
@@ -18,6 +18,7 @@ export class PassengerRatingModalComponent {
 
   ride = input.required<any>();
   isOpen = input<boolean>(false);
+  mode = input<'rating' | 'report'>('rating');
   closeModal = output<void>();
   submitted = output<void>();
 
@@ -66,6 +67,24 @@ export class PassengerRatingModalComponent {
       alertCircleOutline,
       shieldOutline,
       heartOutline,
+    });
+
+    // When the modal opens, always start from a clean state — either the rating flow
+    // (default) or directly in the incident-report form (for active-ride / history reports).
+    effect(() => {
+      const open = this.isOpen();
+      untracked(() => {
+        if (open) {
+          this.isReportMode.set(this.mode() === 'report');
+          this.isSubmitting.set(false);
+          this.reportCategory.set('Overcharging');
+          this.reportSubject.set('');
+          this.reportDescription.set('');
+          this.rating.set(5);
+          this.comment.set('');
+          this.selectedTags.set([]);
+        }
+      });
     });
   }
 

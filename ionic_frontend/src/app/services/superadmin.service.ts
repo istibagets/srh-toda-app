@@ -59,6 +59,17 @@ export interface SuperAdminUser {
   created_at: string;
 }
 
+export interface LandmarkItem {
+  name: string;
+  desc: string;
+  fare: number;
+  lat: number;
+  lng: number;
+  type?: string;
+  icon?: string;
+  color?: string;
+}
+
 export interface CmsData {
   fare_matrix: {
     base_fare: number;
@@ -85,6 +96,7 @@ export interface CmsData {
     hotline_phone: string;
     support_email: string;
   };
+  landmarks?: LandmarkItem[];
   bylaws: {
     terms_of_service: string;
     driver_rules: string;
@@ -247,7 +259,7 @@ export class SuperadminService {
     } catch (e) {
       this.cms.set({
         fare_matrix: {
-          base_fare: 15.0,
+          base_fare: 50.0,
           per_km_rate: 3.5,
           night_differential: 5.0,
           surge_multiplier: 1.0,
@@ -271,6 +283,28 @@ export class SuperadminService {
           hotline_phone: '(044) 791-2345 / 0917-123-4567',
           support_email: 'srh.toda.official@gmail.com',
         },
+        landmarks: [
+          {
+            name: 'Santa Rosa Public Market',
+            desc: 'Town Center & Public Market Terminal',
+            fare: 60,
+            type: 'market',
+            icon: 'storefront-outline',
+            color: 'purple',
+            lat: 15.42469999648076,
+            lng: 120.93842748892547,
+          },
+          {
+            name: 'SM Cabanatuan',
+            desc: 'SM City Cabanatuan Terminal & Mall Complex',
+            fare: 120,
+            type: 'commercial',
+            icon: 'cart-outline',
+            color: 'blue',
+            lat: 15.467008627792355,
+            lng: 120.95436226867764,
+          },
+        ],
         bylaws: {
           terms_of_service: 'Official SRH TODA Terms & Regulations for Commuters and Accredited Tricycle Operators.',
           driver_rules: 'Strict adherence to queue rotation, speed limits within subdivision, and courtesy standards.',

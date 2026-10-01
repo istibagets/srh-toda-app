@@ -256,6 +256,16 @@
           </div>
         }
 
+      <!-- REPORT ISSUE (shown whenever a driver is assigned to this ride) -->
+      @if (isDriverVisible()) {
+          <div class="report-issue-sheet-row">
+            <button type="button" class="report-issue-sheet-link" (click)="report.emit()">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              <span>Report an issue with this trip</span>
+            </button>
+          </div>
+        }
+
       </div>
     } @else {
       <!-- EXPANDED BOOKING HUB -->

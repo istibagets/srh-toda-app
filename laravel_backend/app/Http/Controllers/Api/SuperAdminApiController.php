@@ -394,7 +394,7 @@ class SuperAdminApiController extends Controller
             'status' => 'success',
             'cms'    => [
                 'fare_matrix' => [
-                    'base_fare'           => (float) SystemSettings::get('fare_matrix.base_fare', 15.00),
+                    'base_fare'           => (float) SystemSettings::get('fare_matrix.base_fare', 50.00),
                     'per_km_rate'         => (float) SystemSettings::get('fare_matrix.per_km_rate', 3.50),
                     'night_differential'  => (float) SystemSettings::get('fare_matrix.night_differential', 5.00),
                     'surge_multiplier'    => (float) SystemSettings::get('fare_matrix.surge_multiplier', 1.0),
@@ -416,6 +416,7 @@ class SuperAdminApiController extends Controller
                     'hotline_phone'    => (string) SystemSettings::get('branding.hotline_phone', '(044) 791-2345 / 0917-123-4567'),
                     'support_email'    => (string) SystemSettings::get('branding.support_email', 'srh.toda.official@gmail.com'),
                 ],
+                'landmarks' => SystemSettings::getLandmarks(),
                 'bylaws' => [
                     'terms_of_service' => (string) SystemSettings::get('bylaws.terms_of_service', "1. All SRH TODA tricycles must maintain official franchise permit (MTOP).\n2. Strict observance of terminal queue discipline and first-in, first-out rotation.\n3. Zero tolerance for fare overcharging beyond municipal tariff rates.\n4. Senior, PWD, and Student discounts (20%) must be honored upon presentation of valid ID."),
                     'driver_rules'     => (string) SystemSettings::get('bylaws.driver_rules', "1. Maintain active GPS and on-duty status while operating.\n2. Do not refuse trips within accredited SRH TODA routes.\n3. Keep vehicles clean, roadworthy, and equipped with TODA body numbers."),
@@ -466,6 +467,13 @@ class SuperAdminApiController extends Controller
             }
         }
 
+        if ($request->has('landmarks')) {
+            $landmarks = $request->input('landmarks');
+            if (is_array($landmarks)) {
+                SystemSettings::setLandmarks($landmarks);
+            }
+        }
+
         if ($request->has('branding')) {
             foreach ($request->input('branding') as $key => $val) {
                 SystemSettings::set("branding.{$key}", (string)$val);
@@ -480,7 +488,8 @@ class SuperAdminApiController extends Controller
 
         return response()->json([
             'status'  => 'success',
-            'message' => 'CMS content, Coordinates, Geofence Radius, and Fare Matrix updated successfully.',
+            'message' => 'CMS content, Landmarks, Coordinates, Geofence Radius, and Fare Matrix updated successfully.',
+            'landmarks' => SystemSettings::getLandmarks(),
         ]);
     }
 

@@ -139,6 +139,51 @@ export class HomePage implements AfterViewInit, OnDestroy {
   isGpsFetching = signal<boolean>(false);
   isUserPanned = signal<boolean>(false);
   isWaysideModal = signal<boolean>(false);
+
+  // Satellite Hybrid Map Mode (High-Resolution Sub-Meter Aerial Imagery)
+  readonly MAP_STREET_STYLE: any = 'https://api.maptiler.com/maps/streets-v2/style.json?key=fUp084w51J2w3A1tlAXq';
+  readonly MAP_SATELLITE_STYLE: any = {
+    version: 8,
+    sources: {
+      'google-satellite-hybrid': {
+        type: 'raster',
+        tiles: [
+          'https://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
+          'https://mt1.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
+          'https://mt2.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
+          'https://mt3.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',
+        ],
+        tileSize: 256,
+        maxzoom: 20,
+      },
+    },
+    layers: [
+      {
+        id: 'google-satellite-layer',
+        type: 'raster',
+        source: 'google-satellite-hybrid',
+        minzoom: 0,
+        maxzoom: 24,
+      },
+    ],
+  };
+  isSatelliteMode = signal<boolean>(typeof window !== 'undefined' && localStorage.getItem('srh_map_satellite') === 'true');
+
+  toggleSatelliteMode(): void {
+    const nextState = !this.isSatelliteMode();
+    this.isSatelliteMode.set(nextState);
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('srh_map_satellite', String(nextState));
+      }
+    } catch { }
+
+    if (this.map) {
+      const targetStyle = nextState ? this.MAP_SATELLITE_STYLE : this.MAP_STREET_STYLE;
+      this.map.setStyle(targetStyle);
+    }
+  }
+
   private lastDriverTripStatus: string | null = null;
   private cachedPowerEl: HTMLElement | null = null;
   private cachedMapControlsEl: HTMLElement | null = null;
@@ -177,13 +222,12 @@ export class HomePage implements AfterViewInit, OnDestroy {
   // ══════════════════════════════════════════════════════════════════════════
   // PASSENGER BOOKING STATE & REGULATED LANDMARKS
   // ══════════════════════════════════════════════════════════════════════════
-  readonly popularLandmarks = [
-    { name: 'Main Gate Guard House', fare: 20, icon: 'shield-outline', color: 'blue', desc: 'Main Entrance & Central Bay', lat: 15.42955, lng: 120.92240 },
-    { name: 'Phase 1 Clubhouse', fare: 25, icon: 'business-outline', color: 'emerald', desc: 'Recreation Center & Pool', lat: 15.42780, lng: 120.92410 },
-    { name: 'Phase 2 Community Park', fare: 30, icon: 'football-outline', color: 'amber', desc: 'Playground & Court', lat: 15.43120, lng: 120.92050 },
-    { name: 'Commercial Plaza Strip', fare: 20, icon: 'cart-outline', color: 'cyan', desc: 'Groceries, Bakeries & Eateries', lat: 15.42990, lng: 120.92380 },
-    { name: 'Santa Rosa Public Market', fare: 35, icon: 'storefront-outline', color: 'purple', desc: 'Town Center Terminal', lat: 15.43550, lng: 120.92640 },
-  ];
+  readonly popularLandmarks = signal<Array<{ name: string; fare: number; icon: string; color: string; desc: string; lat: number; lng: number }>>([
+    { name: 'Main Gate Guard House', fare: 50, icon: 'shield-outline', color: 'emerald', desc: 'Main Entrance & Central TODA Bay', lat: 15.42955, lng: 120.92240 },
+    { name: 'Phase 1 Clubhouse', fare: 50, icon: 'business-outline', color: 'indigo', desc: 'Recreation Center & Swimming Pool', lat: 15.42780, lng: 120.92410 },
+    { name: 'Santa Rosa Public Market', fare: 60, icon: 'storefront-outline', color: 'purple', desc: 'Town Center & Public Market Terminal', lat: 15.42469999648076, lng: 120.93842748892547 },
+    { name: 'SM Cabanatuan', fare: 120, icon: 'cart-outline', color: 'blue', desc: 'SM City Cabanatuan Terminal & Mall Complex', lat: 15.467008627792355, lng: 120.95436226867764 },
+  ]);
 
   private readonly PASSENGER_RIDE_KEY = 'srh_passenger_active_ride';
   showBookingModal = signal<boolean>(false);
@@ -199,6 +243,8 @@ export class HomePage implements AfterViewInit, OnDestroy {
   });
   showRatingModal = signal<boolean>(false);
   completedRideForRating = signal<any>(null);
+  showTripReportModal = signal<boolean>(false);
+  tripReportRide = signal<any>(null);
   isPinningMode = signal<boolean>(false);
   destinationPinMarker: any = null;
   pickupPinMarker: any = null;
@@ -287,20 +333,20 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
   onDestinationInputChange(val: string): void {
     this.bookingDestination.set(val);
-    const matched = this.popularLandmarks.find(l => l.name.toLowerCase() === val.trim().toLowerCase());
+    const matched = this.popularLandmarks().find(l => l.name.toLowerCase() === val.trim().toLowerCase());
     if (matched) {
       this.selectedLandmarkLat.set(matched.lat);
       this.selectedLandmarkLng.set(matched.lng);
       this.setDestinationPin(matched.lng, matched.lat, true);
-      this.calculateFare();
+      this.calculateCustomFare(matched.lat, matched.lng);
+    } else if (this.destinationPinMarker && this.selectedLandmarkLat() && this.selectedLandmarkLng()) {
+      // Typed a name over an already-pinned drop-off point: KEEP the pin — the text is just a
+      // label. Recalculate the fare from the pinned coordinates, never remove the marker.
+      this.calculateCustomFare(this.selectedLandmarkLat()!, this.selectedLandmarkLng()!);
     } else {
-      // User typed custom destination name without pinning coordinates on the map
+      // No pin yet: typed custom destination means an unpinned (terminal-style) destination.
       this.selectedLandmarkLat.set(null);
       this.selectedLandmarkLng.set(null);
-      if (this.destinationPinMarker) {
-        this.destinationPinMarker.remove();
-        this.destinationPinMarker = null;
-      }
       this.calculateFare();
     }
   }
@@ -453,16 +499,16 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
   calculateFare(): void {
     const dest = this.bookingDestination();
-    const matched = this.popularLandmarks.find(l => l.name === dest);
-    const base = matched ? matched.fare : 25;
+    const matched = this.popularLandmarks().find(l => l.name === dest);
+    const base = matched ? matched.fare : 50;
     const extraPax = Math.max(0, this.bookingPax() - 2);
     this.bookingFare.set(base + extraPax * 5);
   }
 
   calculateCustomFare(lat: number, lng: number): void {
-    let closestFare = 25;
+    let closestFare = 50;
     let minDist = 999999;
-    for (const lm of this.popularLandmarks) {
+    for (const lm of this.popularLandmarks()) {
       const dist = this.calculateDistanceMeters(lat, lng, lm.lat, lm.lng);
       if (dist < minDist) {
         minDist = dist;
@@ -658,6 +704,13 @@ export class HomePage implements AfterViewInit, OnDestroy {
     this.completedRideForRating.set(null);
     this.displayToast('⭐ Thank you for your feedback! Ride completed.');
     this.refreshDashboard();
+  }
+
+  openActiveRideReport(): void {
+    const ride = this.activePassengerRide();
+    if (!ride?.id) return;
+    this.tripReportRide.set(ride);
+    this.showTripReportModal.set(true);
   }
 
   // ==========================================
@@ -1709,6 +1762,17 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
         if (this.authService.isPassenger()) {
           const prev = this.activePassengerRide();
+          if (data?.passenger?.landmarks && Array.isArray(data.passenger.landmarks) && data.passenger.landmarks.length > 0) {
+            this.popularLandmarks.set(data.passenger.landmarks.map((l: any) => ({
+              name: l.name,
+              fare: Number(l.fare || 50),
+              icon: l.icon || 'location-outline',
+              color: l.color || 'blue',
+              desc: l.desc || '',
+              lat: Number(l.lat || 15.42470),
+              lng: Number(l.lng || 120.93843),
+            })));
+          }
           if (data?.passenger?.active_ride) {
             const ar = data.passenger.active_ride;
             const prevStatus = prev?.status;
@@ -1720,7 +1784,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
               const dLng = Number(ar.driver_lng);
               const dHeading = Number(ar.driver_heading || 0);
               if (this.driverMarker) {
-                this.driverMarker.setLngLat([dLng, dLat]);
+                this.animateDriverMarkerTo(dLng, dLat, dHeading, 450);
               } else {
                 this.syncPassengerDriverTricycleMarker();
               }
@@ -1981,8 +2045,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
       return;
     }
 
-    const maptilerStyleUrl =
-      'https://api.maptiler.com/maps/streets-v2/style.json?key=fUp084w51J2w3A1tlAXq';
+    const initialStyle = this.isSatelliteMode() ? this.MAP_SATELLITE_STYLE : this.MAP_STREET_STYLE;
 
     try {
       const is3D = this.mapControlState() === 3;
@@ -1990,11 +2053,13 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
       const mapInstance = new maplibregl.Map({
         container: container,
-        style: maptilerStyleUrl,
+        style: initialStyle,
         center: initialCenter,
         zoom: is3D ? 17.2 : 16.6,
         pitch: is3D ? 60 : 0,
         bearing: is3D ? this.driverHeading() : 0,
+        maxZoom: 20,
+        minZoom: 10,
         attributionControl: false,
       });
 
@@ -2863,26 +2928,11 @@ export class HomePage implements AfterViewInit, OnDestroy {
     const dist = this.calculateDistanceMeters(center.lat, center.lng, lat, lng);
     const sinceLast = now - this.gpsLastCamFollowAt;
 
-    // COMPASS CHASE MODE (3D free-roam): the compass owns bearing/pitch. GPS only
-    // re-centers when the vehicle drifts toward the viewport edge, so it NEVER interrupts
-    // an active sensor rotation. This is what keeps the compass perfectly smooth.
+    // COMPASS CHASE MODE (3D free-roam): the compass is the SOLE camera controller. GPS must
+    // never call easeTo here — every competing easeTo aborts the sensor's 220ms bearing rotation
+    // and makes the compass jitter. Location still updates via the marker tween; the camera
+    // keeps rotating purely from handleDeviceOrientation, exactly as it did before.
     if (this.isCompassControllingCamera) {
-      if (sinceLast < 800) return;
-      const container = this.map.getContainer();
-      const w = container.clientWidth || 400;
-      const h = container.clientHeight || 800;
-      const px = this.map.project([lng, lat]);
-      const dx = Math.abs(px.x - w / 2);
-      const dy = Math.abs(px.y - h / 2);
-      if (dx < w * 0.32 && dy < h * 0.32) return;
-      this.gpsLastCamFollowAt = now;
-      this.map.easeTo({
-        center: [lng, lat],
-        padding: this.getVisibleMapPadding(),
-        duration: 500,
-        easing: (t: number) => 1 - Math.pow(1 - t, 3),
-        essential: true,
-      });
       return;
     }
 
@@ -3749,14 +3799,21 @@ export class HomePage implements AfterViewInit, OnDestroy {
     this.isInsideTerminal.set(distToTerminal <= this.TERMINAL_RADIUS_METERS);
 
     if (isPassenger) {
-      this.animatePassengerMarkerTo(rawLng, rawLat, 450);
+      const pRide = this.activePassengerRide();
+      const pStatus = String(pRide?.status || '').toLowerCase().trim();
+      const hasActiveTrip = !!pRide && ['accepted', 'en_route', 'arrived', 'in_transit'].includes(pStatus);
+      if (!hasActiveTrip) {
+        this.animatePassengerMarkerTo(rawLng, rawLat, 450);
+        if (!this.isUserPanned()) {
+          this.smoothCameraFollow(rawLng, rawLat, moveHeading, 60, 600);
+        }
+      }
     } else {
       this.animateDriverMarkerTo(rawLng, rawLat, effectiveHeading, 450);
       this.broadcastDriverLocationThrottled(rawLat, rawLng, effectiveHeading, speed);
-    }
-
-    if (!this.isUserPanned()) {
-      this.smoothCameraFollow(rawLng, rawLat, moveHeading, 60, 600);
+      if (!this.isUserPanned()) {
+        this.smoothCameraFollow(rawLng, rawLat, moveHeading, 60, 600);
+      }
     }
   }
 

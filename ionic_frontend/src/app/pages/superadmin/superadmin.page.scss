@@ -2797,3 +2797,101 @@
     }
   }
 }
+
+// ── POPULAR TODA LANDMARKS STYLES ───────────────────────────────────────────
+.header-btns-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.landmark-type-bubble {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--sa-r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  background: var(--sa-accent-bg);
+  color: var(--sa-accent);
+  border: 1px solid var(--sa-accent-ring);
+  flex-shrink: 0;
+
+  &[data-type="market"] {
+    background: #f3e8ff;
+    color: #9333ea;
+    border-color: #d8b4fe;
+  }
+  &[data-type="commercial"] {
+    background: #eff6ff;
+    color: #2563eb;
+    border-color: #bfdbfe;
+  }
+  &[data-type="school"] {
+    background: #fffbeb;
+    color: #d97706;
+    border-color: #fde68a;
+  }
+  &[data-type="clubhouse"] {
+    background: #ecfdf5;
+    color: #059669;
+    border-color: #a7f3d0;
+  }
+  &[data-type="park"] {
+    background: #f0fdf4;
+    color: #16a34a;
+    border-color: #bbf7d0;
+  }
+  &[data-type="terminal"] {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
+  }
+}
+
+.fare-tag-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #059669;
+  background: #ecfdf5;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid #a7f3d0;
+  letter-spacing: -0.01em;
+}
+
+.coords-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.78rem;
+  color: var(--sa-ink-500);
+  background: var(--sa-surface-2);
+  padding: 3px 8px;
+  border-radius: var(--sa-r-sm);
+  border: 1px solid var(--sa-border);
+}
+
+.landmarks-admin-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.empty-state-cell {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--sa-ink-400);
+
+  ion-icon {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.88rem;
+  }
+}

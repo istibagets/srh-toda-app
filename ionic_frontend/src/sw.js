@@ -2,9 +2,15 @@
    SRH LINK-TODA - Service Worker for PWA Offline & Background Web Push
    ========================================================================== */
 
-const CACHE_NAME = 'srh-toda-pwa-v10';
+const CACHE_NAME = 'srh-toda-pwa-v11';
+const PRECACHE_ASSETS = ['/', '/index.html'];
 
 self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(PRECACHE_ASSETS).catch(() => {});
+    })
+  );
   self.skipWaiting();
 });
 
@@ -40,19 +46,27 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Handle SPA page navigation requests
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(async () => {
+        const cachedIndex = (await caches.match('/index.html')) || (await caches.match('/'));
+        if (cachedIndex) return cachedIndex;
+        return new Response('<!DOCTYPE html><html><head><title>SRH LINK TODA</title></head><body><script>location.reload();</script></body></html>', {
+          headers: { 'Content-Type': 'text/html' }
+        });
+      })
+    );
+    return;
+  }
+
   event.respondWith(
     fetch(event.request).catch(async () => {
       const cached = await caches.match(event.request);
       if (cached) return cached;
-      if (event.request.mode === 'navigate') {
-        const indexFallback = await caches.match('/index.html');
-        if (indexFallback) return indexFallback;
-      }
-      return new Response('Offline - Network Unavailable', {
-        status: 503,
-        statusText: 'Service Unavailable',
-        headers: new Headers({ 'Content-Type': 'text/plain' })
-      });
+      const indexFallback = await caches.match('/index.html');
+      if (indexFallback) return indexFallback;
+      return new Response('', { status: 404, statusText: 'Not Found' });
     })
   );
 });

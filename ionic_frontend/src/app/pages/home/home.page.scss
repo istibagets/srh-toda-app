@@ -64,6 +64,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 8px;
   transform-origin: center bottom;
   will-change: transform, opacity;
   backface-visibility: hidden;
@@ -82,10 +83,11 @@
   justify-content: center;
   cursor: pointer;
   outline: none;
+  position: relative;
   will-change: transform;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:active {
     transform: scale(0.92);
@@ -94,6 +96,29 @@
   .control-svg {
     width: 22px;
     height: 22px;
+  }
+
+  &.satellite-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .layer-svg {
+      width: 22px;
+      height: 22px;
+      color: #334155;
+      transition: all 0.2s ease;
+    }
+
+    &.btn-satellite-active {
+      background: #eff6ff;
+      border-color: #2563eb;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+
+      .layer-svg {
+        color: #2563eb;
+      }
+    }
   }
 
   .animate-spin {

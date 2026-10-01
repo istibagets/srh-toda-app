@@ -35,6 +35,7 @@ import {
   personOutline,
   locationOutline,
   shieldCheckmarkOutline,
+  alertCircleOutline,
 } from 'ionicons/icons';
 import { DriverService } from '../../services/driver.service';
 import { AuthService } from '../../services/auth.service';
@@ -87,6 +88,7 @@ export class PassengerSheetComponent implements AfterViewInit, OnDestroy {
   acceptFare = output<void>();
   openChat = output<void>();
   cancelRide = output<void>();
+  report = output<void>();
   snapChange = output<SheetSnap>();
   dragSync = output<number>(); // Emits live translateY coordinate for 120fps hardware transforms
   dragStart = output<void>();
@@ -150,19 +152,19 @@ export class PassengerSheetComponent implements AfterViewInit, OnDestroy {
     if (ride) {
       const status = String(ride.status || '').toLowerCase().trim();
       if (status === 'fare_proposed') {
-        return Math.max(15, window.innerHeight - 56 - 265);
+        return Math.max(15, window.innerHeight - 56 - 292);
       }
       if (status === 'accepted') {
-        return Math.max(20, window.innerHeight - 56 - 208);
+        return Math.max(20, window.innerHeight - 56 - 252);
       }
       if (status === 'en_route') {
-        return Math.max(20, window.innerHeight - 56 - 223);
+        return Math.max(20, window.innerHeight - 56 - 256);
       }
       if (status === 'arrived') {
-        return Math.max(20, window.innerHeight - 56 - 223);
+        return Math.max(20, window.innerHeight - 56 - 256);
       }
       if (status === 'in_transit') {
-        return Math.max(25, window.innerHeight - 56 - 223);
+        return Math.max(25, window.innerHeight - 56 - 256);
       }
       return Math.max(20, window.innerHeight - 56 - 245); // Searching / Alerting
     }
@@ -195,6 +197,7 @@ export class PassengerSheetComponent implements AfterViewInit, OnDestroy {
       personOutline,
       locationOutline,
       shieldCheckmarkOutline,
+      alertCircleOutline,
     });
 
     effect(() => {

@@ -3,7 +3,6 @@
     <div class="header-main-row">
       <div class="header-title-group">
         <h1 class="header-title">Saved Places &amp; Landmarks</h1>
-        <p class="header-sub">Quick destinations with official TODA regulated fares</p>
       </div>
     </div>
   </ion-toolbar>
@@ -27,83 +26,83 @@
       </div>
 
       @if (savedService.isLoading()) {
-        <div class="loading-wrap">
-          <ion-spinner name="crescent"></ion-spinner>
-          <span>Loading shortcuts...</span>
-        </div>
+      <div class="loading-wrap">
+        <ion-spinner name="crescent"></ion-spinner>
+        <span>Loading shortcuts...</span>
+      </div>
       } @else {
-        <div class="shortcuts-stack">
+      <div class="shortcuts-stack">
 
-          <!-- User's Existing Saved Places -->
-          @for (place of savedService.locations(); track place.id) {
-            <div class="commute-shortcut-card">
-              <!-- Top Row: Icon + Meta + Badge -->
-              <div class="card-main-meta">
-                <div class="category-icon-box" [attr.data-type]="place.type">
-                  <ion-icon [name]="getTypeIcon(place.type)"></ion-icon>
-                </div>
-
-                <div class="meta-text-block">
-                  <div class="title-badge-row">
-                    <h3 class="place-heading">{{ place.name }}</h3>
-                    <span class="type-pill-badge" [attr.data-type]="place.type">
-                      {{ (place.type || 'PLACE') | uppercase }}
-                    </span>
-                  </div>
-                  <p class="place-subline">{{ getTypeSubtitle(place) }}</p>
-                </div>
-              </div>
-
-              <!-- Bottom Row: 1-Tap Booking Button + Edit/Delete Actions -->
-              <div class="card-action-bar">
-                <button type="button" class="btn-book-shortcut" (click)="bookRideTo(place)">
-                  <ion-icon name="location"></ion-icon>
-                  <span>BOOK RIDE TO {{ place.name | uppercase }}</span>
-                </button>
-
-                <button type="button" class="btn-action-edit" (click)="openEditModal(place, $event)" title="Edit Location">
-                  <ion-icon name="create-outline"></ion-icon>
-                </button>
-
-                <button type="button" class="btn-action-delete" (click)="deletePlace(place, $event)" title="Delete Place">
-                  <ion-icon name="trash-outline"></ion-icon>
-                </button>
-              </div>
+        <!-- User's Existing Saved Places -->
+        @for (place of savedService.locations(); track place.id) {
+        <div class="commute-shortcut-card">
+          <!-- Top Row: Icon + Meta + Badge -->
+          <div class="card-main-meta">
+            <div class="category-icon-box" [attr.data-type]="place.type">
+              <ion-icon [name]="getTypeIcon(place.type)"></ion-icon>
             </div>
-          }
 
-          <!-- Quick-Set Placeholder for Essential Unset Presets -->
-          @if (!hasSavedType('work')) {
-            <div class="quick-set-dashed-card clickable" (click)="openAddModal('work')">
-              <div class="quick-set-icon-box work-tint">
-                <ion-icon name="business-outline"></ion-icon>
+            <div class="meta-text-block">
+              <div class="title-badge-row">
+                <h3 class="place-heading">{{ place.name }}</h3>
+                <span class="type-pill-badge" [attr.data-type]="place.type">
+                  {{ (place.type || 'PLACE') | uppercase }}
+                </span>
               </div>
-              <div class="quick-set-info">
-                <h4 class="quick-set-title">+ Set Work Address</h4>
-                <p class="quick-set-desc">Office, shop, or commercial workplace</p>
-              </div>
+              <p class="place-subline">{{ getTypeSubtitle(place) }}</p>
             </div>
-          }
+          </div>
 
-          @if (!hasSavedType('school')) {
-            <div class="quick-set-dashed-card clickable" (click)="openAddModal('school')">
-              <div class="quick-set-icon-box school-tint">
-                <ion-icon name="school-outline"></ion-icon>
-              </div>
-              <div class="quick-set-info">
-                <h4 class="quick-set-title">+ Set School Address</h4>
-                <p class="quick-set-desc">Campus, high school, or university</p>
-              </div>
-            </div>
-          }
+          <!-- Bottom Row: 1-Tap Booking Button + Edit/Delete Actions -->
+          <div class="card-action-bar">
+            <button type="button" class="btn-book-shortcut" (click)="bookRideTo(place)">
+              <ion-icon name="location"></ion-icon>
+              <span>BOOK RIDE TO {{ place.name | uppercase }}</span>
+            </button>
 
-          <!-- Full-Width Add New Saved Place Button -->
-          <button type="button" class="btn-add-full-width" (click)="openAddModal('custom')">
-            <ion-icon name="add-outline"></ion-icon>
-            <span>ADD NEW SAVED PLACE</span>
-          </button>
+            <button type="button" class="btn-action-edit" (click)="openEditModal(place, $event)" title="Edit Location">
+              <ion-icon name="create-outline"></ion-icon>
+            </button>
 
+            <button type="button" class="btn-action-delete" (click)="deletePlace(place, $event)" title="Delete Place">
+              <ion-icon name="trash-outline"></ion-icon>
+            </button>
+          </div>
         </div>
+        }
+
+        <!-- Quick-Set Placeholder for Essential Unset Presets -->
+        @if (!hasSavedType('work')) {
+        <div class="quick-set-dashed-card clickable" (click)="openAddModal('work')">
+          <div class="quick-set-icon-box work-tint">
+            <ion-icon name="business-outline"></ion-icon>
+          </div>
+          <div class="quick-set-info">
+            <h4 class="quick-set-title">+ Set Work Address</h4>
+            <p class="quick-set-desc">Office, shop, or commercial workplace</p>
+          </div>
+        </div>
+        }
+
+        @if (!hasSavedType('school')) {
+        <div class="quick-set-dashed-card clickable" (click)="openAddModal('school')">
+          <div class="quick-set-icon-box school-tint">
+            <ion-icon name="school-outline"></ion-icon>
+          </div>
+          <div class="quick-set-info">
+            <h4 class="quick-set-title">+ Set School Address</h4>
+            <p class="quick-set-desc">Campus, high school, or university</p>
+          </div>
+        </div>
+        }
+
+        <!-- Full-Width Add New Saved Place Button -->
+        <button type="button" class="btn-add-full-width" (click)="openAddModal('custom')">
+          <ion-icon name="add-outline"></ion-icon>
+          <span>ADD NEW SAVED PLACE</span>
+        </button>
+
+      </div>
       }
     </div>
 
@@ -118,30 +117,31 @@
       </div>
 
       <div class="landmarks-grid">
-        @for (landmark of savedService.neighborhoodLandmarks; track landmark.name) {
-          <div class="landmark-card clickable" (click)="bookRideTo(landmark)">
-            <div class="landmark-top-row">
-              <div class="landmark-icon-wrap" [attr.data-type]="landmark.type">
-                <ion-icon [name]="landmark.icon"></ion-icon>
-              </div>
-              <div class="fare-badge">
-                <span class="fare-currency">₱</span>
-                <span class="fare-amount">{{ landmark.fare }}</span>
-              </div>
+        @for (landmark of savedService.neighborhoodLandmarks(); track landmark.name) {
+        <div class="landmark-card clickable" (click)="bookRideTo(landmark)">
+          <div class="landmark-top-row">
+            <div class="landmark-icon-wrap" [attr.data-type]="landmark.type">
+              <ion-icon [name]="landmark.icon"></ion-icon>
             </div>
-
-            <div class="landmark-body">
-              <h4 class="landmark-name">{{ landmark.name }}</h4>
-              <p class="landmark-desc">{{ landmark.desc }}</p>
-            </div>
-
-            <div class="landmark-footer">
-              <button type="button" class="quick-save-btn" (click)="quickSaveLandmark(landmark); $event.stopPropagation()">
-                <ion-icon name="bookmark-outline"></ion-icon>
-                <span>Save to My Places</span>
-              </button>
+            <div class="fare-badge">
+              <span class="fare-currency">₱</span>
+              <span class="fare-amount">{{ landmark.fare }}</span>
             </div>
           </div>
+
+          <div class="landmark-body">
+            <h4 class="landmark-name">{{ landmark.name }}</h4>
+            <p class="landmark-desc">{{ landmark.desc }}</p>
+          </div>
+
+          <div class="landmark-footer">
+            <button type="button" class="quick-save-btn"
+              (click)="quickSaveLandmark(landmark); $event.stopPropagation()">
+              <ion-icon name="bookmark-outline"></ion-icon>
+              <span>Save to My Places</span>
+            </button>
+          </div>
+        </div>
         }
       </div>
     </div>
@@ -153,21 +153,16 @@
       </div>
       <div class="assist-right">
         <h4>Need Dispatch Assistance?</h4>
-        <p>You can hail available tricycles at the <strong>Main Gate Terminal</strong> or report fare discrepancies directly through your Ride History.</p>
+        <p>You can hail available tricycles at the <strong>Main Gate Terminal</strong> or report fare discrepancies
+          directly through your Ride History.</p>
       </div>
     </div>
 
   </div>
 
   <!-- ── 5. ADD / EDIT SAVED PLACE MODAL (Matching Screenshot 3) ── -->
-  <ion-modal
-    [isOpen]="showAddModal()"
-    (didDismiss)="closeAddModal()"
-    (didPresent)="onModalPresented()"
-    class="srh-saved-place-modal"
-    [initialBreakpoint]="0.88"
-    [breakpoints]="[0, 0.88, 1]"
-  >
+  <ion-modal [isOpen]="showAddModal()" (didDismiss)="closeAddModal()" (didPresent)="onModalPresented()"
+    class="srh-saved-place-modal" [canDismiss]="true" [backdropDismiss]="true">
     <ng-template>
       <div class="modal-card-container">
 
@@ -196,32 +191,20 @@
             <div class="category-grid-container">
               <!-- Top Row: School, Work, Market -->
               <div class="category-row top-row">
-                <button
-                  type="button"
-                  class="cat-tile-btn"
-                  [class.is-selected]="placeForm.get('type')?.value === 'school'"
-                  (click)="selectCategory('school')"
-                >
+                <button type="button" class="cat-tile-btn"
+                  [class.is-selected]="placeForm.get('type')?.value === 'school'" (click)="selectCategory('school')">
                   <ion-icon name="school-outline"></ion-icon>
                   <span>SCHOOL</span>
                 </button>
 
-                <button
-                  type="button"
-                  class="cat-tile-btn"
-                  [class.is-selected]="placeForm.get('type')?.value === 'work'"
-                  (click)="selectCategory('work')"
-                >
+                <button type="button" class="cat-tile-btn" [class.is-selected]="placeForm.get('type')?.value === 'work'"
+                  (click)="selectCategory('work')">
                   <ion-icon name="business-outline"></ion-icon>
                   <span>WORK</span>
                 </button>
 
-                <button
-                  type="button"
-                  class="cat-tile-btn"
-                  [class.is-selected]="placeForm.get('type')?.value === 'market'"
-                  (click)="selectCategory('market')"
-                >
+                <button type="button" class="cat-tile-btn"
+                  [class.is-selected]="placeForm.get('type')?.value === 'market'" (click)="selectCategory('market')">
                   <ion-icon name="cart-outline"></ion-icon>
                   <span>MARKET</span>
                 </button>
@@ -229,22 +212,16 @@
 
               <!-- Bottom Row: Favorite, Custom -->
               <div class="category-row bottom-row">
-                <button
-                  type="button"
-                  class="cat-tile-btn"
+                <button type="button" class="cat-tile-btn"
                   [class.is-selected]="placeForm.get('type')?.value === 'favorite'"
-                  (click)="selectCategory('favorite')"
-                >
+                  (click)="selectCategory('favorite')">
                   <ion-icon name="star-outline"></ion-icon>
                   <span>FAVORITE</span>
                 </button>
 
-                <button
-                  type="button"
-                  class="cat-tile-btn"
+                <button type="button" class="cat-tile-btn"
                   [class.is-selected]="placeForm.get('type')?.value === 'custom' || placeForm.get('type')?.value === 'home'"
-                  (click)="selectCategory('custom')"
-                >
+                  (click)="selectCategory('custom')">
                   <ion-icon name="location-outline"></ion-icon>
                   <span>CUSTOM</span>
                 </button>
@@ -255,27 +232,15 @@
           <!-- 2. Place Name -->
           <div class="form-section-block">
             <label class="field-label-eyebrow" for="saved-place-name-input">PLACE NAME</label>
-            <input
-              type="text"
-              id="saved-place-name-input"
-              name="name"
-              formControlName="name"
-              placeholder="e.g. NEUST, Office, Public Market"
-              class="modal-input-field"
-            />
+            <input type="text" id="saved-place-name-input" name="name" formControlName="name"
+              placeholder="e.g. NEUST, Office, Public Market" class="modal-input-field" />
           </div>
 
           <!-- 3. Address / Landmark -->
           <div class="form-section-block">
             <label class="field-label-eyebrow" for="saved-place-address-input">ADDRESS / LANDMARK</label>
-            <input
-              type="text"
-              id="saved-place-address-input"
-              name="address"
-              formControlName="address"
-              placeholder="Search Nueva Ecija places or enter address..."
-              class="modal-input-field"
-            />
+            <input type="text" id="saved-place-address-input" name="address" formControlName="address"
+              placeholder="Search Nueva Ecija places or enter address..." class="modal-input-field" />
           </div>
 
           <!-- 4. Interactive Map Pinning -->
@@ -285,16 +250,35 @@
               <span class="map-helper-text">Tap or drag pin to adjust</span>
             </div>
 
-            <div class="modal-mini-map-frame">
-              <div id="saved-modal-map" class="modal-mini-map-canvas"></div>
+            <div class="modal-mini-map-frame"
+              (touchstart)="$event.stopPropagation()"
+              (touchmove)="$event.stopPropagation()"
+              (touchend)="$event.stopPropagation()"
+              (pointerdown)="$event.stopPropagation()"
+              (mousedown)="$event.stopPropagation()">
+              <div id="saved-modal-map" class="modal-mini-map-canvas"
+                (touchstart)="$event.stopPropagation()"
+                (touchmove)="$event.stopPropagation()"
+                (touchend)="$event.stopPropagation()"
+                (pointerdown)="$event.stopPropagation()"
+                (mousedown)="$event.stopPropagation()"></div>
 
               <!-- Coordinates Pill Overlay -->
               <div class="map-coords-pill">
                 <span>{{ selectedLat() }}, {{ selectedLng() }}</span>
               </div>
 
-              <!-- Zoom Controls -->
+              <!-- Reset to Center Pin button -->
+              <button type="button" class="map-recenter-btn" (click)="recenterOnSelected()" title="Recenter Pin">
+                <ion-icon name="locate-outline"></ion-icon>
+              </button>
+
+              <!-- Mini Map Controls Stack (Top Right) -->
               <div class="map-zoom-stack">
+                <button type="button" class="zoom-btn" [class.is-active-layer]="isSatelliteMode()"
+                  (click)="toggleSatelliteMode()" title="Toggle Satellite Mode">
+                  <ion-icon name="layers-outline"></ion-icon>
+                </button>
                 <button type="button" class="zoom-btn" (click)="zoomIn()" title="Zoom in">
                   <ion-icon name="add"></ion-icon>
                 </button>
@@ -313,10 +297,10 @@
 
             <button type="submit" class="btn-modal-save" [disabled]="isSaving()">
               @if (isSaving()) {
-                <ion-spinner name="crescent" class="btn-spin"></ion-spinner>
-                <span>SAVING...</span>
+              <ion-spinner name="crescent" class="btn-spin"></ion-spinner>
+              <span>SAVING...</span>
               } @else {
-                <span>SAVE PLACE</span>
+              <span>SAVE PLACE</span>
               }
             </button>
           </div>

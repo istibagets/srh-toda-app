@@ -40,11 +40,11 @@ export class SavedLocationService {
   readonly isLoading = signal<boolean>(false);
 
   // Standard Santa Rosa Homes TODA Regulated Landmarks
-  readonly neighborhoodLandmarks: NeighborhoodLandmark[] = [
+  private landmarksSignal = signal<NeighborhoodLandmark[]>([
     {
       name: 'Main Gate Guard House',
       desc: 'Main Entrance & Central TODA Bay',
-      fare: 20,
+      fare: 50,
       type: 'gate',
       icon: 'shield-outline',
       lat: 15.42955,
@@ -53,49 +53,64 @@ export class SavedLocationService {
     {
       name: 'Phase 1 Clubhouse',
       desc: 'Recreation Center & Swimming Pool',
-      fare: 25,
+      fare: 50,
       type: 'clubhouse',
       icon: 'business-outline',
       lat: 15.42780,
       lng: 120.92410,
     },
     {
-      name: 'Phase 2 Community Park',
-      desc: 'Playground & Basketball Court',
-      fare: 30,
-      type: 'park',
-      icon: 'football-outline',
-      lat: 15.43120,
-      lng: 120.92050,
-    },
-    {
-      name: 'Commercial Strip / Plaza',
-      desc: 'Groceries, Bakeries & Eateries',
-      fare: 20,
-      type: 'commercial',
-      icon: 'cart-outline',
-      lat: 15.42990,
-      lng: 120.92380,
-    },
-    {
       name: 'Santa Rosa Public Market',
       desc: 'Town Center & Public Market Terminal',
-      fare: 35,
+      fare: 60,
       type: 'market',
       icon: 'storefront-outline',
-      lat: 15.43550,
-      lng: 120.92640,
+      lat: 15.42469999648076,
+      lng: 120.93842748892547,
     },
     {
-      name: 'TODA Central Station',
-      desc: 'Primary Dispatch & Driver Terminal',
-      fare: 20,
-      type: 'terminal',
-      icon: 'navigate-outline',
-      lat: 15.42955,
-      lng: 120.92240,
+      name: 'SM Cabanatuan',
+      desc: 'SM City Cabanatuan Terminal & Mall Complex',
+      fare: 120,
+      type: 'commercial',
+      icon: 'cart-outline',
+      lat: 15.467008627792355,
+      lng: 120.95436226867764,
     },
-  ];
+  ]);
+  readonly neighborhoodLandmarks = this.landmarksSignal.asReadonly();
+
+  constructor() {
+    this.loadLandmarks().subscribe();
+  }
+
+  loadLandmarks(): Observable<NeighborhoodLandmark[]> {
+    return this.http.get<{ status: string; landmarks: any[] }>(`${environment.apiUrl}/landmarks`).pipe(
+      map((res) => {
+        if (res && Array.isArray(res.landmarks) && res.landmarks.length > 0) {
+          const list: NeighborhoodLandmark[] = res.landmarks.map((lm) => ({
+            name: lm.name || 'Landmark',
+            desc: lm.desc || '',
+            fare: Number(lm.fare || 50),
+            type: lm.type || 'custom',
+            icon: lm.icon || 'location-outline',
+            lat: Number(lm.lat || 15.42470),
+            lng: Number(lm.lng || 120.93843),
+          }));
+          this.landmarksSignal.set(list);
+          return list;
+        }
+        return this.landmarksSignal();
+      }),
+      catchError(() => of(this.landmarksSignal()))
+    );
+  }
+
+  setLandmarks(landmarks: NeighborhoodLandmark[]): void {
+    if (Array.isArray(landmarks) && landmarks.length > 0) {
+      this.landmarksSignal.set(landmarks);
+    }
+  }
 
   private getAuthHeaders(): HttpHeaders {
     const token = this.authService.token();
@@ -106,6 +121,7 @@ export class SavedLocationService {
 
   loadSavedLocations(): Observable<SavedLocation[]> {
     this.isLoading.set(true);
+    this.loadLandmarks().subscribe();
     const headers = this.getAuthHeaders();
     return this.http.get<{ status: string; locations: SavedLocation[] }>(`${environment.apiUrl}/saved-locations`, { headers }).pipe(
       map((res) => res.locations || []),

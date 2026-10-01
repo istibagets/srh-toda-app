@@ -547,16 +547,46 @@
       flex-shrink: 0;
     }
 
-    .review-snippet-text {
-      font-size: 0.78rem;
-      color: #475569;
-      font-style: italic;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+.review-snippet-text {
+        font-size: 0.78rem;
+        color: #475569;
+        font-style: italic;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .trip-card-report-wrap {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: -0.35rem;
+
+      .report-trip-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        background: none;
+        border: none;
+        padding: 0.35rem 0.65rem;
+        border-radius: 999px;
+        color: #b45309;
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.15s ease;
+
+        ion-icon {
+          font-size: 1rem;
+          color: #f59e0b;
+        }
+
+        &:active {
+          background: #fffbeb;
+        }
+      }
     }
   }
-}
 
 // ── 8. DIGITAL RECEIPT MODAL ───────────────────────────
 .receipt-sheet-modal {
@@ -983,26 +1013,54 @@
       }
     }
 
-    .receipt-footer {
-      padding-top: 0.5rem;
+.receipt-footer {
+        display: flex;
+        gap: 0.5rem;
+        padding-top: 0.5rem;
 
-      .dismiss-receipt-btn {
-        width: 100%;
-        border: none;
-        background: #0f172a;
-        color: #ffffff;
-        padding: 0.85rem;
-        border-radius: 14px;
-        font-size: 0.95rem;
-        font-weight: 700;
-        cursor: pointer;
-        transition: all 0.15s ease;
+        .dismiss-receipt-btn {
+          flex: 1;
+          border: none;
+          background: #0f172a;
+          color: #ffffff;
+          padding: 0.85rem;
+          border-radius: 14px;
+          font-size: 0.95rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.15s ease;
 
-        &:active {
-          transform: scale(0.98);
-          background: #1e293b;
+          &:active {
+            transform: scale(0.98);
+            background: #1e293b;
+          }
+        }
+
+        .report-receipt-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.4rem;
+          flex: 1;
+          border: 1px solid #fca5a5;
+          background: #fff1f2;
+          color: #b91c1c;
+          padding: 0.85rem;
+          border-radius: 14px;
+          font-size: 0.88rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.15s ease;
+
+          ion-icon {
+            font-size: 1.05rem;
+          }
+
+          &:active {
+            transform: scale(0.98);
+            background: #ffe4e6;
+          }
         }
       }
-    }
   }
 }

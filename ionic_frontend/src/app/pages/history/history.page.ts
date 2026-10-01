@@ -35,10 +35,12 @@ import {
   chevronDownCircleOutline,
   thumbsUpOutline,
   thumbsUp,
+  alertCircleOutline,
 } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
 import { DashboardService, HistoryRideItem, RideHistoryResponse } from '../../services/dashboard.service';
 import { DriverService } from '../../services/driver.service';
+import { PassengerRatingModalComponent } from '../../components/passenger-rating-modal/passenger-rating-modal.component';
 
 @Component({
   selector: 'app-history',
@@ -56,6 +58,7 @@ import { DriverService } from '../../services/driver.service';
     IonIcon,
     IonSpinner,
     IonModal,
+    PassengerRatingModalComponent,
   ],
 })
 export class HistoryPage implements OnInit {
@@ -69,6 +72,8 @@ export class HistoryPage implements OnInit {
   rawRides = signal<HistoryRideItem[]>([]);
   selectedTrip = signal<HistoryRideItem | null>(null);
   isReceiptModalOpen = signal<boolean>(false);
+  reportTrip = signal<HistoryRideItem | null>(null);
+  isReportModalOpen = signal<boolean>(false);
 
   // Filter & Search Signals
   activeStatusFilter = signal<'all' | 'completed' | 'walkin' | 'cancelled'>('all');
@@ -239,6 +244,7 @@ export class HistoryPage implements OnInit {
       chevronDownCircleOutline,
       thumbsUpOutline,
       thumbsUp,
+      alertCircleOutline,
     });
   }
 
@@ -341,6 +347,16 @@ export class HistoryPage implements OnInit {
   closeTripReceipt(): void {
     this.isReceiptModalOpen.set(false);
     this.selectedTrip.set(null);
+  }
+
+  openReportTrip(trip: HistoryRideItem): void {
+    this.reportTrip.set(trip);
+    this.isReportModalOpen.set(true);
+  }
+
+  closeReportTrip(): void {
+    this.isReportModalOpen.set(false);
+    this.reportTrip.set(null);
   }
 
   getTripTypeBadge(trip: HistoryRideItem): string {

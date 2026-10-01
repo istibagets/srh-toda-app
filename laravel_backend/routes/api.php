@@ -21,6 +21,13 @@ Route::get('/maintenance-status', function () {
     ]);
 });
 
+Route::get('/landmarks', function () {
+    return response()->json([
+        'status'    => 'success',
+        'landmarks' => \App\Support\SystemSettings::getLandmarks(),
+    ]);
+});
+
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);

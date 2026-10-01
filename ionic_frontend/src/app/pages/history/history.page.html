@@ -240,6 +240,16 @@
                 <span class="review-snippet-text">"{{ trip.review_comment }}"</span>
               </div>
             }
+
+            <!-- Report action (passengers only) -->
+            @if (authService.isPassenger()) {
+              <div class="trip-card-report-wrap" (click)="openReportTrip(trip); $event.stopPropagation()">
+                <button type="button" class="report-trip-btn">
+                  <ion-icon name="alert-circle-outline"></ion-icon>
+                  <span>Report an issue</span>
+                </button>
+              </div>
+            }
           </div>
         }
       </div>
@@ -395,6 +405,12 @@
 
           <!-- Bottom Dismiss Button -->
           <div class="receipt-footer">
+            @if (authService.isPassenger()) {
+              <button type="button" class="report-receipt-btn" (click)="closeTripReceipt(); openReportTrip(trip)">
+                <ion-icon name="alert-circle-outline"></ion-icon>
+                Report
+              </button>
+            }
             <button type="button" class="dismiss-receipt-btn" (click)="closeTripReceipt()">
               Close Receipt
             </button>
@@ -403,4 +419,8 @@
       }
     </ng-template>
   </ion-modal>
+
+  <!-- Passenger Incident Report Modal -->
+  <app-passenger-rating-modal [ride]="reportTrip()" [isOpen]="isReportModalOpen()" [mode]="'report'"
+    (closeModal)="closeReportTrip()" (submitted)="closeReportTrip()"></app-passenger-rating-modal>
 </ion-content>

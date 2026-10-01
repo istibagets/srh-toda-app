@@ -781,6 +781,89 @@
                 </div>
               </div>
             </div>
+
+            <!-- Popular TODA Landmarks Management Card -->
+            <div class="cms-card">
+              <div class="cms-card-header flex-between">
+                <div class="flex-align-center gap-2">
+                  <ion-icon name="navigate-outline"></ion-icon>
+                  <div>
+                    <h3 class="cms-card-title">Popular TODA Landmarks &amp; Regulated Destinations</h3>
+                    <p class="cms-card-desc">Preset destinations shown to passengers for 1-tap booking and fixed tariff calculation</p>
+                  </div>
+                </div>
+                <div class="header-btns-group">
+                  <button type="button" class="preset-btn" (click)="resetLandmarksToDefault()" title="Reset to standard 2 landmarks">
+                    <ion-icon name="refresh-outline"></ion-icon>
+                    <span>Reset Defaults</span>
+                  </button>
+                  <button type="button" class="add-user-btn" (click)="openAddLandmarkModal()">
+                    <ion-icon name="add-outline"></ion-icon>
+                    <span>Add Landmark</span>
+                  </button>
+                </div>
+              </div>
+              <div class="cms-card-body">
+                <div class="landmarks-admin-table-wrap">
+                  <table class="sa-table">
+                    <thead>
+                      <tr>
+                        <th>Landmark &amp; Subtitle</th>
+                        <th>Standard Fare Rate</th>
+                        <th>Map Coordinates (°N, °E)</th>
+                        <th>Category / Type</th>
+                        <th class="text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (lm of landmarksList(); track lm.name; let idx = $index) {
+                        <tr>
+                          <td>
+                            <div class="user-meta-col">
+                              <div class="landmark-type-bubble" [attr.data-type]="lm.type || 'market'">
+                                <ion-icon [name]="lm.icon || 'location-outline'"></ion-icon>
+                              </div>
+                              <div>
+                                <span class="user-name-text">{{ lm.name }}</span>
+                                <span class="user-email-text">{{ lm.desc }}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <span class="fare-tag-badge">₱{{ lm.fare.toFixed(2) }}</span>
+                          </td>
+                          <td>
+                            <span class="coords-mono">{{ lm.lat.toFixed(6) }}, {{ lm.lng.toFixed(6) }}</span>
+                          </td>
+                          <td>
+                            <span class="role-badge" [attr.data-role]="lm.type || 'passenger'">
+                              {{ (lm.type || 'DESTINATION') | uppercase }}
+                            </span>
+                          </td>
+                          <td class="text-right">
+                            <div class="row-actions">
+                              <button type="button" class="icon-action-btn" (click)="openEditLandmarkModal(idx)" title="Edit Landmark">
+                                <ion-icon name="create-outline"></ion-icon>
+                              </button>
+                              <button type="button" class="icon-action-btn danger-hover" (click)="deleteLandmark(idx)" title="Delete Landmark">
+                                <ion-icon name="trash-outline"></ion-icon>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      } @empty {
+                        <tr>
+                          <td colspan="5" class="empty-state-cell">
+                            <ion-icon name="location-outline"></ion-icon>
+                            <p>No popular TODA landmarks configured. Click "Add Landmark" above.</p>
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
           </form>
         </div>
       }
@@ -1256,6 +1339,91 @@
               } @else {
                 Update Password
               }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- ═════════════════════════════════════════════════════════════════ -->
+  <!-- POPULAR TODA LANDMARK ADD / EDIT MODAL                           -->
+  <!-- ═════════════════════════════════════════════════════════════════ -->
+  @if (showLandmarkModal()) {
+    <div class="modal-backdrop animate-fade-in" (click)="closeLandmarkModal()">
+      <div class="modal-card-dialog" (click)="$event.stopPropagation()">
+        <div class="modal-dialog-header">
+          <div class="dialog-title-wrap">
+            <span class="dialog-badge">LANDMARK CONFIGURATION</span>
+            <h3 class="dialog-title">{{ editingLandmarkIndex() !== null ? 'Edit TODA Landmark' : 'Add Popular TODA Landmark' }}</h3>
+          </div>
+          <button type="button" class="dialog-close-btn" (click)="closeLandmarkModal()">
+            <ion-icon name="close-circle-outline"></ion-icon>
+          </button>
+        </div>
+
+        <form [formGroup]="landmarkForm" (ngSubmit)="saveLandmarkModalSubmit()" class="dialog-form">
+          <div class="dialog-form-body">
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">Landmark Name *</label>
+                <input type="text" formControlName="name" placeholder="e.g. Santa Rosa Public Market" class="custom-form-input" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Regulated Fare Rate (₱) *</label>
+                <input type="number" formControlName="fare" step="1" min="0" placeholder="60" class="custom-form-input" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Description / Subtitle *</label>
+              <input type="text" formControlName="desc" placeholder="e.g. Town Center & Public Market Terminal" class="custom-form-input" />
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">Latitude (°N) *</label>
+                <input type="number" formControlName="lat" step="0.0000000000001" placeholder="15.42469999648076" class="custom-form-input" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Longitude (°E) *</label>
+                <input type="number" formControlName="lng" step="0.0000000000001" placeholder="120.93842748892547" class="custom-form-input" />
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">Category Type</label>
+                <select formControlName="type" class="custom-form-select">
+                  <option value="market">Public Market / Groceries</option>
+                  <option value="commercial">Mall / Commercial Complex</option>
+                  <option value="school">School / University</option>
+                  <option value="clubhouse">Clubhouse / Community Center</option>
+                  <option value="park">Park / Recreation</option>
+                  <option value="terminal">TODA Terminal / Gate</option>
+                  <option value="custom">Custom Point of Interest</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Icon</label>
+                <select formControlName="icon" class="custom-form-select">
+                  <option value="storefront-outline">Storefront (Market)</option>
+                  <option value="cart-outline">Cart (Shopping / Mall)</option>
+                  <option value="business-outline">Building (Clubhouse / Commercial)</option>
+                  <option value="school-outline">School</option>
+                  <option value="football-outline">Park / Sports</option>
+                  <option value="shield-outline">Guard / Security</option>
+                  <option value="navigate-outline">Terminal / Navigation</option>
+                  <option value="location-outline">Standard Pin</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="dialog-actions">
+            <button type="button" class="btn-cancel" (click)="closeLandmarkModal()">Cancel</button>
+            <button type="submit" class="btn-submit" [disabled]="landmarkForm.invalid">
+              {{ editingLandmarkIndex() !== null ? 'Save Landmark Updates' : 'Add Landmark to System' }}
             </button>
           </div>
         </form>

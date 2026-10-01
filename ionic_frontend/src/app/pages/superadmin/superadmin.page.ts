@@ -47,8 +47,12 @@ import {
   layersOutline,
   menuOutline,
   chevronForwardOutline,
+  navigateOutline,
+  storefrontOutline,
+  cartOutline,
+  pinOutline,
 } from 'ionicons/icons';
-import { SuperadminService, SuperAdminUser, CmsData } from '../../services/superadmin.service';
+import { SuperadminService, SuperAdminUser, CmsData, LandmarkItem } from '../../services/superadmin.service';
 import { AuthService } from '../../services/auth.service';
 import { MaintenanceService } from '../../services/maintenance.service';
 
@@ -132,6 +136,33 @@ export class SuperadminPage implements OnInit {
   // CMS Form
   cmsForm: FormGroup;
   isSavingCms = signal<boolean>(false);
+
+  // Popular TODA Landmarks Management
+  landmarksList = signal<LandmarkItem[]>([
+    {
+      name: 'Santa Rosa Public Market',
+      desc: 'Town Center & Public Market Terminal',
+      fare: 60,
+      type: 'market',
+      icon: 'storefront-outline',
+      color: 'purple',
+      lat: 15.42469999648076,
+      lng: 120.93842748892547,
+    },
+    {
+      name: 'SM Cabanatuan',
+      desc: 'SM City Cabanatuan Terminal & Mall Complex',
+      fare: 120,
+      type: 'commercial',
+      icon: 'cart-outline',
+      color: 'blue',
+      lat: 15.467008627792355,
+      lng: 120.95436226867764,
+    },
+  ]);
+  showLandmarkModal = signal<boolean>(false);
+  editingLandmarkIndex = signal<number | null>(null);
+  landmarkForm: FormGroup;
 
   // Maintenance Mode
   isMaintenanceMode = signal<boolean>(false);
@@ -268,7 +299,7 @@ export class SuperadminPage implements OnInit {
       hotline_phone: ['(044) 791-2345 / 0917-123-4567', [Validators.required]],
       support_email: ['srh.toda.official@gmail.com', [Validators.required, Validators.email]],
 
-      base_fare: [15.0, [Validators.required, Validators.min(0)]],
+      base_fare: [50.0, [Validators.required, Validators.min(0)]],
       per_km_rate: [3.5, [Validators.required, Validators.min(0)]],
       night_differential: [5.0, [Validators.required, Validators.min(0)]],
       surge_multiplier: [1.0, [Validators.required, Validators.min(1)]],
@@ -283,6 +314,17 @@ export class SuperadminPage implements OnInit {
       terms_of_service: ['Official SRH TODA Terms & Regulations for Commuters and Accredited Tricycle Operators.'],
       driver_rules: ['Strict adherence to queue rotation, speed limits within subdivision, and courtesy standards.'],
       passenger_guide: ['Guidelines on fare payment, designated loading points, and feedback reporting.'],
+    });
+
+    this.landmarkForm = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(2)]],
+      desc: ['', [Validators.required]],
+      fare: [50, [Validators.required, Validators.min(0)]],
+      lat: [15.42469999648076, [Validators.required]],
+      lng: [120.93842748892547, [Validators.required]],
+      type: ['market'],
+      icon: ['storefront-outline'],
+      color: ['purple'],
     });
 
     this.superAdminPasswordForm = this.fb.group({
@@ -341,7 +383,7 @@ export class SuperadminPage implements OnInit {
         hotline_phone: cms.branding?.hotline_phone ?? '(044) 791-2345 / 0917-123-4567',
         support_email: cms.branding?.support_email ?? 'srh.toda.official@gmail.com',
 
-        base_fare: cms.fare_matrix?.base_fare ?? 15.0,
+        base_fare: cms.fare_matrix?.base_fare ?? 50.0,
         per_km_rate: cms.fare_matrix?.per_km_rate ?? 3.5,
         night_differential: cms.fare_matrix?.night_differential ?? 5.0,
         surge_multiplier: cms.fare_matrix?.surge_multiplier ?? 1.0,
@@ -357,6 +399,10 @@ export class SuperadminPage implements OnInit {
         driver_rules: cms.bylaws?.driver_rules ?? '',
         passenger_guide: cms.bylaws?.passenger_guide ?? '',
       });
+
+      if (cms.landmarks && Array.isArray(cms.landmarks) && cms.landmarks.length > 0) {
+        this.landmarksList.set(cms.landmarks);
+      }
     }
   }
 
@@ -635,6 +681,7 @@ export class SuperadminPage implements OnInit {
           terminal_radius: +v.terminal_radius,
           boundary_name: v.boundary_name || 'Santa Rosa Homes TODA Zone',
         },
+        landmarks: this.landmarksList(),
         bylaws: {
           terms_of_service: v.terms_of_service,
           driver_rules: v.driver_rules,
@@ -648,6 +695,163 @@ export class SuperadminPage implements OnInit {
       this.showToast('Failed to save CMS configuration.', 'danger');
     } finally {
       this.isSavingCms.set(false);
+    }
+  }
+
+  openAddLandmarkModal(): void {
+    this.editingLandmarkIndex.set(null);
+    this.landmarkForm.reset({
+      name: '',
+      desc: '',
+      fare: 50,
+      lat: 15.42469999648076,
+      lng: 120.93842748892547,
+      type: 'market',
+      icon: 'storefront-outline',
+      color: 'purple',
+    });
+    this.showLandmarkModal.set(true);
+  }
+
+  openEditLandmarkModal(idx: number): void {
+    const item = this.landmarksList()[idx];
+    if (!item) return;
+    this.editingLandmarkIndex.set(idx);
+    this.landmarkForm.reset({
+      name: item.name,
+      desc: item.desc,
+      fare: item.fare,
+      lat: item.lat,
+      lng: item.lng,
+      type: item.type || 'market',
+      icon: item.icon || 'location-outline',
+      color: item.color || 'purple',
+    });
+    this.showLandmarkModal.set(true);
+  }
+
+  closeLandmarkModal(): void {
+    this.showLandmarkModal.set(false);
+    this.editingLandmarkIndex.set(null);
+  }
+
+  async saveLandmarkModalSubmit(): Promise<void> {
+    if (this.landmarkForm.invalid) {
+      this.landmarkForm.markAllAsTouched();
+      this.showToast('Please enter all required landmark details.', 'warning');
+      return;
+    }
+
+    const val = this.landmarkForm.value;
+    const item: LandmarkItem = {
+      name: val.name?.trim(),
+      desc: val.desc?.trim(),
+      fare: Number(val.fare),
+      lat: Number(val.lat),
+      lng: Number(val.lng),
+      type: val.type || 'market',
+      icon: val.icon || 'location-outline',
+      color: val.color || 'purple',
+    };
+
+    const idx = this.editingLandmarkIndex();
+    const updated = [...this.landmarksList()];
+    if (idx !== null && idx >= 0 && idx < updated.length) {
+      updated[idx] = item;
+    } else {
+      updated.push(item);
+    }
+
+    this.landmarksList.set(updated);
+    this.closeLandmarkModal();
+
+    try {
+      await this.superAdminService.updateCmsData({ landmarks: updated });
+      this.showToast(`Landmark "${item.name}" saved successfully!`, 'success');
+    } catch {
+      this.showToast('Landmark updated. Click Save Fare Matrix to persist.', 'primary');
+    }
+  }
+
+  async deleteLandmark(idx: number): Promise<void> {
+    const list = this.landmarksList();
+    const item = list[idx];
+    if (!item) return;
+
+    const alert = await this.alertCtrl.create({
+      header: 'Delete Landmark?',
+      message: `Are you sure you want to remove "${item.name}" from popular TODA landmarks?`,
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Delete',
+          role: 'destructive',
+          handler: async () => {
+            const updated = list.filter((_, i) => i !== idx);
+            this.landmarksList.set(updated);
+            try {
+              await this.superAdminService.updateCmsData({ landmarks: updated });
+              this.showToast(`Landmark "${item.name}" removed.`, 'success');
+            } catch {
+              this.showToast('Landmark removed.', 'primary');
+            }
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  async resetLandmarksToDefault(): Promise<void> {
+    const defaults: LandmarkItem[] = [
+      {
+        name: 'Main Gate Guard House',
+        desc: 'Main Entrance & Central TODA Bay',
+        fare: 50,
+        type: 'gate',
+        icon: 'shield-outline',
+        color: 'emerald',
+        lat: 15.42955,
+        lng: 120.92240,
+      },
+      {
+        name: 'Phase 1 Clubhouse',
+        desc: 'Recreation Center & Swimming Pool',
+        fare: 50,
+        type: 'clubhouse',
+        icon: 'business-outline',
+        color: 'indigo',
+        lat: 15.42780,
+        lng: 120.92410,
+      },
+      {
+        name: 'Santa Rosa Public Market',
+        desc: 'Town Center & Public Market Terminal',
+        fare: 60,
+        type: 'market',
+        icon: 'storefront-outline',
+        color: 'purple',
+        lat: 15.42469999648076,
+        lng: 120.93842748892547,
+      },
+      {
+        name: 'SM Cabanatuan',
+        desc: 'SM City Cabanatuan Terminal & Mall Complex',
+        fare: 120,
+        type: 'commercial',
+        icon: 'cart-outline',
+        color: 'blue',
+        lat: 15.467008627792355,
+        lng: 120.95436226867764,
+      },
+    ];
+
+    this.landmarksList.set(defaults);
+    try {
+      await this.superAdminService.updateCmsData({ landmarks: defaults });
+      this.showToast('Reset to default TODA landmarks (Main Gate, Clubhouse, Public Market, SM Cabanatuan).', 'success');
+    } catch {
+      this.showToast('Reset to default landmarks.', 'primary');
     }
   }
 
@@ -688,7 +892,7 @@ export class SuperadminPage implements OnInit {
     this.showToast('Logged out from Superadmin Console.', 'medium');
   }
 
-  private async showToast(message: string, color: 'success' | 'danger' | 'warning' | 'medium'): Promise<void> {
+  private async showToast(message: string, color: 'success' | 'danger' | 'warning' | 'medium' | 'primary' = 'success'): Promise<void> {
     const t = await this.toastCtrl.create({
       message,
       duration: 3000,

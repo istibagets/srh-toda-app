@@ -14,6 +14,18 @@
 
   <!-- 3. FLOATING MAP CONTROLS STACK (Bottom Right) -->
   <div id="floating-map-controls-container" class="floating-map-controls-container">
+    <!-- Simplified Satellite Layer Toggle Button -->
+    <button type="button" class="unified-map-btn satellite-toggle-btn"
+      [class.btn-satellite-active]="isSatelliteMode()"
+      (click)="toggleSatelliteMode()" title="Toggle Satellite Mode">
+      <svg class="control-svg layer-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="12 2 2 7 12 12 22 7 12 2" />
+        <polyline points="2 17 12 22 22 17" />
+        <polyline points="2 12 12 17 22 12" />
+      </svg>
+    </button>
+
+    <!-- 2D / 3D & Recenter Button -->
     <button type="button" id="unified-map-control-btn" class="unified-map-btn"
       [class.btn-state-panned]="isUserPanned() || isLocationOverridden() || isGpsFetching()"
       (click)="handleUnifiedMapButtonClick()" title="Toggle 2D / 3D Map View">
@@ -43,10 +55,10 @@
 
   <!-- 4. PASSENGER COMMUTER BOTTOM SHEET (1:1 Hardware Drag Engine) -->
   <app-passenger-sheet [activeRide]="activePassengerRide()" [unreadChatCount]="unreadChatCount()"
-    [popularLandmarks]="popularLandmarks" (dragSync)="onSheetDragSync($event)" (snapChange)="onSnapChange($event)"
+    [popularLandmarks]="popularLandmarks()" (dragSync)="onSheetDragSync($event)" (snapChange)="onSnapChange($event)"
     (dragStart)="onSheetDragStart()" (dragEnd)="onSheetDragEnd()" (openBooking)="openBookingModal($event)"
     (acceptFare)="acceptPassengerFare()" (openChat)="openTripChat()"
-    (cancelRide)="cancelPassengerRide()"></app-passenger-sheet>
+    (cancelRide)="cancelPassengerRide()" (report)="openActiveRideReport()"></app-passenger-sheet>
 
 
 
@@ -198,6 +210,18 @@
 
   <!-- 4. FLOATING MAP CONTROLS STACK (Bottom Right) -->
   <div id="floating-map-controls-container" class="floating-map-controls-container">
+    <!-- Simplified Satellite Layer Toggle Button -->
+    <button type="button" class="unified-map-btn satellite-toggle-btn"
+      [class.btn-satellite-active]="isSatelliteMode()"
+      (click)="toggleSatelliteMode()" title="Toggle Satellite Mode">
+      <svg class="control-svg layer-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="12 2 2 7 12 12 22 7 12 2" />
+        <polyline points="2 17 12 22 22 17" />
+        <polyline points="2 12 12 17 22 12" />
+      </svg>
+    </button>
+
+    <!-- 2D / 3D & Recenter Button -->
     <button type="button" id="unified-map-control-btn" class="unified-map-btn"
       [class.btn-state-panned]="isUserPanned() || isLocationOverridden() || isGpsFetching()"
       (click)="handleUnifiedMapButtonClick()" title="Toggle 2D / 3D Map View">
@@ -399,6 +423,10 @@
   <!-- 8. PASSENGER RIDE COMPLETION & RATING MODAL -->
   <app-passenger-rating-modal [ride]="completedRideForRating()" [isOpen]="showRatingModal()"
     (closeModal)="showRatingModal.set(false)" (submitted)="onRatingSubmitted()"></app-passenger-rating-modal>
+
+  <!-- 8b. ACTIVE RIDE INCIDENT REPORT MODAL (report-only) -->
+  <app-passenger-rating-modal [ride]="tripReportRide()" [isOpen]="showTripReportModal()" [mode]="'report'"
+    (closeModal)="showTripReportModal.set(false)" (submitted)="showTripReportModal.set(false)"></app-passenger-rating-modal>
 
   <!-- TOAST NOTIFICATIONS -->
   <ion-toast [isOpen]="showToast()" [message]="toastMessage()" [color]="toastColor()" [duration]="3000"

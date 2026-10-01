@@ -145,13 +145,23 @@
           {{ isSubmitting() ? 'Submitting Report...' : 'Submit Incident Report' }}
         </button>
 
-        <button
-          type="button"
-          class="back-to-rating-btn"
-          (click)="isReportMode.set(false)"
-        >
-          Back to Rating
-        </button>
+        @if (mode() === 'rating') {
+          <button
+            type="button"
+            class="back-to-rating-btn"
+            (click)="isReportMode.set(false)"
+          >
+            Back to Rating
+          </button>
+        } @else {
+          <button
+            type="button"
+            class="back-to-rating-btn"
+            (click)="handleClose()"
+          >
+            Cancel
+          </button>
+        }
       </div>
     }
   </div>

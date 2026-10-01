@@ -136,6 +136,69 @@ class SystemSettings
         ];
     }
 
+    public static function defaultLandmarks(): array
+    {
+        return [
+            [
+                'name'  => 'Main Gate Guard House',
+                'desc'  => 'Main Entrance & Central TODA Bay',
+                'fare'  => 50,
+                'lat'   => 15.42955,
+                'lng'   => 120.92240,
+                'type'  => 'gate',
+                'icon'  => 'shield-outline',
+                'color' => 'emerald',
+            ],
+            [
+                'name'  => 'Phase 1 Clubhouse',
+                'desc'  => 'Recreation Center & Swimming Pool',
+                'fare'  => 50,
+                'lat'   => 15.42780,
+                'lng'   => 120.92410,
+                'type'  => 'clubhouse',
+                'icon'  => 'business-outline',
+                'color' => 'indigo',
+            ],
+            [
+                'name'  => 'Santa Rosa Public Market',
+                'desc'  => 'Town Center & Public Market Terminal',
+                'fare'  => 60,
+                'lat'   => 15.42469999648076,
+                'lng'   => 120.93842748892547,
+                'type'  => 'market',
+                'icon'  => 'storefront-outline',
+                'color' => 'purple',
+            ],
+            [
+                'name'  => 'SM Cabanatuan',
+                'desc'  => 'SM City Cabanatuan Terminal & Mall Complex',
+                'fare'  => 120,
+                'lat'   => 15.467008627792355,
+                'lng'   => 120.95436226867764,
+                'type'  => 'commercial',
+                'icon'  => 'cart-outline',
+                'color' => 'blue',
+            ],
+        ];
+    }
+
+    public static function getLandmarks(): array
+    {
+        $raw = self::get('landmarks_json');
+        if ($raw) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded) && !empty($decoded)) {
+                return $decoded;
+            }
+        }
+        return self::defaultLandmarks();
+    }
+
+    public static function setLandmarks(array $landmarks): void
+    {
+        self::set('landmarks_json', json_encode(array_values($landmarks)));
+    }
+
     public static function landingData(): array
     {
         $rawFaqs = self::get('landing.faqs_json');
