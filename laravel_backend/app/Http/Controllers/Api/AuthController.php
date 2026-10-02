@@ -62,6 +62,20 @@ class AuthController extends Controller
             ], 403);
         }
 
+        // Enforce Driver Gmail OTP Verification before granting access
+        if ($user->role === 'driver' && !$user->email_verified_at) {
+            try {
+                \App\Services\OtpService::generateAndSend($user);
+            } catch (\Throwable $e) {}
+
+            return response()->json([
+                'status'       => 'error',
+                'requires_otp' => true,
+                'email'        => $user->email,
+                'message'      => 'Please verify your Gmail with the 6-digit OTP code sent to your inbox before logging in.',
+            ], 403);
+        }
+
         // Generate a 64-character bearer token valid for 60 days
         $token = 'srh_' . Str::random(60);
         $user->update(['remember_token' => $token]);
@@ -109,6 +123,19 @@ class AuthController extends Controller
     {
         $role = $request->input('role', 'passenger');
 
+        // Clear out any abandoned unverified driver registrations for this email or phone
+        $staleUsers = User::where(function ($q) use ($request) {
+            $q->where('email', $request->input('email'))
+              ->orWhere('phone_number', $request->input('phone_number'));
+        })->whereNull('email_verified_at')->get();
+
+        foreach ($staleUsers as $stale) {
+            if ($stale->driverProfile) {
+                $stale->driverProfile->delete();
+            }
+            $stale->delete();
+        }
+
         $rules = [
             'name'         => ['required', 'string', 'max:255'],
             'email'        => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
@@ -136,6 +163,7 @@ class AuthController extends Controller
                 'password'             => Hash::make($validated['password']),
                 'role'                 => $role === 'driver' ? 'driver' : 'passenger',
                 'is_active'            => true,
+                'email_verified_at'    => $role === 'passenger' ? now() : null,
             ]);
 
             $driver = null;
@@ -153,9 +181,14 @@ class AuthController extends Controller
                     'is_online'            => false,
                 ]);
 
+                // Send 6-digit Email OTP to Driver
                 try {
-                    broadcast(new \App\Events\DriverApplicantUpdated($driver->id, 'registered'));
-                } catch (\Throwable $e) {}
+                    \App\Services\OtpService::generateAndSend($user);
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::error('Driver registration OTP send error: ' . $e->getMessage());
+                }
+
+                // NOTE: Broadcast to admin is deferred until OTP is successfully verified.
             }
         } catch (\Illuminate\Database\QueryException $e) {
             return response()->json([
@@ -166,16 +199,23 @@ class AuthController extends Controller
 
         ActivityLogger::log('register', $user->id);
 
-        // Generate token
-        $token = 'srh_' . Str::random(60);
-        $user->update(['remember_token' => $token]);
-        Cache::put('api_token_' . $token, $user->id, now()->addDays(60));
+        // Passengers get an immediate login token.
+        // Drivers do NOT receive a login token until their 6-digit Gmail OTP is verified.
+        $token = null;
+        if ($role === 'passenger') {
+            $token = 'srh_' . Str::random(60);
+            $user->update(['remember_token' => $token]);
+            Cache::put('api_token_' . $token, $user->id, now()->addDays(60));
+        }
 
         return response()->json([
-            'status'  => 'success',
-            'message' => 'Account registered successfully.',
-            'token'   => $token,
-            'user'    => [
+            'status'       => 'success',
+            'message'      => $role === 'driver' 
+                ? 'Driver registration submitted. A 6-digit verification code has been sent to your Gmail.'
+                : 'Account registered successfully.',
+            'requires_otp' => $role === 'driver',
+            'token'        => $token,
+            'user'         => [
                 'id'                   => $user->id,
                 'name'                 => $user->name,
                 'email'                => $user->email,
@@ -196,6 +236,128 @@ class AuthController extends Controller
     }
 
     /**
+     * Verify the 6-digit Email OTP for user activation.
+     */
+    public function verifyOtp(Request $request): JsonResponse
+    {
+        $request->validate([
+            'otp'   => ['required', 'string'],
+            'email' => ['nullable', 'string', 'email'],
+        ]);
+
+        $user = $this->resolveUser($request);
+        if (!$user && $request->filled('email')) {
+            $user = User::where('email', $request->email)->first();
+        }
+
+        if (!$user) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'User account not found or session expired.',
+            ], 404);
+        }
+
+        $enteredOtp = trim((string) $request->input('otp'));
+
+        if (!$user->otp_code || !$user->otp_expires_at) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'No active verification code found. Please request a new code.',
+            ], 422);
+        }
+
+        if ($user->otp_expires_at->isPast()) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Verification code has expired. Please request a new one.',
+            ], 422);
+        }
+
+        if ($enteredOtp !== (string) $user->otp_code) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Invalid verification code. Please check your Gmail and try again.',
+            ], 422);
+        }
+
+        // Mark user as email verified
+        $user->email_verified_at = now();
+        $user->otp_code = null;
+        $user->otp_expires_at = null;
+        $user->save();
+
+        ActivityLogger::log('email_verified', $user->id, ['channel' => 'email']);
+
+        $driver = $user->role === 'driver' ? Driver::where('user_id', $user->id)->first() : null;
+
+        // Broadcast to Admin only after OTP verification is complete
+        if ($driver) {
+            try {
+                broadcast(new \App\Events\DriverApplicantUpdated($driver->id, 'registered'));
+            } catch (\Throwable $e) {}
+        }
+
+        // Issue bearer token now that email OTP is verified
+        $token = 'srh_' . Str::random(60);
+        $user->update(['remember_token' => $token]);
+        Cache::put('api_token_' . $token, $user->id, now()->addDays(60));
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Email verified successfully. Welcome to SRH LINK-TODA!',
+            'token'   => $token,
+            'user'    => [
+                'id'                   => $user->id,
+                'name'                 => $user->name,
+                'email'                => $user->email,
+                'phone_number'         => $user->phone_number,
+                'role'                 => $user->role,
+                'is_active'            => (bool) $user->is_active,
+                'avatar_url'           => $user->avatar_url,
+                'is_verified'          => true,
+                'driver_profile'       => $driver ? [
+                    'id'                => $driver->id,
+                    'full_name'         => $driver->full_name,
+                    'mtop_number'       => $driver->mtop_number,
+                    'compliance_status' => $driver->compliance_status,
+                    'is_online'         => (bool) $driver->is_online,
+                ] : null,
+            ],
+        ]);
+    }
+
+    /**
+     * Resend a fresh 6-digit Email OTP to the user's Gmail.
+     */
+    public function resendOtp(Request $request): JsonResponse
+    {
+        $user = $this->resolveUser($request);
+        if (!$user && $request->filled('email')) {
+            $user = User::where('email', $request->email)->first();
+        }
+
+        if (!$user) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'User account not found.',
+            ], 404);
+        }
+
+        try {
+            \App\Services\OtpService::generateAndSend($user);
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'A fresh 6-digit verification code has been sent to ' . $user->email . '.',
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Failed to send verification email. Please try again in a few moments.',
+            ], 500);
+        }
+    }
+
+    /**
      * Check if email or phone number is available.
      */
     public function checkField(Request $request): JsonResponse
@@ -207,7 +369,7 @@ class AuthController extends Controller
             return response()->json(['available' => true]);
         }
 
-        $taken = User::where($field, $value)->exists();
+        $taken = User::where($field, $value)->whereNotNull('email_verified_at')->exists();
         return response()->json([
             'field'     => $field,
             'value'     => $value,

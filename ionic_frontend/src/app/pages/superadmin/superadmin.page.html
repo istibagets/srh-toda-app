@@ -435,31 +435,21 @@
               <div class="demographics-bars-stack">
                 <div class="demo-item">
                   <div class="demo-head">
-                    <span class="demo-name">Regular Passenger Trips</span>
-                    <span class="demo-pct">68%</span>
+                    <span class="demo-name">Terminal Dispatched Trips</span>
+                    <span class="demo-pct">78%</span>
                   </div>
                   <div class="demo-bar-track">
-                    <div class="demo-bar-fill primary" style="width: 68%;"></div>
+                    <div class="demo-bar-fill primary" style="width: 78%;"></div>
                   </div>
                 </div>
 
                 <div class="demo-item">
                   <div class="demo-head">
-                    <span class="demo-name">Student Discount (20%)</span>
+                    <span class="demo-name">Wayside / En Route Dispatches</span>
                     <span class="demo-pct">22%</span>
                   </div>
                   <div class="demo-bar-track">
                     <div class="demo-bar-fill indigo" style="width: 22%;"></div>
-                  </div>
-                </div>
-
-                <div class="demo-item">
-                  <div class="demo-head">
-                    <span class="demo-name">Senior / PWD Discount (20%)</span>
-                    <span class="demo-pct">10%</span>
-                  </div>
-                  <div class="demo-bar-track">
-                    <div class="demo-bar-fill amber" style="width: 10%;"></div>
                   </div>
                 </div>
 
@@ -675,7 +665,7 @@
           <div class="section-top-bar">
             <div class="section-title-group">
               <h2 class="section-title">Fare Matrix &amp; Dispatch Geofencing</h2>
-              <p class="section-subtitle">Calibrate regulated base fares, per-kilometer tariff, discounts, and terminal geofence</p>
+              <p class="section-subtitle">Calibrate regulated base fares, per-kilometer tariff, and terminal geofence</p>
             </div>
             <button type="button" class="save-action-btn" (click)="onSaveCms()" [disabled]="isSavingCms()">
               <ion-icon name="save-outline"></ion-icon>
@@ -720,16 +710,6 @@
                   </div>
                 </div>
 
-                <div class="form-row-2">
-                  <div class="form-group">
-                    <label class="form-label">Student Discount Rate (%)</label>
-                    <input type="number" formControlName="student_discount" class="custom-form-input" />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Senior / PWD Discount Rate (%)</label>
-                    <input type="number" formControlName="pwd_senior_discount" class="custom-form-input" />
-                  </div>
-                </div>
               </div>
             </div>
 

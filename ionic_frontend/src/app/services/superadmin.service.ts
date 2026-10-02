@@ -77,8 +77,6 @@ export interface CmsData {
     night_differential: number;
     surge_multiplier: number;
     terminal_fee: number;
-    student_discount: number;
-    pwd_senior_discount: number;
   };
   geofencing: {
     terminal_lat: number;
@@ -264,8 +262,6 @@ export class SuperadminService {
           night_differential: 5.0,
           surge_multiplier: 1.0,
           terminal_fee: 2.0,
-          student_discount: 20,
-          pwd_senior_discount: 20,
         },
         geofencing: {
           terminal_lat: 15.429550175641715,

@@ -1,4 +1,4 @@
-<ion-content [fullscreen]="true" class="register-ion-content">
+<ion-content [fullscreen]="true" [scrollY]="false" class="register-ion-content">
   <div class="page">
     <div class="shell">
 
@@ -401,6 +401,84 @@
                     <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
                   }
                 </ion-button>
+              </div>
+            }
+
+            <!-- ── STEP 5: Driver Gmail OTP Verification ─────── -->
+            @if (currentStep() === 5 && selectedRole() === 'driver') {
+              <div class="step-panel otp-step-panel animate-fade-in">
+                <div class="otp-hero-wrap">
+                  <div class="otp-icon-circle">
+                    <ion-icon name="mail-unread-outline"></ion-icon>
+                  </div>
+                  <h2 class="step-title">Verify your Gmail</h2>
+                  <p class="step-sub">
+                    We sent a 6-digit verification code to
+                    <span class="otp-target-email">{{ regForm.get('email')?.value }}</span>.
+                    Please enter the code below to complete your registration.
+                  </p>
+                </div>
+
+                <div class="otp-input-card">
+                  <div class="field-item-wrap">
+                    <ion-input
+                      id="reg-otp-code"
+                      name="otp"
+                      autocomplete="one-time-code"
+                      inputmode="numeric"
+                      fill="outline"
+                      label="6-Digit OTP Code"
+                      labelPlacement="floating"
+                      placeholder="000000"
+                      maxlength="6"
+                      [value]="otpCode()"
+                      (ionInput)="onOtpInput($event)"
+                      class="otp-custom-input"
+                    >
+                      <ion-icon slot="start" name="keypad-outline" color="primary" aria-hidden="true"></ion-icon>
+                    </ion-input>
+                  </div>
+
+                  <ion-button
+                    expand="block"
+                    shape="round"
+                    color="primary"
+                    class="btn-step-cta"
+                    [disabled]="otpCode().length !== 6 || isVerifyingOtp()"
+                    (click)="submitDriverOtp()"
+                  >
+                    @if (isVerifyingOtp()) {
+                      <ion-spinner slot="start" name="crescent"></ion-spinner>
+                      <span>Verifying Code...</span>
+                    } @else {
+                      <span>Verify & Finish</span>
+                      <ion-icon slot="end" name="checkmark-circle-outline"></ion-icon>
+                    }
+                  </ion-button>
+
+                  <div class="resend-wrap">
+                    <p class="resend-text">Didn't receive the email?</p>
+                    @if (resendCooldown() > 0) {
+                      <span class="resend-cooldown">Resend code in <strong>{{ resendCooldown() }}s</strong></span>
+                    } @else {
+                      <ion-button
+                        fill="clear"
+                        size="small"
+                        class="btn-resend"
+                        [disabled]="isResendingOtp()"
+                        (click)="resendDriverOtp()"
+                      >
+                        @if (isResendingOtp()) {
+                          <ion-spinner slot="start" name="dots"></ion-spinner>
+                          <span>Resending...</span>
+                        } @else {
+                          <ion-icon slot="start" name="refresh-outline"></ion-icon>
+                          <span>Resend Verification Code</span>
+                        }
+                      </ion-button>
+                    }
+                  </div>
+                </div>
               </div>
             }
 

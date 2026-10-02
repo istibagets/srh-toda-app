@@ -126,8 +126,8 @@ class SystemSettings
                 'answer' => 'Passengers can file an instant report directly through the app from their Ride History, or visit the Santa Rosa Homes TODA Dispatch Station with the driver\'s TODA body number or trip timestamp.'
             ],
             [
-                'question' => 'Are student and senior citizen discounts honored?',
-                'answer' => 'Yes. In full compliance with national transport regulations, valid student, senior citizen, and PWD identification cards are honored with a 20% discount on regular fares.'
+                'question' => 'What is the standard passenger capacity and baggage policy?',
+                'answer' => 'Standard tricycle dispatch accommodates up to 2 regular passengers with personal baggage. Additional passengers or bulky cargo follow association-approved fare guidelines.'
             ],
             [
                 'question' => 'How can a new driver join the Santa Rosa Homes TODA?',

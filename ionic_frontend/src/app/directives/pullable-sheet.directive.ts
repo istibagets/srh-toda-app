@@ -160,7 +160,7 @@ export class PullableSheetDirective implements OnInit, OnDestroy {
   private isFormInteractionTarget(target: EventTarget | null): boolean {
     if (!target || !(target instanceof HTMLElement)) return false;
     return !!target.closest(
-      'input, button, select, textarea, form, .landmark-chip, .discount-toggle-btn, [data-no-sheet-drag]'
+      'input, button, select, textarea, form, .landmark-chip, [data-no-sheet-drag]'
     );
   }
 

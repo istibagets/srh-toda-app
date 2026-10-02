@@ -89,8 +89,12 @@ class SuperAdminApiController extends Controller
         $todayGrossRevenue = (float) Ride::where('status', 'completed')->whereDate('created_at', today())->sum('fare');
         $terminalFeeTotal = $completedRides * 2.00; // ₱2 TODA association terminal dues per trip
 
-        $pendingDrivers = Driver::where('compliance_status', 'Pending')->count();
-        $suspendedDrivers = Driver::where('compliance_status', 'Suspended')->count();
+        $pendingDrivers = Driver::where('compliance_status', 'Pending')->whereHas('user', function ($q) {
+            $q->whereNotNull('email_verified_at');
+        })->count();
+        $suspendedDrivers = Driver::where('compliance_status', 'Suspended')->whereHas('user', function ($q) {
+            $q->whereNotNull('email_verified_at');
+        })->count();
 
         // Server & Environment Metrics
         $dbSize = '12.4 MB';
@@ -399,8 +403,6 @@ class SuperAdminApiController extends Controller
                     'night_differential'  => (float) SystemSettings::get('fare_matrix.night_differential', 5.00),
                     'surge_multiplier'    => (float) SystemSettings::get('fare_matrix.surge_multiplier', 1.0),
                     'terminal_fee'        => (float) SystemSettings::get('fare_matrix.terminal_fee', 2.00),
-                    'student_discount'    => (float) SystemSettings::get('fare_matrix.student_discount', 20),
-                    'pwd_senior_discount' => (float) SystemSettings::get('fare_matrix.pwd_senior_discount', 20),
                 ],
                 'geofencing' => [
                     'terminal_lat'    => (float) SystemSettings::get('geofencing.terminal_lat', 15.429550175641715),
@@ -418,7 +420,7 @@ class SuperAdminApiController extends Controller
                 ],
                 'landmarks' => SystemSettings::getLandmarks(),
                 'bylaws' => [
-                    'terms_of_service' => (string) SystemSettings::get('bylaws.terms_of_service', "1. All SRH TODA tricycles must maintain official franchise permit (MTOP).\n2. Strict observance of terminal queue discipline and first-in, first-out rotation.\n3. Zero tolerance for fare overcharging beyond municipal tariff rates.\n4. Senior, PWD, and Student discounts (20%) must be honored upon presentation of valid ID."),
+                    'terms_of_service' => (string) SystemSettings::get('bylaws.terms_of_service', "1. All SRH TODA tricycles must maintain official franchise permit (MTOP).\n2. Strict observance of terminal queue discipline and first-in, first-out rotation.\n3. Zero tolerance for fare overcharging beyond municipal tariff rates.\n4. Courteous service and road safety compliance at all times."),
                     'driver_rules'     => (string) SystemSettings::get('bylaws.driver_rules', "1. Maintain active GPS and on-duty status while operating.\n2. Do not refuse trips within accredited SRH TODA routes.\n3. Keep vehicles clean, roadworthy, and equipped with TODA body numbers."),
                     'passenger_guide'  => (string) SystemSettings::get('bylaws.passenger_guide', "1. Use SRH Link app to request verified drivers.\n2. Confirm driver MTOP body number before boarding.\n3. Settle fares conveniently via cash or in-app wallet."),
                 ],
@@ -511,7 +513,7 @@ class SuperAdminApiController extends Controller
                 'id'         => 2,
                 'user'       => 'Executive Super Administrator',
                 'action'     => 'UPDATED_FARE_MATRIX',
-                'details'    => 'Adjusted base fare rate to ₱15.00 with 20% senior/student discount',
+                'details'    => 'Adjusted base fare rate to ₱50.00 and calibrated terminal boundaries',
                 'ip_address' => '161.118.237.125',
                 'created_at' => now()->subHours(2)->diffForHumans(),
             ],

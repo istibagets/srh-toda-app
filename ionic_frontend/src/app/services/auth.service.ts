@@ -83,7 +83,10 @@ export class AuthService {
           }
         }
         message = message || 'Login failed. Please check your credentials.';
-        return throwError(() => new Error(message));
+        const errorObj: any = new Error(message);
+        errorObj.requires_otp = err.error?.requires_otp;
+        errorObj.email = err.error?.email;
+        return throwError(() => errorObj);
       })
     );
   }
@@ -95,7 +98,8 @@ export class AuthService {
     const url = `${environment.apiUrl}/auth/register`;
     return this.http.post<AuthResponse>(url, data).pipe(
       tap((res) => {
-        if (res.status === 'success' && res.token && res.user) {
+        // Only establish authenticated session if OTP verification is not required (e.g. passengers)
+        if (res.status === 'success' && res.token && res.user && !res.requires_otp) {
           this.setSession(res.token, res.user);
         }
       }),
@@ -108,6 +112,54 @@ export class AuthService {
           }
         }
         message = message || 'Registration failed. Please check your details.';
+        return throwError(() => new Error(message));
+      })
+    );
+  }
+
+  /**
+   * Verify 6-digit email OTP for driver activation.
+   */
+  verifyOtp(otp: string, email?: string): Observable<AuthResponse> {
+    const url = `${environment.apiUrl}/auth/verify-otp`;
+    const token = this.tokenSignal();
+    let headers = new HttpHeaders();
+    if (token) {
+      headers = headers.set('Authorization', `Bearer ${token}`);
+    }
+
+    return this.http.post<AuthResponse>(url, { otp: otp.trim(), email }, { headers }).pipe(
+      tap((res) => {
+        if (res.status === 'success' && res.user) {
+          if (res.token) {
+            this.setSession(res.token, res.user);
+          } else {
+            this.currentUserSignal.set(res.user);
+            localStorage.setItem(this.USER_KEY, JSON.stringify(res.user));
+          }
+        }
+      }),
+      catchError((err) => {
+        const message = err.error?.message || 'Invalid or expired verification code.';
+        return throwError(() => new Error(message));
+      })
+    );
+  }
+
+  /**
+   * Resend fresh 6-digit OTP code to email.
+   */
+  resendOtp(email?: string): Observable<any> {
+    const url = `${environment.apiUrl}/auth/resend-otp`;
+    const token = this.tokenSignal();
+    let headers = new HttpHeaders();
+    if (token) {
+      headers = headers.set('Authorization', `Bearer ${token}`);
+    }
+
+    return this.http.post<any>(url, { email }, { headers }).pipe(
+      catchError((err) => {
+        const message = err.error?.message || 'Failed to resend verification code.';
         return throwError(() => new Error(message));
       })
     );

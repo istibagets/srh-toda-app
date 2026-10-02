@@ -34,3 +34,7 @@ laravel_backend/storage/pail/
 .zed/
 .DS_Store
 Thumbs.db
+~$*
+*.tmp
+paper/_temp*/
+paper/*.txt

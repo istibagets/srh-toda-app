@@ -46,4 +46,17 @@ Artisan::command('map:cache-assets', function () {
     return 0;
 })->purpose('Download and bake MapTiler sprites into public/map-assets');
 
+Artisan::command('driver:cleanup-unverified', function () {
+    $unverifiedUsers = \App\Models\User::where('role', 'driver')->whereNull('email_verified_at')->get();
+    $count = 0;
+    foreach ($unverifiedUsers as $u) {
+        if ($u->driverProfile) {
+            $u->driverProfile->delete();
+        }
+        $u->delete();
+        $count++;
+    }
+    $this->info("Cleaned up {$count} unverified driver applicant(s).");
+})->purpose('Clean up unverified driver registrations');
+
 Schedule::command('sessions:prune')->dailyAt('03:00');

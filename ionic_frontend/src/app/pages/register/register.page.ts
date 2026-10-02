@@ -29,6 +29,10 @@ import {
   cardOutline,
   documentAttachOutline,
   openOutline,
+  keypadOutline,
+  refreshOutline,
+  mailUnreadOutline,
+  sendOutline,
 } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
 
@@ -73,6 +77,13 @@ export class RegisterPage {
   mtopFileName = signal<string | null>(null);
   licenseFileName = signal<string | null>(null);
 
+  // OTP Verification state (for driver registration)
+  otpCode = signal<string>('');
+  isVerifyingOtp = signal<boolean>(false);
+  isResendingOtp = signal<boolean>(false);
+  resendCooldown = signal<number>(0);
+  private timerInterval: any = null;
+
   // Form definition
   regForm: FormGroup = this.fb.group({
     role: ['passenger', [Validators.required]],
@@ -87,7 +98,7 @@ export class RegisterPage {
   });
 
   // Total steps computed based on role
-  totalSteps = computed(() => (this.selectedRole() === 'driver' ? 4 : 3));
+  totalSteps = computed(() => (this.selectedRole() === 'driver' ? 5 : 3));
 
   // Progress percentage (0 to 1) for ion-progress-bar
   progressRatio = computed(() => {
@@ -109,6 +120,7 @@ export class RegisterPage {
         { label: 'Details', motivate: 'Personal Info', title: 'Your contact details', desc: 'Provide your basic details for communications.' },
         { label: 'Password', motivate: 'Security Setup', title: 'Set account password', desc: 'Create a secure password to protect your account.' },
         { label: 'Docs', motivate: 'Driver Credentials', title: 'Upload TODA documents', desc: 'Submit your license and MTOP certificate for admin verification.' },
+        { label: 'Verify', motivate: 'Gmail OTP Code', title: 'Verify your Gmail', desc: 'Enter the 6-digit verification code sent to your email inbox.' },
       ];
     }
     return [
@@ -134,6 +146,10 @@ export class RegisterPage {
       cardOutline,
       documentAttachOutline,
       openOutline,
+      keypadOutline,
+      refreshOutline,
+      mailUnreadOutline,
+      sendOutline,
     });
   }
 
@@ -324,7 +340,15 @@ export class RegisterPage {
       next: (res) => {
         this.isLoading.set(false);
         if (res.status === 'success') {
-          this.router.navigate(['/tabs/home'], { replaceUrl: true });
+          if (res.requires_otp) {
+            this.currentStep.set(5);
+            this.startResendTimer();
+            const email = this.regForm.get('email')?.value;
+            this.showToast('📧 Verification code sent to ' + email + '. Check your Gmail inbox.', 'success');
+          } else {
+            this.showToast('🎉 Account registered successfully!', 'success');
+            this.router.navigate(['/tabs/home'], { replaceUrl: true });
+          }
         }
       },
       error: (err) => {
@@ -332,6 +356,68 @@ export class RegisterPage {
         const msg = err.message || 'Registration failed. Please check your details and try again.';
         this.errorMessage.set(msg);
         this.showToast(msg, 'danger');
+      },
+    });
+  }
+
+  startResendTimer(): void {
+    this.resendCooldown.set(60);
+    if (this.timerInterval) clearInterval(this.timerInterval);
+    this.timerInterval = setInterval(() => {
+      if (this.resendCooldown() > 1) {
+        this.resendCooldown.update((v) => v - 1);
+      } else {
+        this.resendCooldown.set(0);
+        clearInterval(this.timerInterval);
+      }
+    }, 1000);
+  }
+
+  onOtpInput(event: any): void {
+    const val = event.target?.value || '';
+    const clean = String(val).replace(/[^0-9]/g, '').slice(0, 6);
+    this.otpCode.set(clean);
+  }
+
+  submitDriverOtp(): void {
+    const code = this.otpCode().trim();
+    if (code.length !== 6) {
+      this.showToast('Please enter the full 6-digit verification code.', 'warning');
+      return;
+    }
+
+    this.isVerifyingOtp.set(true);
+    const email = this.regForm.get('email')?.value;
+
+    this.authService.verifyOtp(code, email).subscribe({
+      next: (res) => {
+        this.isVerifyingOtp.set(false);
+        this.showToast('🎉 Email verified successfully! Welcome to SRH LINK-TODA.', 'success');
+        this.router.navigate(['/tabs/home'], { replaceUrl: true });
+      },
+      error: (err) => {
+        this.isVerifyingOtp.set(false);
+        const msg = err.message || 'Invalid verification code. Please check your Gmail.';
+        this.showToast(msg, 'danger');
+      },
+    });
+  }
+
+  resendDriverOtp(): void {
+    if (this.resendCooldown() > 0 || this.isResendingOtp()) return;
+
+    this.isResendingOtp.set(true);
+    const email = this.regForm.get('email')?.value;
+
+    this.authService.resendOtp(email).subscribe({
+      next: (res) => {
+        this.isResendingOtp.set(false);
+        this.startResendTimer();
+        this.showToast('Fresh 6-digit verification code sent to ' + email, 'success');
+      },
+      error: (err) => {
+        this.isResendingOtp.set(false);
+        this.showToast(err.message || 'Failed to resend code.', 'danger');
       },
     });
   }

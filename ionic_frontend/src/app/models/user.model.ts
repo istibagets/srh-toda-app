@@ -27,6 +27,7 @@ export interface AuthResponse {
   message?: string;
   token?: string;
   user?: User;
+  requires_otp?: boolean;
   errors?: Record<string, string[]>;
 }
 

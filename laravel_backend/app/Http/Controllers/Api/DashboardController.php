@@ -304,7 +304,9 @@ class DashboardController extends Controller
                 $data['admin'] = [
                     'total_passengers'   => User::where('role', 'passenger')->count(),
                     'total_drivers'      => Driver::where('compliance_status', 'Approved')->count(),
-                    'pending_applicants' => Driver::where('compliance_status', 'Pending')->count(),
+                    'pending_applicants' => Driver::where('compliance_status', 'Pending')->whereHas('user', function ($q) {
+                        $q->whereNotNull('email_verified_at');
+                    })->count(),
                     'online_drivers'     => Driver::where('is_online', true)->count(),
                     'today_rides'        => Ride::whereDate('created_at', today())->where('status', 'completed')->count(),
                     'today_total_fare'   => (float) Ride::whereDate('created_at', today())->where('status', 'completed')->sum('fare'),
@@ -363,8 +365,6 @@ class DashboardController extends Controller
             'night_differential'  => (float) \App\Support\SystemSettings::get('fare_matrix.night_differential', 5.00),
             'surge_multiplier'    => (float) \App\Support\SystemSettings::get('fare_matrix.surge_multiplier', 1.00),
             'terminal_fee'        => (float) \App\Support\SystemSettings::get('fare_matrix.terminal_fee', 2.00),
-            'student_discount'    => (float) \App\Support\SystemSettings::get('fare_matrix.student_discount', 20),
-            'pwd_senior_discount' => (float) \App\Support\SystemSettings::get('fare_matrix.pwd_senior_discount', 20),
         ];
 
         $data['announcements'] = $announcements;
@@ -1236,16 +1236,25 @@ class DashboardController extends Controller
         }
 
         // Summary Aggregates
-        $totalDrivers = Driver::count();
+        $totalDrivers = Driver::whereHas('user', function ($q) {
+            $q->whereNotNull('email_verified_at');
+        })->count();
         $onlineDrivers = Driver::where('is_online', true)->count();
-        $pendingApplicants = Driver::where('compliance_status', 'Pending')->count();
-        $suspendedDrivers = Driver::where('compliance_status', 'Suspended')->count();
+        $pendingApplicants = Driver::where('compliance_status', 'Pending')->whereHas('user', function ($q) {
+            $q->whereNotNull('email_verified_at');
+        })->count();
+        $suspendedDrivers = Driver::where('compliance_status', 'Suspended')->whereHas('user', function ($q) {
+            $q->whereNotNull('email_verified_at');
+        })->count();
         $openReports = Report::whereIn('status', ['pending', 'investigating'])->count();
         $totalCompletedRides = Ride::where('status', 'completed')->count();
         $totalTodaRevenue = (float) Ride::where('status', 'completed')->sum('fare');
 
-        // All Drivers List
+        // All Drivers List (only drivers who verified their email)
         $drivers = Driver::with('user')
+            ->whereHas('user', function ($q) {
+                $q->whereNotNull('email_verified_at');
+            })
             ->orderByRaw("FIELD(compliance_status, 'Pending', 'Suspended', 'Approved', 'Rejected')")
             ->latest('updated_at')
             ->get()

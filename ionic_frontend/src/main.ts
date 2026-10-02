@@ -13,6 +13,8 @@ bootstrapApplication(AppComponent, {
     provideIonicAngular({
       mode: 'md',
       swipeBackEnabled: true,
+      scrollAssist: false,
+      scrollPadding: false,
     }),
     provideHttpClient(withInterceptors([maintenanceInterceptor])),
     provideRouter(routes, withPreloading(PreloadAllModules), withComponentInputBinding()),

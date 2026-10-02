@@ -48,9 +48,9 @@ export class LandingPage implements OnInit {
       isOpen: false,
     },
     {
-      question: 'Who is eligible for the 20% statutory fare discount?',
+      question: 'What is the standard passenger capacity and baggage policy?',
       answer:
-        'Actively enrolled Students, Senior Citizens (60+), and Persons with Disability (PWDs) are entitled to a mandatory 20% discount upon presenting a valid ID.',
+        'Standard tricycle dispatch accommodates up to 2 regular passengers with reasonable personal baggage. Additional passengers or bulky cargo follow association-approved guidelines.',
       isOpen: false,
     },
     {

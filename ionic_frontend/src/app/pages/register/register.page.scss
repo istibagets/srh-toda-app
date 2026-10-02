@@ -1,21 +1,39 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
 .register-ion-content {
   --background: #ffffff;
   --color: #1e293b;
+  --overflow: auto;
+
+  &::part(scroll) {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    &::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+  }
 }
 
 .page {
-  min-height: 100vh;
+  min-height: 100%;
   width: 100%;
   display: flex;
   background: #ffffff;
+  box-sizing: border-box;
 }
 
 .shell {
   display: flex;
   flex-direction: row;
   width: 100%;
-  min-height: 100vh;
+  min-height: 100%;
   background: #ffffff;
+  box-sizing: border-box;
 }
 
 /* ── Left Information Panel (Desktop Only) ── */
@@ -28,9 +46,14 @@
   max-width: 480px;
   min-width: 340px;
   background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
-  padding: 3.5rem 3rem;
+  padding: 3rem 2.5rem;
   color: #ffffff;
   box-sizing: border-box;
+  overflow-y: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @media (min-width: 860px) {
@@ -76,7 +99,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 2.5rem 0 1.5rem;
+  padding: 2rem 0 1.5rem;
 }
 
 .info-step-label {
@@ -177,17 +200,32 @@
 .form-area {
   flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1.25rem;
+  padding: 1.25rem;
   background: #ffffff;
-  min-height: 100vh;
+  height: 100%;
+  max-height: 100%;
   box-sizing: border-box;
+  overflow-y: auto;
+  overscroll-behavior: none !important;
+  scroll-padding: 0 !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  &::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
 }
 
 .form-inner {
   width: 100%;
   max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
 }
 
 /* ── Topbar & Step Progress ── */
@@ -195,7 +233,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   margin-left: -8px;
 
   .back-btn {
@@ -561,3 +599,102 @@
     white-space: nowrap;
   }
 }
+
+/* ── Step 5: OTP Verification Panel ── */
+.otp-step-panel {
+  text-align: center;
+}
+
+.otp-hero-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 0.5rem;
+
+  .otp-icon-circle {
+    width: 68px;
+    height: 68px;
+    border-radius: 22px;
+    background: #eff6ff;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.15);
+  }
+
+  .step-title {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: #0f172a;
+    margin-bottom: 0.35rem;
+  }
+
+  .step-sub {
+    font-size: 0.88rem;
+    color: #64748b;
+    line-height: 1.5;
+    margin: 0;
+
+    .otp-target-email {
+      font-weight: 700;
+      color: #1e293b;
+      word-break: break-all;
+    }
+  }
+}
+
+.otp-input-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  margin-top: 0.75rem;
+
+  .otp-custom-input {
+    --highlight-color-focused: #2563eb;
+    text-align: center;
+
+    input {
+      letter-spacing: 0.35em !important;
+      font-size: 1.5rem !important;
+      font-weight: 800 !important;
+      text-align: center !important;
+      color: #0f172a !important;
+    }
+  }
+}
+
+.resend-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.75rem;
+
+  .resend-text {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin: 0;
+  }
+
+  .resend-cooldown {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #94a3b8;
+
+    strong {
+      color: #2563eb;
+    }
+  }
+
+  .btn-resend {
+    --color: #2563eb;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: none;
+    margin: 0;
+  }
+}
+
