@@ -1,301 +1,43 @@
-<mxfile host="app.diagrams.net" modified="2026-10-02T20:30:00.000Z" agent="Mozilla/5.0" etag="srh-class-diagram-neust" version="24.7.5" type="device">
-  <diagram id="srh_class_diagram" name="Class Diagram">
-    <mxGraphModel dx="1600" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-02T12:57:52.460Z" agent="SRH-LINK-TODA" version="24.7.5">
+  <diagram id="Class_Diagram_SRH_LINK_TODA" name="Class_Diagram_SRH_LINK_TODA">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="720" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-
-        <!-- ========================================== -->
-        <!-- CONTROLLERS (TOP LAYER)                    -->
-        <!-- ========================================== -->
-        <!-- DashboardController -->
-        <mxCell id="c_dash" value="DashboardController" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;" vertex="1" parent="1">
-          <mxGeometry x="60" y="60" width="260" height="170" as="geometry" />
+        <mxCell id="2" value="&lt;b&gt;User&lt;/b&gt;&lt;hr/&gt;+ id: int<br/>+ name: string<br/>+ email: string<br/>+ phoneNumber: string<br/>+ role: string<br/>+ emailVerifiedAt: DateTime&lt;hr/&gt;+ isVerified(): bool()<br/>+ hasRole(role): bool()<br/>+ driverProfile(): Driver()" style="shape=swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=28;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;fontFamily=Helvetica;fontSize=10.5;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="60" y="60" width="220" height="208" as="geometry" />
         </mxCell>
-        <mxCell id="cd_f1" value="- authService : AuthService" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="c_dash">
-          <mxGeometry y="26" width="260" height="20" as="geometry" />
+        <mxCell id="3" value="&lt;b&gt;Driver&lt;/b&gt;&lt;hr/&gt;+ id: int<br/>+ userId: int<br/>+ mtopNumber: string<br/>+ complianceStatus: string<br/>+ isOnline: bool<br/>+ queuePosition: int&lt;hr/&gt;+ joinQueue(): void()<br/>+ leaveQueue(): void()<br/>+ updateBearing(heading): void()" style="shape=swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=28;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;fontFamily=Helvetica;fontSize=10.5;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="360" y="60" width="240" height="208" as="geometry" />
         </mxCell>
-        <mxCell id="cd_f2" value="- pushService : PushService" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="c_dash">
-          <mxGeometry y="46" width="260" height="20" as="geometry" />
+        <mxCell id="4" value="&lt;b&gt;Ride&lt;/b&gt;&lt;hr/&gt;+ id: int<br/>+ passengerId: int<br/>+ driverId: int<br/>+ pickupLocation: string<br/>+ destination: string<br/>+ fare: float<br/>+ status: string&lt;hr/&gt;+ assignDriver(driverId): void()<br/>+ startTransit(): void()<br/>+ completeTrip(): void()" style="shape=swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=28;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;fontFamily=Helvetica;fontSize=10.5;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="680" y="60" width="240" height="226" as="geometry" />
         </mxCell>
-        <mxCell id="cd_m1" value="+ index() : JsonResponse" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="c_dash">
-          <mxGeometry y="66" width="260" height="20" as="geometry" />
+        <mxCell id="5" value="&lt;b&gt;QueueService&lt;/b&gt;&lt;hr/&gt;+ terminalLat: float<br/>+ terminalLng: float<br/>+ geofenceRadius: int&lt;hr/&gt;+ checkin(driver, lat, lng): bool()<br/>+ getNextDriver(): Driver()<br/>+ reorderQueue(): void()" style="shape=swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=28;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;fontFamily=Helvetica;fontSize=10.5;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="360" y="420" width="240" height="154" as="geometry" />
         </mxCell>
-        <mxCell id="cd_m2" value="+ checkInGeofence(coords) : JsonResponse" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="c_dash">
-          <mxGeometry y="86" width="260" height="20" as="geometry" />
+        <mxCell id="6" value="&lt;b&gt;FareCalculatorService&lt;/b&gt;&lt;hr/&gt;+ baseFare: float<br/>+ perKmRate: float<br/>+ extraPaxFee: float&lt;hr/&gt;+ computeTariff(dist, pax): float()<br/>+ getLandmarkFare(dest): float()" style="shape=swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=28;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;fontFamily=Helvetica;fontSize=10.5;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="680" y="420" width="240" height="136" as="geometry" />
         </mxCell>
-        <mxCell id="cd_m3" value="+ toggleDuty(status) : JsonResponse" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="c_dash">
-          <mxGeometry y="106" width="260" height="20" as="geometry" />
+        <mxCell id="7" value="&lt;b&gt;OtpService&lt;/b&gt;&lt;hr/&gt;+ expiryMinutes: int&lt;hr/&gt;+ generateAndSend(user): string()<br/>+ verify(user, otp): bool()" style="shape=swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=28;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;fontFamily=Helvetica;fontSize=10.5;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="60" y="420" width="220" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="cd_m4" value="+ getQueueState() : JsonResponse" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="c_dash">
-          <mxGeometry y="126" width="260" height="20" as="geometry" />
+        <mxCell id="8" value="1:1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;strokeColor=#000000;strokeWidth=1.3;fontFamily=Helvetica;fontSize=10;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="2" target="3">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="cd_m5" value="+ overrideQueue(order) : JsonResponse" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="c_dash">
-          <mxGeometry y="146" width="260" height="20" as="geometry" />
+        <mxCell id="9" value="1:N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;strokeColor=#000000;strokeWidth=1.3;fontFamily=Helvetica;fontSize=10;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="3" target="4">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <!-- RideController -->
-        <mxCell id="c_ride" value="RideController" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;" vertex="1" parent="1">
-          <mxGeometry x="380" y="60" width="260" height="170" as="geometry" />
+        <mxCell id="10" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;strokeColor=#000000;strokeWidth=1.3;fontFamily=Helvetica;fontSize=10;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="3" target="5">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="cr_f1" value="- pushService : PushService" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="c_ride">
-          <mxGeometry y="26" width="260" height="20" as="geometry" />
+        <mxCell id="11" value="calculates" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;strokeColor=#000000;strokeWidth=1.3;fontFamily=Helvetica;fontSize=10;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="4" target="6">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="cr_m1" value="+ requestRide(details) : JsonResponse" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="c_ride">
-          <mxGeometry y="46" width="260" height="20" as="geometry" />
+        <mxCell id="12" value="verifies" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;strokeColor=#000000;strokeWidth=1.3;fontFamily=Helvetica;fontSize=10;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="2" target="7">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="cr_m2" value="+ acceptRide(rideId) : JsonResponse" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="c_ride">
-          <mxGeometry y="66" width="260" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="cr_m3" value="+ completeRide(rideId) : JsonResponse" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="c_ride">
-          <mxGeometry y="86" width="260" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="cr_m4" value="+ cancelRide(rideId, reason) : JsonResponse" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="c_ride">
-          <mxGeometry y="106" width="260" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="cr_m5" value="+ rateDriver(rideId, rating) : JsonResponse" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="c_ride">
-          <mxGeometry y="126" width="260" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="cr_m6" value="+ getHistory() : JsonResponse" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="c_ride">
-          <mxGeometry y="146" width="260" height="20" as="geometry" />
-        </mxCell>
-
-        <!-- DriverController -->
-        <mxCell id="c_drv" value="DriverController" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;" vertex="1" parent="1">
-          <mxGeometry x="700" y="60" width="260" height="170" as="geometry" />
-        </mxCell>
-        <mxCell id="cdv_f1" value="- activityLogger : ActivityLogger" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="c_drv">
-          <mxGeometry y="26" width="260" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="cdv_m1" value="+ updateLocation(lat, lng) : JsonResponse" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="c_drv">
-          <mxGeometry y="46" width="260" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="cdv_m2" value="+ uploadMtopDocument(file) : JsonResponse" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="c_drv">
-          <mxGeometry y="66" width="260" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="cdv_m3" value="+ verifyAccreditation(id) : JsonResponse" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="c_drv">
-          <mxGeometry y="86" width="260" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="cdv_m4" value="+ getEarningsLedger() : JsonResponse" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="c_drv">
-          <mxGeometry y="106" width="260" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="cdv_m5" value="+ getActiveQueueList() : JsonResponse" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="c_drv">
-          <mxGeometry y="126" width="260" height="20" as="geometry" />
-        </mxCell>
-
-        <!-- SuperAdminApiController -->
-        <mxCell id="c_sa" value="SuperAdminApiController" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;" vertex="1" parent="1">
-          <mxGeometry x="1020" y="60" width="260" height="170" as="geometry" />
-        </mxCell>
-        <mxCell id="csa_f1" value="- systemSettings : SystemSettings" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="c_sa">
-          <mxGeometry y="26" width="260" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="csa_m1" value="+ updateFareMatrix(payload) : JsonResponse" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="c_sa">
-          <mxGeometry y="46" width="260" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="csa_m2" value="+ updateGeofencing(payload) : JsonResponse" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="c_sa">
-          <mxGeometry y="66" width="260" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="csa_m3" value="+ toggleMaintenance(state) : JsonResponse" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="c_sa">
-          <mxGeometry y="86" width="260" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="csa_m4" value="+ getActivityLogs(filter) : JsonResponse" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="c_sa">
-          <mxGeometry y="106" width="260" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="csa_m5" value="+ updateUserRole(id, role) : JsonResponse" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="c_sa">
-          <mxGeometry y="126" width="260" height="20" as="geometry" />
-        </mxCell>
-
-        <!-- ========================================== -->
-        <!-- MODELS (MIDDLE LAYER)                      -->
-        <!-- ========================================== -->
-        <!-- User Model -->
-        <mxCell id="m_user" value="User" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;" vertex="1" parent="1">
-          <mxGeometry x="60" y="340" width="240" height="210" as="geometry" />
-        </mxCell>
-        <mxCell id="mu_1" value="+ id : bigint" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="m_user">
-          <mxGeometry y="26" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="mu_2" value="+ name : string" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="m_user">
-          <mxGeometry y="46" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="mu_3" value="+ phone_number : string" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="m_user">
-          <mxGeometry y="66" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="mu_4" value="+ role : string" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="m_user">
-          <mxGeometry y="86" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="mu_5" value="+ is_active : boolean" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="m_user">
-          <mxGeometry y="106" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="mu_6" value="+ driverProfile() : HasOne" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="m_user">
-          <mxGeometry y="126" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="mu_7" value="+ passengerRides() : HasMany" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="m_user">
-          <mxGeometry y="146" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="mu_8" value="+ driverRides() : HasMany" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="m_user">
-          <mxGeometry y="166" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="mu_9" value="+ savedLocations() : HasMany" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="m_user">
-          <mxGeometry y="186" width="240" height="20" as="geometry" />
-        </mxCell>
-
-        <!-- Driver Model -->
-        <mxCell id="m_driver" value="Driver" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;" vertex="1" parent="1">
-          <mxGeometry x="380" y="340" width="240" height="210" as="geometry" />
-        </mxCell>
-        <mxCell id="md_1" value="+ id : bigint" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="m_driver">
-          <mxGeometry y="26" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="md_2" value="+ user_id : bigint" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="m_driver">
-          <mxGeometry y="46" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="md_3" value="+ toda_body_number : string" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="m_driver">
-          <mxGeometry y="66" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="md_4" value="+ compliance_status : string" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="m_driver">
-          <mxGeometry y="86" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="md_5" value="+ queue_position : int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="m_driver">
-          <mxGeometry y="106" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="md_6" value="+ is_available : boolean" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="m_driver">
-          <mxGeometry y="126" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="md_7" value="+ user() : BelongsTo" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="m_driver">
-          <mxGeometry y="146" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="md_8" value="+ isApproved() : bool" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="m_driver">
-          <mxGeometry y="166" width="240" height="20" as="geometry" />
-        </mxCell>
-
-        <!-- Ride Model -->
-        <mxCell id="m_ride" value="Ride" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;" vertex="1" parent="1">
-          <mxGeometry x="700" y="340" width="240" height="210" as="geometry" />
-        </mxCell>
-        <mxCell id="mr_1" value="+ id : bigint" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="m_ride">
-          <mxGeometry y="26" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="mr_2" value="+ passenger_id : bigint" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="m_ride">
-          <mxGeometry y="46" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="mr_3" value="+ driver_id : bigint" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="m_ride">
-          <mxGeometry y="66" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="mr_4" value="+ fare : float" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="m_ride">
-          <mxGeometry y="86" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="mr_5" value="+ status : string" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="m_ride">
-          <mxGeometry y="106" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="mr_6" value="+ passenger() : BelongsTo" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="m_ride">
-          <mxGeometry y="126" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="mr_7" value="+ driver() : BelongsTo" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="m_ride">
-          <mxGeometry y="146" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="mr_8" value="+ chatMessages() : HasMany" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="m_ride">
-          <mxGeometry y="166" width="240" height="20" as="geometry" />
-        </mxCell>
-
-        <!-- Report Model -->
-        <mxCell id="m_rep" value="Report" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;" vertex="1" parent="1">
-          <mxGeometry x="1020" y="340" width="240" height="210" as="geometry" />
-        </mxCell>
-        <mxCell id="mrp_1" value="+ id : bigint" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="m_rep">
-          <mxGeometry y="26" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="mrp_2" value="+ reporter_id : bigint" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="m_rep">
-          <mxGeometry y="46" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="mrp_3" value="+ driver_id : bigint" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="m_rep">
-          <mxGeometry y="66" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="mrp_4" value="+ category : string" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="m_rep">
-          <mxGeometry y="86" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="mrp_5" value="+ status : string" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;" vertex="1" parent="m_rep">
-          <mxGeometry y="106" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="mrp_6" value="+ reporter() : BelongsTo" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="m_rep">
-          <mxGeometry y="126" width="240" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="mrp_7" value="+ driver() : BelongsTo" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="m_rep">
-          <mxGeometry y="146" width="240" height="20" as="geometry" />
-        </mxCell>
-
-        <!-- ========================================== -->
-        <!-- SERVICES (BOTTOM LAYER)                    -->
-        <!-- ========================================== -->
-        <!-- PushService -->
-        <mxCell id="s_push" value="PushService" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;" vertex="1" parent="1">
-          <mxGeometry x="180" y="660" width="280" height="150" as="geometry" />
-        </mxCell>
-        <mxCell id="sp_m1" value="+ broadcastQueueUpdate(event) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="s_push">
-          <mxGeometry y="26" width="280" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="sp_m2" value="+ sendRideDispatchAlert(driverId, ride) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="s_push">
-          <mxGeometry y="46" width="280" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="sp_m3" value="+ streamDriverCoordinates(rideId, coords) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="s_push">
-          <mxGeometry y="66" width="280" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="sp_m4" value="+ broadcastChatMessage(rideId, msg) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="s_push">
-          <mxGeometry y="86" width="280" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="sp_m5" value="+ notifyAdminAlert(category, payload) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="s_push">
-          <mxGeometry y="106" width="280" height="20" as="geometry" />
-        </mxCell>
-
-        <!-- SystemSettings -->
-        <mxCell id="s_sett" value="SystemSettings" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;" vertex="1" parent="1">
-          <mxGeometry x="540" y="660" width="280" height="150" as="geometry" />
-        </mxCell>
-        <mxCell id="ss_m1" value="+ get(key, default) : mixed" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="s_sett">
-          <mxGeometry y="26" width="280" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="ss_m2" value="+ set(key, value) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="s_sett">
-          <mxGeometry y="46" width="280" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="ss_m3" value="+ getFareMatrix() : array" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="s_sett">
-          <mxGeometry y="66" width="280" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="ss_m4" value="+ getGeofenceCoordinates() : array" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="s_sett">
-          <mxGeometry y="86" width="280" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="ss_m5" value="+ isMaintenanceMode() : bool" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="s_sett">
-          <mxGeometry y="106" width="280" height="20" as="geometry" />
-        </mxCell>
-
-        <!-- ActivityLogger -->
-        <mxCell id="s_act" value="ActivityLogger" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;" vertex="1" parent="1">
-          <mxGeometry x="900" y="660" width="280" height="150" as="geometry" />
-        </mxCell>
-        <mxCell id="sa_m1" value="+ log(action, targetId, details) : void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="s_act">
-          <mxGeometry y="26" width="280" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="sa_m2" value="+ getAuditLogs(filter) : Collection" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="s_act">
-          <mxGeometry y="46" width="280" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="sa_m3" value="+ purgeOldLogs(days) : int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=6;fontSize=10;fontStyle=1;" vertex="1" parent="s_act">
-          <mxGeometry y="66" width="280" height="20" as="geometry" />
-        </mxCell>
-
-        <!-- ========================================== -->
-        <!-- DEPENDENCY & ASSOCIATION ARROWS            -->
-        <!-- ========================================== -->
-        <mxCell id="dep_c1_m1" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#000000;" edge="1" parent="1" source="c_dash" target="m_user" />
-        <mxCell id="dep_c1_m2" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#000000;" edge="1" parent="1" source="c_dash" target="m_driver" />
-        <mxCell id="dep_c2_m3" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#000000;" edge="1" parent="1" source="c_ride" target="m_ride" />
-        <mxCell id="dep_c3_m2" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#000000;" edge="1" parent="1" source="c_drv" target="m_driver" />
-        <mxCell id="dep_c4_m4" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#000000;" edge="1" parent="1" source="c_sa" target="m_rep" />
-
-        <mxCell id="dep_c1_s1" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#000000;" edge="1" parent="1" source="c_dash" target="s_push" />
-        <mxCell id="dep_c2_s1" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#000000;" edge="1" parent="1" source="c_ride" target="s_push" />
-        <mxCell id="dep_c4_s2" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#000000;" edge="1" parent="1" source="c_sa" target="s_sett" />
-        <mxCell id="dep_c3_s3" style="endArrow=open;dashed=1;html=1;rounded=0;strokeColor=#000000;" edge="1" parent="1" source="c_drv" target="s_act" />
-
       </root>
     </mxGraphModel>
   </diagram>
