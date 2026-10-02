@@ -19,7 +19,7 @@ function wrapDrawio(name, width, height, content) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <mxfile host="app.diagrams.net" modified="${new Date().toISOString()}" agent="SRH-LINK-TODA" version="24.7.5">
   <diagram id="${name}" name="${name}">
-    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="${width}" pageHeight="${height}" math="0" shadow="0">
+    <mxGraphModel dx="1400" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="${width}" pageHeight="${height}" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -31,52 +31,45 @@ ${content}
 }
 
 // ══════════════════════════════════════════════════════════════════════════
-// 1. CONTEXT DIAGRAM (Figure 27 style from Breaking Silence)
+// 1. CONTEXT DIAGRAM (Figure 27 Style: 4 Corners, Process 0 Center)
 // ══════════════════════════════════════════════════════════════════════════
 function generateContextDiagram() {
   let cells = [];
   let id = 2;
 
   // Process 0 Center Box
-  const pX = 520, pY = 360, pW = 320, pH = 160;
+  const pX = 540, pY = 360, pW = 320, pH = 160;
   
-  // Header Badge (0)
   cells.push(`        <mxCell id="${id++}" value="0" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=14;fontStyle=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;" vertex="1" parent="1">
           <mxGeometry x="${pX}" y="${pY}" width="${pW}" height="32" as="geometry" />
         </mxCell>`);
-  // Main Body (SRH LINK-TODA System)
   cells.push(`        <mxCell id="${id++}" value="SRH LINK-TODA System" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=16;fontStyle=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;verticalAlign=middle;" vertex="1" parent="1">
           <mxGeometry x="${pX}" y="${pY + 32}" width="${pW}" height="${pH - 32}" as="geometry" />
         </mxCell>`);
 
-  // Entity Boxes
-  // 1. Top-Left: PASSENGER / COMMUTER
+  // 4 Entity Boxes
   const tlX = 50, tlY = 60, tlW = 200, tlH = 110;
   cells.push(`        <mxCell id="${id++}" value="PASSENGER /&#xa;COMMUTER" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=13;fontStyle=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=center;" vertex="1" parent="1">
           <mxGeometry x="${tlX}" y="${tlY}" width="${tlW}" height="${tlH}" as="geometry" />
         </mxCell>`);
 
-  // 2. Top-Right: TRICYCLE DRIVER
-  const trX = 1110, trY = 60, trW = 200, trH = 110;
+  const trX = 1150, trY = 60, trW = 200, trH = 110;
   cells.push(`        <mxCell id="${id++}" value="TRICYCLE DRIVER" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=13;fontStyle=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=center;" vertex="1" parent="1">
           <mxGeometry x="${trX}" y="${trY}" width="${trW}" height="${trH}" as="geometry" />
         </mxCell>`);
 
-  // 3. Bottom-Left: SUPERADMINISTRATOR
   const blX = 50, blY = 700, blW = 200, blH = 110;
   cells.push(`        <mxCell id="${id++}" value="SUPERADMINISTRATOR" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=13;fontStyle=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=center;" vertex="1" parent="1">
           <mxGeometry x="${blX}" y="${blY}" width="${blW}" height="${blH}" as="geometry" />
         </mxCell>`);
 
-  // 4. Bottom-Right: TODA ADMINISTRATOR
-  const brX = 1110, brY = 700, brW = 200, brH = 110;
+  const brX = 1150, brY = 700, brW = 200, brH = 110;
   cells.push(`        <mxCell id="${id++}" value="TODA ADMINISTRATOR&#xa;(TODA OFFICER)" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=13;fontStyle=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=center;" vertex="1" parent="1">
           <mxGeometry x="${brX}" y="${brY}" width="${brW}" height="${brH}" as="geometry" />
         </mxCell>`);
 
-  function addOrthogonalEdge(x1, y1, x2, y2, x3, y3, label, labelAlign = 'center') {
-    const edgeId = id++;
-    cells.push(`        <mxCell id="${edgeId}" value="${escapeXml(label)}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.2;fontFamily=Helvetica;fontSize=10.5;fontColor=#000000;labelBackgroundColor=#ffffff;labelBorderColor=none;align=${labelAlign};" edge="1" parent="1">
+  function addOrthogonalEdge(x1, y1, x2, y2, x3, y3, label) {
+    cells.push(`        <mxCell id="${id++}" value="${escapeXml(label)}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.2;fontFamily=Helvetica;fontSize=10.5;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="${x1}" y="${y1}" as="sourcePoint" />
             <mxPoint x="${x3}" y="${y3}" as="targetPoint" />
@@ -87,8 +80,7 @@ function generateContextDiagram() {
         </mxCell>`);
   }
 
-  // ── TOP-LEFT: PASSENGER FLOWS ──
-  // Inputs: Passenger -> Process 0 (Exit right edge of Passenger, turn down into top edge of Process 0)
+  // Passenger Inputs (Passenger -> Top edge of Process 0)
   const passInputs = [
     'Account & Profile Information',
     'Ride Request & Destination Coordinates',
@@ -96,12 +88,12 @@ function generateContextDiagram() {
     'Passenger Ratings & Incident Reports',
   ];
   passInputs.forEach((label, idx) => {
-    const yOut = tlY + 20 + idx * 22; // 80, 102, 124, 146
-    const xTurn = pX + 25 + idx * 24; // 545, 569, 593, 617
-    addOrthogonalEdge(tlX + tlW, yOut, xTurn, yOut, xTurn, pY, label, 'center');
+    const yOut = tlY + 18 + idx * 22;
+    const xTurn = pX + 25 + idx * 26;
+    addOrthogonalEdge(tlX + tlW, yOut, xTurn, yOut, xTurn, pY, label);
   });
 
-  // Outputs: Process 0 -> Passenger (Exit left edge of Process 0, turn up into bottom edge of Passenger)
+  // Passenger Outputs (Process 0 Left -> Bottom edge of Passenger)
   const passOutputs = [
     'Account Access Confirmation',
     'Matched Driver & Vehicle Details',
@@ -110,13 +102,12 @@ function generateContextDiagram() {
     'Incident Status & Resolution Notice',
   ];
   passOutputs.forEach((label, idx) => {
-    const yOut = pY + 40 + idx * 24; // 400, 424, 448, 472, 496
-    const xTurn = tlX + tlW - 20 - idx * 26; // 230, 204, 178, 152, 126
-    addOrthogonalEdge(pX, yOut, xTurn, yOut, xTurn, tlY + tlH, label, 'center');
+    const yOut = pY + 36 + idx * 24;
+    const xTurn = tlX + tlW - 18 - idx * 26;
+    addOrthogonalEdge(pX, yOut, xTurn, yOut, xTurn, tlY + tlH, label);
   });
 
-  // ── TOP-RIGHT: TRICYCLE DRIVER FLOWS ──
-  // Inputs: Driver -> Process 0 (Exit left edge of Driver, turn down into top edge of Process 0)
+  // Driver Inputs (Driver -> Top edge of Process 0)
   const driverInputs = [
     'Account, License & MTOP Application Files',
     '6-Digit Gmail OTP Verification Code',
@@ -126,12 +117,12 @@ function generateContextDiagram() {
     'Trip Completion & Fare Settle Confirmation',
   ];
   driverInputs.forEach((label, idx) => {
-    const yOut = trY + 14 + idx * 16; // 74, 90, 106, 122, 138, 154
-    const xTurn = pX + pW - 25 - idx * 20; // 815, 795, 775, 755, 735, 715
-    addOrthogonalEdge(trX, yOut, xTurn, yOut, xTurn, pY, label, 'center');
+    const yOut = trY + 12 + idx * 16;
+    const xTurn = pX + pW - 25 - idx * 22;
+    addOrthogonalEdge(trX, yOut, xTurn, yOut, xTurn, pY, label);
   });
 
-  // Outputs: Process 0 -> Driver (Exit right edge of Process 0, turn up into bottom edge of Driver)
+  // Driver Outputs (Process 0 Right -> Bottom edge of Driver)
   const driverOutputs = [
     'Account Access Confirmation',
     'MTOP Compliance & Verification Status',
@@ -141,13 +132,12 @@ function generateContextDiagram() {
     'Daily Remittance Ledger & Earnings Ledger',
   ];
   driverOutputs.forEach((label, idx) => {
-    const yOut = pY + 32 + idx * 22; // 392, 414, 436, 458, 480, 502
-    const xTurn = trX + 20 + idx * 26; // 1130, 1156, 1182, 1208, 1234, 1260
-    addOrthogonalEdge(pX + pW, yOut, xTurn, yOut, xTurn, trY + trH, label, 'center');
+    const yOut = pY + 30 + idx * 22;
+    const xTurn = trX + 18 + idx * 26;
+    addOrthogonalEdge(pX + pW, yOut, xTurn, yOut, xTurn, trY + trH, label);
   });
 
-  // ── BOTTOM-LEFT: SUPERADMINISTRATOR FLOWS ──
-  // Inputs: SuperAdmin -> Process 0 (Exit right edge of SuperAdmin, turn up into bottom edge of Process 0)
+  // SuperAdmin Inputs (SuperAdmin -> Bottom edge of Process 0)
   const superInputs = [
     'System Configuration & Security Parameters',
     'Tariff & Penalty Ordinance Rules',
@@ -155,12 +145,12 @@ function generateContextDiagram() {
     'Association Master Management Directives',
   ];
   superInputs.forEach((label, idx) => {
-    const yOut = blY + 20 + idx * 22; // 720, 742, 764, 786
-    const xTurn = pX + 25 + idx * 24; // 545, 569, 593, 617
-    addOrthogonalEdge(blX + blW, yOut, xTurn, yOut, xTurn, pY + pH, label, 'center');
+    const yOut = blY + 18 + idx * 22;
+    const xTurn = pX + 25 + idx * 26;
+    addOrthogonalEdge(blX + blW, yOut, xTurn, yOut, xTurn, pY + pH, label);
   });
 
-  // Outputs: Process 0 -> SuperAdmin (Exit left edge of Process 0, turn down into top edge of SuperAdmin)
+  // SuperAdmin Outputs (Process 0 Left -> Top edge of SuperAdmin)
   const superOutputs = [
     'SuperAdmin Access Confirmation',
     'System Pulse & Financial Analytics',
@@ -168,13 +158,12 @@ function generateContextDiagram() {
     'Database Health & Infrastructure Metrics',
   ];
   superOutputs.forEach((label, idx) => {
-    const yOut = pY + pH + 30 + idx * 24; // 550, 574, 598, 622
-    const xTurn = blX + blW - 20 - idx * 26; // 230, 204, 178, 152
-    addOrthogonalEdge(pX, yOut, xTurn, yOut, xTurn, blY, label, 'center');
+    const yOut = pY + pH + 28 + idx * 24;
+    const xTurn = blX + blW - 18 - idx * 26;
+    addOrthogonalEdge(pX, yOut, xTurn, yOut, xTurn, blY, label);
   });
 
-  // ── BOTTOM-RIGHT: TODA ADMINISTRATOR FLOWS ──
-  // Inputs: Toda Admin -> Process 0 (Exit left edge of Toda Admin, turn up into bottom edge of Process 0)
+  // Toda Admin Inputs (Toda Admin -> Bottom edge of Process 0)
   const adminInputs = [
     'Driver MTOP Document Verification Actions',
     'Terminal Dispatch & Queue Override Directives',
@@ -182,12 +171,12 @@ function generateContextDiagram() {
     'Official TODA Association Announcements',
   ];
   adminInputs.forEach((label, idx) => {
-    const yOut = brY + 20 + idx * 22; // 720, 742, 764, 786
-    const xTurn = pX + pW - 25 - idx * 24; // 815, 791, 767, 743
-    addOrthogonalEdge(brX, yOut, xTurn, yOut, xTurn, pY + pH, label, 'center');
+    const yOut = brY + 18 + idx * 22;
+    const xTurn = pX + pW - 25 - idx * 26;
+    addOrthogonalEdge(brX, yOut, xTurn, yOut, xTurn, pY + pH, label);
   });
 
-  // Outputs: Process 0 -> Toda Admin (Exit right edge of Process 0, turn down into top edge of Toda Admin)
+  // Toda Admin Outputs (Process 0 Right -> Top edge of Toda Admin)
   const adminOutputs = [
     'Admin Access Confirmation',
     'Pending Driver Applications & Uploaded Files',
@@ -196,105 +185,179 @@ function generateContextDiagram() {
     'Daily Remittance Ledger & Association Fee Reports',
   ];
   adminOutputs.forEach((label, idx) => {
-    const yOut = pY + pH + 20 + idx * 22; // 540, 562, 584, 606, 628
-    const xTurn = brX + 20 + idx * 26; // 1130, 1156, 1182, 1208, 1234
-    addOrthogonalEdge(pX + pW, yOut, xTurn, yOut, xTurn, brY, label, 'center');
+    const yOut = pY + pH + 20 + idx * 22;
+    const xTurn = brX + 18 + idx * 26;
+    addOrthogonalEdge(pX + pW, yOut, xTurn, yOut, xTurn, brY, label);
   });
 
-  return wrapDrawio('Context_Diagram_SRH_LINK_TODA', 1380, 880, cells.join('\n'));
+  return wrapDrawio('Context_Diagram_SRH_LINK_TODA', 1400, 880, cells.join('\n'));
 }
 
 // ══════════════════════════════════════════════════════════════════════════
-// 2. DATA FLOW DIAGRAM LEVEL 1 (Clean Gane-Sarson with Non-Crossing Routes)
+// 2. DFD LEVEL 1 (Figure 28 Breaking Silence Standard: 3 Clear Columns)
 // ══════════════════════════════════════════════════════════════════════════
 function generateDfdLevel1() {
   let cells = [];
   let id = 2;
 
-  // External Entities (Top and Bottom)
-  // Left: Passenger
-  cells.push(`        <mxCell id="${id++}" value="PASSENGER /&#xa;COMMUTER" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fontStyle=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;" vertex="1" parent="1">
-          <mxGeometry x="40" y="240" width="160" height="90" as="geometry" />
-        </mxCell>`);
-  // Top: Tricycle Driver
-  cells.push(`        <mxCell id="${id++}" value="TRICYCLE DRIVER" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fontStyle=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;" vertex="1" parent="1">
-          <mxGeometry x="40" y="520" width="160" height="90" as="geometry" />
-        </mxCell>`);
-  // Right Top: TODA Administrator
-  cells.push(`        <mxCell id="${id++}" value="TODA ADMINISTRATOR&#xa;(TODA OFFICER)" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fontStyle=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;" vertex="1" parent="1">
-          <mxGeometry x="1160" y="240" width="170" height="90" as="geometry" />
-        </mxCell>`);
-  // Right Bottom: Superadministrator
-  cells.push(`        <mxCell id="${id++}" value="SUPERADMINISTRATOR" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fontStyle=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;" vertex="1" parent="1">
-          <mxGeometry x="1160" y="520" width="170" height="90" as="geometry" />
-        </mxCell>`);
+  // 3 COLUMNS:
+  // Col 1 (Left, x = 60): 4 Entities stacked vertically
+  // Col 2 (Center, x = 740): 6 Processes stacked vertically
+  // Col 3 (Right, x = 1460): 6 Data Stores stacked vertically
 
-  // 6 Processes (Gane-Sarson Rounded Double Rectangles)
+  // 1. Column 1: External Entities
+  const entities = [
+    { name: 'PASSENGER /&#xa;COMMUTER', y: 80, h: 120 },
+    { name: 'TRICYCLE DRIVER', y: 360, h: 120 },
+    { name: 'TODA ADMINISTRATOR&#xa;(TODA OFFICER)', y: 660, h: 120 },
+    { name: 'SUPERADMINISTRATOR', y: 960, h: 120 },
+  ];
+
+  entities.forEach((e) => {
+    cells.push(`        <mxCell id="${id++}" value="${e.name}" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fontStyle=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=center;" vertex="1" parent="1">
+          <mxGeometry x="60" y="${e.y}" width="180" height="${e.h}" as="geometry" />
+        </mxCell>`);
+  });
+
+  // 2. Column 2: Processes (1.0 to 6.0)
   const procs = [
-    { num: '1.0', name: 'User Authentication &&#xa;Profile Management', x: 280, y: 80 },
-    { num: '2.0', name: 'Driver Credential Verification&#xa;& Compliance Moderation', x: 740, y: 80 },
-    { num: '3.0', name: 'Terminal Geofencing &&#xa;FIFO Queue Dispatch', x: 280, y: 380 },
-    { num: '4.0', name: 'Ride Booking, Fare Metering&#xa;& Live GPS Telemetry', x: 740, y: 380 },
-    { num: '5.0', name: 'Incident Reporting &&#xa;Dispute Resolution', x: 280, y: 680 },
-    { num: '6.0', name: 'TODA Financial Remittance&#xa;& Audit Analytics', x: 740, y: 680 },
+    { num: '1.0', name: 'Manage Authentication&#xa;& User Profiles', y: 80 },
+    { num: '2.0', name: 'Verify Driver Credentials&#xa;& Compliance Status', y: 260 },
+    { num: '3.0', name: 'Manage Terminal Geofence&#xa;& FIFO Queue', y: 440 },
+    { num: '4.0', name: 'Dispatch Ride, Meter Fare&#xa;& Track Route Telemetry', y: 620 },
+    { num: '5.0', name: 'Manage Incident Reports&#xa;& Dispute Moderation', y: 800 },
+    { num: '6.0', name: 'Manage TODA Remittance,&#xa;Ledger & System Audits', y: 980 },
   ];
 
   procs.forEach((p) => {
-    // Header
-    cells.push(`        <mxCell id="${id++}" value="${p.num}" style="rounded=1;arcSize=20;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;fontStyle=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;" vertex="1" parent="1">
-            <mxGeometry x="${p.x}" y="${p.y}" width="220" height="24" as="geometry" />
-          </mxCell>`);
-    // Body
-    cells.push(`        <mxCell id="${id++}" value="${p.name}" style="rounded=1;arcSize=20;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11.5;fontStyle=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;verticalAlign=middle;" vertex="1" parent="1">
-            <mxGeometry x="${p.x}" y="${p.y + 24}" width="220" height="56" as="geometry" />
-          </mxCell>`);
+    // Header Compartment
+    cells.push(`        <mxCell id="${id++}" value="${p.num}" style="rounded=1;arcSize=20;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;fontStyle=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.3;" vertex="1" parent="1">
+          <mxGeometry x="740" y="${p.y}" width="260" height="24" as="geometry" />
+        </mxCell>`);
+    // Body Compartment
+    cells.push(`        <mxCell id="${id++}" value="${p.name}" style="rounded=1;arcSize=20;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11.5;fontStyle=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.3;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="740" y="${p.y + 24}" width="260" height="56" as="geometry" />
+        </mxCell>`);
   });
 
-  // Data Stores (D1 to D6) in center column
+  // 3. Column 3: Data Stores (D1 to D6) - Open-ended Gane-Sarson standard
   const stores = [
-    { idTag: 'D1', name: 'Users & Auth Store', x: 530, y: 80 },
-    { idTag: 'D2', name: 'Driver Documents & Compliance Store', x: 530, y: 180 },
-    { idTag: 'D3', name: 'Terminal Queue & FIFO State Store', x: 530, y: 380 },
-    { idTag: 'D4', name: 'Rides, Telemetry & Metering Store', x: 530, y: 480 },
-    { idTag: 'D5', name: 'Incident Reports & Sanctions Store', x: 530, y: 680 },
-    { idTag: 'D6', name: 'Remittance Ledger & Audit Logs Store', x: 530, y: 780 },
+    { idTag: 'D1', name: 'User & Profile Records', y: 80 },
+    { idTag: 'D2', name: 'Driver & Compliance Records', y: 260 },
+    { idTag: 'D3', name: 'Terminal Queue & FIFO Records', y: 440 },
+    { idTag: 'D4', name: 'Ride, Route & Telemetry Records', y: 620 },
+    { idTag: 'D5', name: 'Incident & Dispute Records', y: 800 },
+    { idTag: 'D6', name: 'Remittance & Audit Trail Records', y: 980 },
   ];
 
   stores.forEach((s) => {
-    cells.push(`        <mxCell id="${id++}" value="${s.idTag} | ${s.name}" style="shape=partialRectangle;top=0;left=0;right=1;bottom=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10.5;fontStyle=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=center;" vertex="1" parent="1">
-            <mxGeometry x="${s.x}" y="${s.y}" width="180" height="40" as="geometry" />
-          </mxCell>`);
+    // Left ID box
+    cells.push(`        <mxCell id="${id++}" value="${s.idTag}" style="shape=partialRectangle;top=0;left=0;right=1;bottom=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;fontStyle=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1460" y="${s.y + 15}" width="40" height="50" as="geometry" />
+        </mxCell>`);
+    // Right Name box
+    cells.push(`        <mxCell id="${id++}" value="${s.name}" style="shape=partialRectangle;top=0;left=0;right=1;bottom=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;fontStyle=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=left;spacingLeft=8;" vertex="1" parent="1">
+          <mxGeometry x="1500" y="${s.y + 15}" width="200" height="50" as="geometry" />
+        </mxCell>`);
   });
 
-  function addDfdFlow(x1, y1, x2, y2, label) {
-    cells.push(`        <mxCell id="${id++}" value="${escapeXml(label)}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.2;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1">
+  function addLeftBusFlow(x1, y1, xTurn, yTarget, label) {
+    cells.push(`        <mxCell id="${id++}" value="${escapeXml(label)}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.2;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="${x1}" y="${y1}" as="sourcePoint" />
-            <mxPoint x="${x2}" y="${y2}" as="targetPoint" />
+            <mxPoint x="740" y="${yTarget}" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="${xTurn}" y="${y1}" />
+              <mxPoint x="${xTurn}" y="${yTarget}" />
+            </Array>
           </mxGeometry>
         </mxCell>`);
   }
 
-  // Key Orthogonal Non-Colliding Flows
-  addDfdFlow(200, 260, 280, 120, 'Credentials & Reg Info');
-  addDfdFlow(280, 140, 200, 280, 'Auth Token & Profile');
-  addDfdFlow(500, 120, 530, 100, 'Store User Record');
+  function addLeftBusReturnFlow(yProc, xTurn, yEntity, label) {
+    cells.push(`        <mxCell id="${id++}" value="${escapeXml(label)}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.2;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="740" y="${yProc}" as="sourcePoint" />
+            <mxPoint x="240" y="${yEntity}" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="${xTurn}" y="${yProc}" />
+              <mxPoint x="${xTurn}" y="${yEntity}" />
+            </Array>
+          </mxGeometry>
+        </mxCell>`);
+  }
 
-  addDfdFlow(200, 540, 280, 420, 'GPS Coords & Check-in');
-  addDfdFlow(280, 440, 200, 560, 'Queue Number & Rank');
-  addDfdFlow(500, 420, 530, 400, 'Update Queue Order');
+  function addRightStoreFlow(yProc, xTurn, yStore, label, isRead = false) {
+    const startPoint = isRead ? `x="1460" y="${yStore}"` : `x="1000" y="${yProc}"`;
+    const targetPoint = isRead ? `x="1000" y="${yProc}"` : `x="1460" y="${yStore}"`;
+    const startX = isRead ? 1460 : 1000;
+    const startY = isRead ? yStore : yProc;
+    const endY = isRead ? yProc : yStore;
 
-  addDfdFlow(200, 300, 740, 420, 'Ride Request & Lat/Lng');
-  addDfdFlow(740, 440, 200, 580, 'Dispatch Alert to Front Driver');
-  addDfdFlow(740, 460, 200, 320, 'Trip Status & Live Driver Map');
+    cells.push(`        <mxCell id="${id++}" value="${escapeXml(label)}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.2;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint ${startPoint} as="sourcePoint" />
+            <mxPoint ${targetPoint} as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="${xTurn}" y="${startY}" />
+              <mxPoint x="${xTurn}" y="${endY}" />
+            </Array>
+          </mxGeometry>
+        </mxCell>`);
+  }
 
-  addDfdFlow(1160, 260, 960, 120, 'Review MTOP Documents');
-  addDfdFlow(960, 140, 1160, 280, 'Driver Compliance Status');
+  // ── LEFT BUS CORRIDOR FLOWS (Entities <-> Processes) ──
+  // Passenger Flows
+  addLeftBusFlow(240, 100, 300, 100, 'Registration & Login Credentials');
+  addLeftBusReturnFlow(120, 320, 120, 'Account Access Confirmation');
+  addLeftBusFlow(240, 140, 340, 640, 'Ride Request & Lat/Lng Coordinates');
+  addLeftBusReturnFlow(660, 360, 160, 'Live Driver Map & Fare Receipt');
+  addLeftBusFlow(240, 180, 380, 820, 'Incident Report & Rating Feedback');
 
-  addDfdFlow(1160, 300, 500, 720, 'Resolve Incident & Issue Order');
-  addDfdFlow(1160, 560, 960, 720, 'Audit Queries & Ledger Review');
+  // Driver Flows
+  addLeftBusFlow(240, 380, 400, 280, 'License & MTOP Application Files');
+  addLeftBusFlow(240, 400, 420, 140, '6-Digit Gmail OTP Code');
+  addLeftBusFlow(240, 420, 440, 460, 'GPS Geofence Ping & Queue Request');
+  addLeftBusReturnFlow(480, 460, 440, 'Queue Number & Rank Notice');
+  addLeftBusFlow(240, 460, 480, 680, 'Dispatch Response & Trip Settle');
 
-  return wrapDrawio('DFD_Level_1_SRH_LINK_TODA', 1400, 880, cells.join('\n'));
+  // TODA Admin Flows
+  addLeftBusFlow(240, 680, 500, 300, 'Driver Verification Approval/Rejection');
+  addLeftBusReturnFlow(320, 520, 700, 'Pending Applicants & File Details');
+  addLeftBusFlow(240, 720, 540, 480, 'Terminal Dispatch Override Directives');
+  addLeftBusFlow(240, 740, 560, 840, 'Dispute Resolution & Sanction Orders');
+
+  // SuperAdmin Flows
+  addLeftBusFlow(240, 980, 580, 160, 'User Role & Access Configuration');
+  addLeftBusFlow(240, 1020, 600, 1020, 'Association Remittance Audit Query');
+  addLeftBusReturnFlow(1040, 620, 1040, 'Cross-System Analytics & Audit Logs');
+
+  // ── RIGHT BUS CORRIDOR FLOWS (Processes <-> Data Stores) ──
+  // 1.0 <-> D1
+  addRightStoreFlow(100, 1100, 95, 'Save User Credentials & Role');
+  addRightStoreFlow(130, 1120, 125, 'Fetch Account Credentials', true);
+
+  // 2.0 <-> D2
+  addRightStoreFlow(280, 1140, 275, 'Store License & MTOP Metadata');
+  addRightStoreFlow(310, 1160, 305, 'Query Compliance Status', true);
+
+  // 3.0 <-> D3
+  addRightStoreFlow(460, 1180, 455, 'Update FIFO Queue State');
+  addRightStoreFlow(490, 1200, 485, 'Read Terminal Active Drivers', true);
+
+  // 4.0 <-> D4
+  addRightStoreFlow(640, 1220, 635, 'Record Ride Details & Fare');
+  addRightStoreFlow(670, 1240, 665, 'Fetch Live GPS Telemetry', true);
+
+  // 5.0 <-> D5
+  addRightStoreFlow(820, 1260, 815, 'Log Incident & Admin Sanction');
+  addRightStoreFlow(850, 1280, 845, 'Query Case History', true);
+
+  // 6.0 <-> D6
+  addRightStoreFlow(1000, 1300, 995, 'Store Remittance & Audit Trail');
+  addRightStoreFlow(1030, 1320, 1025, 'Generate Daily Association Ledger', true);
+
+  return wrapDrawio('DFD_Level_1_SRH_LINK_TODA', 1780, 1180, cells.join('\n'));
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -361,13 +424,13 @@ function generateUseCaseDiagram() {
   });
 
   function addActorLink(actorId, ucId) {
-    cells.push(`        <mxCell id="${id++}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;strokeColor=#000000;strokeWidth=1.2;" edge="1" parent="1" source="${actorId}" target="${ucId}">
+    cells.push(`        <mxCell id="${id++}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;strokeColor=#000000;strokeWidth=1.2;" edge="1" parent="1" source="${actorId}" target="${ucId}">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>`);
   }
 
   function addIncludeExtend(sourceId, targetId, stereotype) {
-    cells.push(`        <mxCell id="${id++}" value="&lt;&lt;${stereotype}&gt;&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;dashPattern=4 4;jumpStyle=arc;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;endSize=8;strokeColor=#000000;strokeWidth=1.2;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="${sourceId}" target="${targetId}">
+    cells.push(`        <mxCell id="${id++}" value="&lt;&lt;${stereotype}&gt;&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;dashPattern=4 4;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;endSize=8;strokeColor=#000000;strokeWidth=1.2;fontFamily=Helvetica;fontSize=10;fontColor=#000000;labelBackgroundColor=#ffffff;align=center;" edge="1" parent="1" source="${sourceId}" target="${targetId}">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>`);
   }
@@ -492,18 +555,18 @@ function generateErdDiagram() {
     { name: 'created_at', type: 'TIMESTAMP' },
   ], 890, 80, 260);
 
-  function addErdRelation(sourceId, targetId, startLabel, endLabel) {
-    cells.push(`        <mxCell id="${id++}" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;startArrow=ERone;strokeColor=#000000;strokeWidth=1.3;" edge="1" parent="1" source="${sourceId}" target="${targetId}">
+  function addErdRelation(sourceId, targetId) {
+    cells.push(`        <mxCell id="${id++}" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=ERmany;startArrow=ERone;strokeColor=#000000;strokeWidth=1.3;" edge="1" parent="1" source="${sourceId}" target="${targetId}">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>`);
   }
 
-  addErdRelation(tUsers, tDrivers, '1', '0..1');
-  addErdRelation(tUsers, tRides, '1', '0..N');
-  addErdRelation(tDrivers, tRides, '1', '0..N');
-  addErdRelation(tRides, tMessages, '1', '0..N');
-  addErdRelation(tRides, tReports, '1', '0..1');
-  addErdRelation(tUsers, tLogs, '1', '0..N');
+  addErdRelation(tUsers, tDrivers);
+  addErdRelation(tUsers, tRides);
+  addErdRelation(tDrivers, tRides);
+  addErdRelation(tRides, tMessages);
+  addErdRelation(tRides, tReports);
+  addErdRelation(tUsers, tLogs);
 
   return wrapDrawio('ERD_SRH_LINK_TODA', 1240, 750, cells.join('\n'));
 }
@@ -594,7 +657,7 @@ function generateClassDiagram() {
   ], 60, 420, 220);
 
   function addUmlAssociation(sourceId, targetId, label) {
-    cells.push(`        <mxCell id="${id++}" value="${label}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;strokeColor=#000000;strokeWidth=1.3;fontFamily=Helvetica;fontSize=10;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="${sourceId}" target="${targetId}">
+    cells.push(`        <mxCell id="${id++}" value="${label}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;strokeColor=#000000;strokeWidth=1.3;fontFamily=Helvetica;fontSize=10;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="${sourceId}" target="${targetId}">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>`);
   }
@@ -615,7 +678,6 @@ function generateConceptualFramework() {
   let cells = [];
   let id = 2;
 
-  // 3 Boxes: INPUT - PROCESS - OUTPUT
   const bW = 340, bH = 520;
   const y = 80;
 
@@ -681,16 +743,16 @@ A Web and Mobile-Based Tricycle Dispatching and Terminal Management System for S
   const outBoxId = id - 1;
 
   // Forward Arrows (Input -> Process -> Output)
-  cells.push(`        <mxCell id="${id++}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=2;" edge="1" parent="1" source="${inBoxId}" target="${procBoxId}">
+  cells.push(`        <mxCell id="${id++}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=2;" edge="1" parent="1" source="${inBoxId}" target="${procBoxId}">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>`);
 
-  cells.push(`        <mxCell id="${id++}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=2;" edge="1" parent="1" source="${procBoxId}" target="${outBoxId}">
+  cells.push(`        <mxCell id="${id++}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=2;" edge="1" parent="1" source="${procBoxId}" target="${outBoxId}">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>`);
 
-  // Feedback Loop (Output -> Input/Process at bottom)
-  cells.push(`        <mxCell id="${id++}" value="FEEDBACK LOOP&lt;br/&gt;Continuous User Evaluation, TODA Officer Feedback &amp; System Optimization" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.8;fontFamily=Helvetica;fontSize=11;fontStyle=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="${outBoxId}" target="${inBoxId}">
+  // Feedback Loop
+  cells.push(`        <mxCell id="${id++}" value="FEEDBACK LOOP&lt;br/&gt;Continuous User Evaluation, TODA Officer Feedback &amp; System Optimization" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.8;fontFamily=Helvetica;fontSize=11;fontStyle=1;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="${outBoxId}" target="${inBoxId}">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="1030" y="660" />
@@ -703,7 +765,7 @@ A Web and Mobile-Based Tricycle Dispatching and Terminal Management System for S
 }
 
 // ══════════════════════════════════════════════════════════════════════════
-// WRITE ALL 6 FILES
+// EXECUTE
 // ══════════════════════════════════════════════════════════════════════════
 fs.writeFileSync(path.join(diagramsDir, 'srh_link_toda_context_diagram.drawio'), generateContextDiagram(), 'utf8');
 fs.writeFileSync(path.join(diagramsDir, 'srh_link_toda_data_flow_diagram_level_1.drawio'), generateDfdLevel1(), 'utf8');
@@ -712,4 +774,4 @@ fs.writeFileSync(path.join(diagramsDir, 'srh_link_toda_erd.drawio'), generateErd
 fs.writeFileSync(path.join(diagramsDir, 'srh_link_toda_class_diagram.drawio'), generateClassDiagram(), 'utf8');
 fs.writeFileSync(path.join(diagramsDir, 'srh_link_toda_conceptual_framework.drawio'), generateConceptualFramework(), 'utf8');
 
-console.log('✅ Successfully generated all 6 Draw.io diagrams in diagrams/ folder matching Breaking Silence standard!');
+console.log('✅ Generated all 6 drawio diagrams matching Breaking Silence 3-column architecture!');
