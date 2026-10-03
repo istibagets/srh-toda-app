@@ -1,0 +1,58 @@
+### Phase 1: Global Manuscript Rules & Grammar Conversion (SRH LINK-TODA)
+1. Verb Tense Alignment:
+   * Past Tense: Convert Statement of the Problem (when referencing research objectives), Literature Review (when citing past empirical studies), Scope & Delimitations, Methodology (Research Design, Locale, Respondents, Instruments, Data Gathering Procedures, Data Analysis Techniques, Ethical Considerations), Chapter 3 Results narratives, and Chapter 4 Summary to past tense.
+   * Future Tense: Maintain future tense ONLY in Significance of the Study ("This study will benefit the TODA Administration...", "The findings will provide insights...").
+   * Present Tense: Keep Definition of Terms, accepted universal algorithmic facts, and standard software engineering definitions in present tense.
+   * Recommendations: Use modal verbs ("may", "could", "should", "is recommended") rather than definitive assertions ("will", "shall").
+2. APA 7th Edition Table Formatting & Narrative ("Report, Don't Repeat"):
+   * Format all rubrics and evaluation tables in APA style (horizontal border top/bottom and below column header only; no vertical gridlines; left-aligned indicator text; centered numbers and means).
+   * In narrative text, NEVER repeat every raw score, frequency, or percentage line-by-line. Report the Grand Weighted Mean, highlight the highest and lowest mean indicator scores, and interpret the qualitative remarks using descriptive terms (e.g., "the majority of driver respondents strongly agreed...").
+---
+### Phase 2: Chapter 1 (Problem & Background) Corrections
+1. Title & Problem Rationale:
+   * Title Alignment: Maintain the formal title: "A Progressive Web Application–Based Queue Management System with Geolocation, Geofencing, and Priority-Based Queue Algorithm."
+   * Local Problem Grounding: Emphasize the localized Philippine transport realities: the Santa Rosa Homes single-keypad-phone terminal bottleneck causing 15–20 missed dispatches daily, commuter waiting anxiety in farther subdivision blocks, and administrative opacity in manual MTOP/license tracking and daily contribution fees.
+   * Core Operational Definitions on First Mention: Provide clear parenthetical explanations for:
+     - Active-Session Geofencing: (a 35-meter virtual boundary around the terminal coordinate that polls location only during active on-duty sessions and automatically pauses coordinate polling during in-transit passenger delivery to conserve battery).
+     - Priority-Based Queue Recovery Algorithm: (a dispatch sequence that retains a First-In, First-Out [FIFO] foundation but grants immediate front-of-queue restoration to drivers affected by passenger cancellations or dispatch timeouts).
+2. Statement of the Problem (SOP) & Evaluation Standards:
+   * SOP 1 Rephrasing: Frame SOP 1 as a process documentation objective: "What system features and development artifacts were produced during the iterative stages of the Agile Software Development Life Cycle (SDLC)..."
+   * Benchmark Thresholds: Explicitly establish the minimum acceptable weighted mean benchmark of ≥ 3.41 (Suitable / Adequate / Agree) for all ISO/IEC 25010:2023 and WCAG evaluation criteria, alongside the objective technical benchmark of ≤ 200ms latency for WebSocket broadcasts.
+   * WCAG 2.1 Justification: Justify evaluating Web Content Accessibility Guidelines (WCAG) to ensure readability, color contrast, and touch-target usability for tricycle drivers with varying digital literacy and low-end mobile devices.
+3. Scope, Delimitations, & Significance:
+   * Strict Demarcation: Clearly divide what the system includes (Scope) from what it excludes (Delimitations).
+   * Architectural & Financial Delimitation Justification: Explicitly state that SRH LINK-TODA is strictly delimited from integrating live online payment gateways (such as GCash or Maya APIs) to focus on queue dispatching and cash-ledger transparency with downloadable PDF receipts.
+   * Hardware & Navigation Delimitation: Justify the exclusion of turn-by-turn GPS navigation due to the compact subdivision road network and device battery constraints.
+   * Terms Audit: Ensure all operational terms (Active-Session Geofencing, Event-Driven Architecture, Information Asymmetry, Priority-Based Queue Algorithm, PWA, Real-Time Broadcasting, Waiting Anxiety, MTOP) are listed alphabetically with conceptual and operational definitions.
+---
+### Phase 3: Chapter 2 (Methodology & RRL Alignment) Corrections
+1. Audit Literature Review (The Literature "Tie-Up"):
+   * Literature Match Rule: Ensure every study cited in Chapter 3/4 discussions (e.g., Gatarin 2023, Tuliao & Tandayu 2025, Zhang et al. 2025, Shevchenko & Reips 2024, Farahi et al. 2023, Malami et al. 2023) is reviewed in Chapter 1 RRL.
+   * Synthesis Structure: Structure the Synthesis into 3 clear paragraphs: (1) Converging themes across transport logistics and real-time PWA frameworks, (2) Literature gaps regarding native mobile apps vs. lightweight PWAs in localized transport cooperatives, and (3) Cumulative rationale for SRH LINK-TODA.
+2. Methodological Citations & Respondent Justifications:
+   * Developmental Research: Cite Richey & Klein (2014) to legitimize pairing developmental software engineering with quantitative descriptive evaluation.
+   * Expert & User Sampling: Justify the purposive sample size (N = 35: 5 IT Experts, 3 TODA Officials, 12 TODA Drivers, 15 Residents) using Creswell & Creswell (2018) and Nielsen (1994) for expert usability testing.
+   * Reliability Benchmark: Maintain Cronbach’s alpha α ≥ 0.70 benchmark for survey instrument internal consistency.
+3. Statistical & Process Enhancements:
+   * Comparative Testing (Perception Gap): Introduce the Mann-Whitney U Test (or Independent Samples t-test) to determine if a statistically significant difference exists between IT Experts and End-Users across the four shared ISO 25010 characteristics (Functional Suitability, Performance Efficiency, Interaction Capability, Reliability).
+   * Agile Sprint Log Template: Standardize Objective 1 documentation using a formal Sprint Log table (Sprint Number, Objective/User Story, Backlog Items, Deliverables/Artifacts, Defects Identified, Resolutions, and Retrospective Notes).
+---
+### Phase 4: Chapter 3 (Results & Discussion) Execution (For Final Defense)
+1. Objective 1 Execution (Design, Modeling, & Architectural Artifacts):
+   * Wireframes vs. Appendices User Manual: Main Chapter 3 text should feature only 1–2 high-level architectural UI wireframes explaining UX decisions (color contrast for sunlight readability, single-tap button sizing, bottom sheet interactions). Move full step-by-step form-by-form user guides to the Appendices as a User Manual.
+   * System Diagrams: Ensure Use Case diagrams place primary human actors on the left and external systems/APIs on the right. Align Level 1 and Level 2 DFD numbering with Use Case scenarios. Include multiplicity notation (1..*, 0..1) on the Class Diagram.
+   * Database Normalization: Document normalization steps from UNF → 1NF → 2NF → 3NF for core entities (users, driver_profiles, terminal_queues, dispatches, fare_matrices, contribution_ledgers).
+2. Evaluation Results & Discussion Structure (SOP 2, 3, 4, 5):
+   * Encode all Likert scores into APA tables displaying Mean, Standard Deviation (SD), and Verbal Interpretation.
+   * Apply the 8-Step Discussion Funnel (CCCE Paradigm) for every evaluated characteristic:
+     Claim (State finding) → Cite (Connect to Chapter 1/2 literature) → Compare (Agree/Disagree/Extend) → Explain (Technical reason in Laravel/Ionic/Reverb) → Limitation → Implication → Future Recommendation → Strong Takeaway.
+---
+### Phase 5: Chapter 4 (Summary, Conclusions, Recommendations) & Appendices
+1. Chapter 4 Alignment:
+   * Summary of Findings: Exactly 1 summary paragraph per SOP/Objective (1-to-1 match).
+   * Conclusions: Exactly 1 concise conclusion statement per SOP directly answering the research questions.
+   * Recommendations: Practical recommendations linked directly to identified delimitations (e.g., automated SMS backup fallbacks, solar charging at the physical TODA shed, offline data sync modules).
+2. Defense Deliverables:
+   * Ensure landscape layout for all DFD Level 2 diagrams and Class Diagrams.
+   * Compile the complete User Manual in Appendix F/G.
+   * Prepare a 10-Minute System Walkthrough Script and 15–20 minute video demonstration for the final oral defense.

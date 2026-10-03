@@ -37,4 +37,5 @@ Thumbs.db
 ~$*
 *.tmp
 paper/_temp*/
+paper/scratch*/
 paper/*.txt
