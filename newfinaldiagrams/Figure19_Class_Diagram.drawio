@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T07:28:29.397Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 19 - System Class Diagram">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="750" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="cls_User" value="&lt;b&gt;User&lt;/b&gt;&lt;hr&gt;+ id: int&lt;br&gt;+ name: string&lt;br&gt;+ email: string&lt;br&gt;+ contact_number: string&lt;br&gt;+ role: string&lt;br&gt;+ is_active: bool&lt;hr&gt;+ isVerified(): bool&lt;br&gt;+ getAvatarUrl(): string&lt;br&gt;+ getAverageRating(): float" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="60" y="80" width="240" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_Driver" value="&lt;b&gt;Driver&lt;/b&gt;&lt;hr&gt;+ id: int&lt;br&gt;+ user_id: int&lt;br&gt;+ mtop_number: string&lt;br&gt;+ plate_number: string&lt;br&gt;+ compliance_status: string&lt;br&gt;+ is_online: bool&lt;br&gt;+ queue_position: int&lt;hr&gt;+ rides(): HasMany&lt;br&gt;+ getAverageRating(): float&lt;br&gt;+ isCompliant(): bool" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="360" y="80" width="260" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_QueueService" value="&lt;b&gt;QueueService&lt;/b&gt;&lt;hr&gt;- lastNormalizedAt: Carbon&lt;br&gt;- broadcastChannel: string&lt;hr&gt;+ removeAndShift(driver: Driver): void&lt;br&gt;+ insertAtFront(driver: Driver): void&lt;br&gt;+ normalizeQueue(): void&lt;br&gt;+ reorderQueue(orderedIds: array): void&lt;br&gt;- notifyQueueChanged(): void" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="680" y="80" width="290" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_Ride" value="&lt;b&gt;Ride&lt;/b&gt;&lt;hr&gt;+ id: int&lt;br&gt;+ passenger_id: int&lt;br&gt;+ driver_id: int&lt;br&gt;+ fare: decimal&lt;br&gt;+ proposed_fare: decimal&lt;br&gt;+ distance_km: decimal&lt;br&gt;+ status: string&lt;hr&gt;+ passenger(): BelongsTo&lt;br&gt;+ driver(): BelongsTo&lt;br&gt;+ chatMessages(): HasMany&lt;br&gt;+ reports(): HasMany" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="360" y="330" width="260" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_ChatMessage" value="&lt;b&gt;ChatMessage&lt;/b&gt;&lt;hr&gt;+ id: int&lt;br&gt;+ ride_id: int&lt;br&gt;+ sender_id: int&lt;br&gt;+ message: string&lt;br&gt;+ is_read: bool&lt;hr&gt;+ ride(): BelongsTo&lt;br&gt;+ sender(): BelongsTo" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="60" y="330" width="240" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_Report" value="&lt;b&gt;Report&lt;/b&gt;&lt;hr&gt;+ id: int&lt;br&gt;+ reporter_id: int&lt;br&gt;+ driver_id: int&lt;br&gt;+ ride_id: int&lt;br&gt;+ type: string&lt;br&gt;+ status: string&lt;hr&gt;+ reporter(): BelongsTo&lt;br&gt;+ driver(): BelongsTo&lt;br&gt;+ ride(): BelongsTo" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="680" y="330" width="290" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_UserActivityLog" value="&lt;b&gt;UserActivityLog&lt;/b&gt;&lt;hr&gt;+ id: int&lt;br&gt;+ user_id: int&lt;br&gt;+ action: string&lt;br&gt;+ ip_address: string&lt;br&gt;+ created_at: datetime&lt;hr&gt;+ user(): BelongsTo" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="60" y="530" width="240" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_OtpService" value="&lt;b&gt;OtpService&lt;/b&gt;&lt;hr&gt;- cacheTtl: int = 300&lt;hr&gt;+ sendOtp(user: User): bool&lt;br&gt;+ verifyOtp(email: string, otp: string): bool" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="680" y="530" width="290" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="e_u_d" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontFamily=Times New Roman,Arial;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="cls_User" target="cls_Driver">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="300" y="150" /><mxPoint x="360" y="150" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_d_q" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontFamily=Times New Roman,Arial;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="cls_Driver" target="cls_QueueService">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="620" y="150" /><mxPoint x="680" y="150" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_d_r" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontFamily=Times New Roman,Arial;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="cls_Driver" target="cls_Ride">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="490" y="270" /><mxPoint x="490" y="330" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_r_m" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontFamily=Times New Roman,Arial;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="cls_Ride" target="cls_ChatMessage">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="360" y="390" /><mxPoint x="300" y="390" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_r_rep" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontFamily=Times New Roman,Arial;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="cls_Ride" target="cls_Report">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="620" y="390" /><mxPoint x="680" y="390" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_u_log" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontFamily=Times New Roman,Arial;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="cls_User" target="cls_UserActivityLog">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="60" y="160" /><mxPoint x="25" y="160" /><mxPoint x="25" y="595" /><mxPoint x="60" y="595" /></Array>
+            </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

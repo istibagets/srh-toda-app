@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T06:21:03.013Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 18 - 3NF">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="650" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="b_info" value="&lt;b&gt;THIRD NORMAL FORM (3NF) FULLY NORMALIZED RELATIONAL SCHEMA&lt;/b&gt;&lt;br&gt;Transitive dependencies eliminated. Referential integrity enforced via Foreign Keys." style="rounded=1;fillColor=#F0FDF4;strokeColor=#10B981;strokeWidth=1.5;" vertex="1" parent="1">
+            <mxGeometry x="60" y="80" width="1160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="t_u3" value="&lt;b&gt;users_3nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK&lt;/b&gt; id: BIGINT&lt;br&gt;name: VARCHAR (255)&lt;br&gt;email: VARCHAR (255) UQ&lt;br&gt;phone_number: VARCHAR (20)&lt;br&gt;role: ENUM&lt;br&gt;password: VARCHAR (255)&lt;br&gt;email_verified_at: TIMESTAMP&lt;br&gt;is_active: BOOL" style="shape=table;startSize=30;container=1;fillColor=#1E40AF;strokeColor=#1D4ED8;fontColor=#FFFFFF;" vertex="1" parent="1">
+            <mxGeometry x="60" y="170" width="360" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="t_d3" value="&lt;b&gt;drivers_3nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK&lt;/b&gt; id: BIGINT&lt;br&gt;&lt;b&gt;FK&lt;/b&gt; user_id: BIGINT&lt;br&gt;full_name: VARCHAR (255)&lt;br&gt;mtop_number: VARCHAR (20)&lt;br&gt;mtop_certificate_url: VARCHAR&lt;br&gt;drivers_license_url: VARCHAR&lt;br&gt;compliance_status: VARCHAR&lt;br&gt;is_online: BOOL&lt;br&gt;queue_position: INT" style="shape=table;startSize=30;container=1;fillColor=#059669;strokeColor=#047857;fontColor=#FFFFFF;" vertex="1" parent="1">
+            <mxGeometry x="460" y="170" width="380" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="t_r3" value="&lt;b&gt;rides_3nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK&lt;/b&gt; id: BIGINT&lt;br&gt;&lt;b&gt;FK&lt;/b&gt; passenger_id: BIGINT&lt;br&gt;&lt;b&gt;FK&lt;/b&gt; driver_id: BIGINT&lt;br&gt;pickup_location / destination: VARCHAR&lt;br&gt;pickup_lat / lng: DECIMAL&lt;br&gt;fare: DECIMAL (8,2)&lt;br&gt;status: VARCHAR (30)&lt;br&gt;cancellation_reason: VARCHAR" style="shape=table;startSize=30;container=1;fillColor=#1D4ED8;strokeColor=#1E40AF;fontColor=#FFFFFF;" vertex="1" parent="1">
+            <mxGeometry x="880" y="170" width="340" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="t_m3" value="&lt;b&gt;messages_3nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK&lt;/b&gt; id: BIGINT&lt;br&gt;&lt;b&gt;FK&lt;/b&gt; ride_id: BIGINT&lt;br&gt;&lt;b&gt;FK&lt;/b&gt; sender_id: BIGINT&lt;br&gt;message: TEXT&lt;br&gt;is_read: BOOL&lt;br&gt;created_at: TIMESTAMP" style="shape=table;startSize=30;container=1;fillColor=#334155;strokeColor=#1E293B;fontColor=#FFFFFF;" vertex="1" parent="1">
+            <mxGeometry x="60" y="390" width="360" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="t_rep3" value="&lt;b&gt;reports_3nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK&lt;/b&gt; id: BIGINT&lt;br&gt;&lt;b&gt;FK&lt;/b&gt; reporter_id: BIGINT&lt;br&gt;&lt;b&gt;FK&lt;/b&gt; reported_id: BIGINT&lt;br&gt;&lt;b&gt;FK&lt;/b&gt; ride_id: BIGINT&lt;br&gt;category / description: TEXT&lt;br&gt;status / resolution_notes: TEXT" style="shape=table;startSize=30;container=1;fillColor=#DC2626;strokeColor=#B91C1C;fontColor=#FFFFFF;" vertex="1" parent="1">
+            <mxGeometry x="460" y="390" width="380" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="t_log3" value="&lt;b&gt;activity_logs_3nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK&lt;/b&gt; id: BIGINT&lt;br&gt;&lt;b&gt;FK&lt;/b&gt; user_id: BIGINT&lt;br&gt;action: VARCHAR (100)&lt;br&gt;ip_address: VARCHAR (45)&lt;br&gt;user_agent: VARCHAR (255)&lt;br&gt;created_at: TIMESTAMP" style="shape=table;startSize=30;container=1;fillColor=#7C3AED;strokeColor=#6D28D9;fontColor=#FFFFFF;" vertex="1" parent="1">
+            <mxGeometry x="880" y="390" width="340" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="fk1" value="user_id -&gt; users_3nf(id)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;strokeColor=#059669;strokeWidth=1.5;endArrow=block;" edge="1" parent="1" source="t_d3" target="t_u3">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="fk2" value="passenger_id -&gt; users_3nf(id)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;strokeColor=#1D4ED8;strokeWidth=1.5;endArrow=block;" edge="1" parent="1" source="t_r3" target="t_u3">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="fk3" value="driver_id -&gt; drivers_3nf(id)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;strokeColor=#1D4ED8;strokeWidth=1.5;endArrow=block;" edge="1" parent="1" source="t_r3" target="t_d3">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

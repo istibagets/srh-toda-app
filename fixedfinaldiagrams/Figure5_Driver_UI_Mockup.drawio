@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T07:43:14.544Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 5 - Driver UI Mockup">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="520" pageHeight="680" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="frame" value="&lt;b&gt;Driver PWA Interface Mockup&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=center;verticalAlign=top;spacingTop=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="100" y="60" width="320" height="560" as="geometry" />
+        </mxCell>
+        <mxCell id="header" value="&lt;b&gt;SRH LINK-TODA&lt;/b&gt; (Driver: Body #042)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="110" y="100" width="300" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="geofence_status" value="&lt;b&gt;35m GPS Geofence Status&lt;/b&gt;&lt;br&gt;Location: &lt;b&gt;INSIDE TERMINAL&lt;/b&gt;&lt;br&gt;Duty Status: &lt;b&gt;ON-DUTY (Queue Slot #1)&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="110" y="150" width="300" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="priority_card" value="&lt;b&gt;Priority Queue Recovery Active&lt;/b&gt;&lt;br&gt;Auto-Restoration within 35m Geofence Enabled" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="110" y="220" width="300" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="incoming_job" value="&lt;b&gt;Incoming Dispatch Request&lt;/b&gt;&lt;br&gt;Commuter: Maria Clara (0917-XXX)&lt;br&gt;Drop-off: Phase 3 Block 4 (2.8 km)&lt;br&gt;Metered Fare: &lt;b&gt;PHP 45.00&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="110" y="280" width="300" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="btn_accept" value="&lt;b&gt;[ ACCEPT DISPATCH ]&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="110" y="390" width="300" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="btn_remit" value="&lt;b&gt;Pay Daily Remittance Dues (PHP 20.00)&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="110" y="445" width="300" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="nav_bar" value="Duty | Active Job | Remittance | Earnings | Profile" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="110" y="530" width="300" height="40" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

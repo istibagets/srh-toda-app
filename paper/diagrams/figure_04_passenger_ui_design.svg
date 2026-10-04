@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 640" width="520" height="640">
+    <defs>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Times+New+Roman:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap');
+            text { font-family: 'Times New Roman', Times, serif; }
+            .fig-title { font-size: 13px; font-weight: bold; font-style: italic; fill: #000000; }
+            .header-text { font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .entity-title { font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .process-num { font-size: 11px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .process-title { font-size: 11px; font-weight: normal; fill: #000000; text-anchor: middle; }
+            .node-title { font-size: 11px; font-weight: bold; fill: #000000; }
+            .node-text { font-size: 10px; font-weight: normal; fill: #000000; }
+            .store-text { font-size: 10px; font-weight: normal; fill: #000000; }
+            .table-head { font-size: 11px; font-weight: bold; fill: #000000; font-family: 'Times New Roman', serif; }
+            .table-cell { font-size: 10px; font-weight: normal; fill: #000000; font-family: 'Times New Roman', serif; }
+            .table-cell-bold { font-size: 10px; font-weight: bold; fill: #000000; font-family: 'Times New Roman', serif; }
+            .flow-text { font-size: 9px; font-family: 'Times New Roman', serif; fill: #000000; }
+            .flow-text-right { font-size: 9px; font-family: 'Times New Roman', serif; fill: #000000; text-anchor: end; }
+            .flow-text-center { font-size: 9px; font-family: 'Times New Roman', serif; fill: #000000; text-anchor: middle; }
+        </style>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#000000" />
+        </marker>
+        <marker id="crowsfoot-one" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 5 0 L 5 10 M 8 0 L 8 10" stroke="#000000" stroke-width="1.2" fill="none" />
+        </marker>
+        <marker id="crowsfoot-many" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 M 10 0 L 10 10" stroke="#000000" stroke-width="1.2" fill="none" />
+        </marker>
+    </defs>
+    <!-- Pure White Background -->
+    <rect width="520" height="640" fill="#FFFFFF"/>
+    
+    <!-- Figure Header -->
+    <g transform="translate(30, 25)">
+        <text class="fig-title" x="0" y="0">Figure 4. Passenger Progressive Web App (PWA) Interface Mockup</text>
+    </g>
+
+    
+    <!-- Mobile Frame -->
+    <rect x="100" y="60" width="320" height="540" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+
+    <!-- App Header -->
+    <rect x="110" y="95" width="300" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="1"/>
+    <text class="table-cell-bold" x="260" y="120" text-anchor="middle">SRH LINK-TODA (Passenger)</text>
+
+    <!-- Terminal Queue Status Widget -->
+    <rect x="110" y="145" width="300" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="1"/>
+    <text class="table-cell-bold" x="125" y="165">SRH Terminal Queue Status</text>
+    <text class="node-text" x="125" y="185">Active Tricycles in Standby: 14 Drivers</text>
+    <text class="node-text" x="310" y="185">Est. Wait: 2 mins</text>
+
+    <!-- Map Area Mockup -->
+    <rect x="110" y="215" width="300" height="180" fill="#FFFFFF" stroke="#000000" stroke-width="1" stroke-dasharray="4,4"/>
+    <text class="table-cell-bold" x="260" y="280" text-anchor="middle">[ MapLibre GL Vector Map ]</text>
+    <text class="flow-text-center" x="260" y="300">Terminal Anchor &#8226; Live Driver GPS Pins</text>
+    <text class="flow-text-center" x="260" y="320">Pickup &amp; Destination Route Geometry</text>
+
+    <!-- Fare Estimation Card -->
+    <rect x="110" y="405" width="300" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1"/>
+    <text class="table-cell-bold" x="125" y="425">Municipal Metered Tariff</text>
+    <text class="node-text" x="125" y="445">Trip Distance: 2.8 km</text>
+    <text class="table-cell-bold" x="330" y="445">PHP 45.00</text>
+
+    <!-- Request Button -->
+    <rect x="110" y="470" width="300" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+    <text class="table-cell-bold" x="260" y="495" text-anchor="middle">CONFIRM RIDE DISPATCH</text>
+
+    <!-- Bottom Navigation -->
+    <rect x="110" y="520" width="300" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="1"/>
+    <text class="flow-text-center" x="260" y="545">Home   &#8226;   Active Trip   &#8226;   In-App Chat   &#8226;   Blotter   &#8226;   Profile</text>
+    
+</svg>

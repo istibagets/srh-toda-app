@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T07:43:14.568Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 15 - Unnormalized Form (UNF)">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="960" pageHeight="520" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="unf_table" value="&lt;b&gt;UNNORMALIZED FORM (UNF) - SRH LINK-TODA MASTER RECORD&lt;/b&gt;&lt;hr&gt;&lt;b&gt;UNF Composite Table Schema:&lt;/b&gt;&lt;br&gt;&lt;br&gt;• &lt;u&gt;Ride_Transaction_ID&lt;/u&gt; (Partial Key)&lt;br&gt;• Commuter_Name, Commuter_Phone, Commuter_Email&lt;br&gt;• Driver_Name, Driver_Plate, Driver_MTOP, Driver_License&lt;br&gt;• Terminal_ID, Terminal_Name, Terminal_Lat, Terminal_Lng, Geofence_Radius&lt;br&gt;• Pickup_Latitude, Pickup_Longitude, Dropoff_Latitude, Dropoff_Longitude&lt;br&gt;• Distance_KM, Base_Fare, Per_KM_Rate, Total_Fare_Amount, Ride_Status&lt;br&gt;• &lt;i&gt;Repeating Group { Message_ID, Sender_ID, Message_Text, Timestamp }&lt;/i&gt;&lt;br&gt;• &lt;i&gt;Repeating Group { Incident_ID, Category, Description, Sanction }&lt;/i&gt;&lt;br&gt;• &lt;i&gt;Repeating Group { Remittance_ID, Daily_Dues, Receipt_No, Remit_Date }&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=14;verticalAlign=top;spacingTop=8;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="60" y="70" width="840" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="unf_note" value="&lt;b&gt;Normalization Flaws Identified:&lt;/b&gt; Contains multivalued repeating groups, transitive dependencies, and partial functional dependencies violating 1NF/2NF/3NF." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;align=left;spacingLeft=12;verticalAlign=middle;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="60" y="410" width="840" height="50" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

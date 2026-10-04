@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T07:43:14.550Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 8 - Context Diagram">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1140" pageHeight="600" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="ent_pass" value="&lt;b&gt;PASSENGER&lt;/b&gt;" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=center;verticalAlign=middle;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="60" y="130" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="ent_driv" value="&lt;b&gt;DRIVER&lt;/b&gt;" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=center;verticalAlign=middle;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="60" y="390" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="proc_0" value="&lt;b&gt;0.0&lt;/b&gt;&lt;hr&gt;&lt;b&gt;SRH LINK-TODA PWA PLATFORM&lt;/b&gt;&lt;br&gt;(Queue, Geofencing, Priority Recovery &amp;amp; Distance Tariff Engine)" style="rounded=6;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=center;verticalAlign=top;spacingTop=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="380" y="190" width="340" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="ent_admin" value="&lt;b&gt;TODA DISPATCHER &amp;amp;&lt;br&gt;SUPERADMIN&lt;/b&gt;" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=center;verticalAlign=middle;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="890" y="260" width="150" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="f1" value="Ride Request &amp;amp; GPS Pin" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="ent_pass" target="proc_0">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="200" y="145" /><mxPoint x="380" y="145" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f2" value="Blotter Incident Grievance" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="ent_pass" target="proc_0">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="200" y="165" /><mxPoint x="300" y="165" /><mxPoint x="300" y="230" /><mxPoint x="380" y="230" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f3" value="Metered Fare &amp;amp; Driver ETA" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="proc_0" target="ent_pass">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="380" y="270" /><mxPoint x="280" y="270" /><mxPoint x="280" y="185" /><mxPoint x="200" y="185" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f4" value="35m GPS Ingestion &amp;amp; Check-In" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="ent_driv" target="proc_0">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="200" y="405" /><mxPoint x="300" y="405" /><mxPoint x="300" y="340" /><mxPoint x="380" y="340" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f5" value="Accept Dispatch &amp;amp; Dues Remittance" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="ent_driv" target="proc_0">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="200" y="425" /><mxPoint x="380" y="425" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f6" value="Priority Recovery &amp;amp; Queue Rank" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="proc_0" target="ent_driv">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="380" y="370" /><mxPoint x="280" y="370" /><mxPoint x="280" y="445" /><mxPoint x="200" y="445" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f7" value="Queue Override &amp;amp; Tariff Multipliers" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="ent_admin" target="proc_0">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="890" y="280" /><mxPoint x="720" y="280" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f8" value="Telemetry, Blotters &amp;amp; Audit Logs" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="proc_0" target="ent_admin">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="720" y="330" /><mxPoint x="890" y="330" /></Array>
+            </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

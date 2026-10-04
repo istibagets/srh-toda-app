@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T06:21:03.009Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 13 - DFD Level 2 Process 4.0">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="680" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="e1" value="&lt;b&gt;E1: Passenger&lt;/b&gt;" style="rounded=0;fillColor=#F8FAFC;strokeColor=#1E293B;" vertex="1" parent="1">
+            <mxGeometry x="60" y="120" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="&lt;b&gt;E2: Driver&lt;/b&gt;" style="rounded=0;fillColor=#F8FAFC;strokeColor=#059669;" vertex="1" parent="1">
+            <mxGeometry x="60" y="420" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="p41" value="&lt;b&gt;4.1&lt;/b&gt;&lt;br&gt;Calculate Distance &amp;amp; Dynamic Municipal Tariff" style="rounded=1;arcSize=20;fillColor=#EFF6FF;strokeColor=#2563EB;" vertex="1" parent="1">
+            <mxGeometry x="300" y="80" width="420" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="p42" value="&lt;b&gt;4.2&lt;/b&gt;&lt;br&gt;Match #1 Front-of-Queue Driver &amp;amp; Emit Alert" style="rounded=1;arcSize=20;fillColor=#EFF6FF;strokeColor=#2563EB;" vertex="1" parent="1">
+            <mxGeometry x="300" y="170" width="420" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="p43" value="&lt;b&gt;4.3&lt;/b&gt;&lt;br&gt;Handle Dispatch Timeout &amp;amp; Preemption" style="rounded=1;arcSize=20;fillColor=#EFF6FF;strokeColor=#2563EB;" vertex="1" parent="1">
+            <mxGeometry x="300" y="260" width="420" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="p44" value="&lt;b&gt;4.4&lt;/b&gt;&lt;br&gt;&lt;b&gt;Priority-Based Queue Recovery Engine&lt;/b&gt;&lt;br&gt;(Auto-restore victim driver to #1 queue position)" style="rounded=1;arcSize=20;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=2;" vertex="1" parent="1">
+            <mxGeometry x="300" y="350" width="420" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="p45" value="&lt;b&gt;4.5&lt;/b&gt;&lt;br&gt;Stream Route Telemetry &amp;amp; In-App Coordination" style="rounded=1;arcSize=20;fillColor=#EFF6FF;strokeColor=#2563EB;" vertex="1" parent="1">
+            <mxGeometry x="300" y="455" width="420" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="p46" value="&lt;b&gt;4.6&lt;/b&gt;&lt;br&gt;Complete Trip &amp;amp; Accrue Remittance Dues" style="rounded=1;arcSize=20;fillColor=#EFF6FF;strokeColor=#2563EB;" vertex="1" parent="1">
+            <mxGeometry x="300" y="545" width="420" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="d4" value="&lt;b&gt;D4&lt;/b&gt; | rides_3nf &amp;amp; messages_3nf" style="shape=partialRectangle;top=0;bottom=0;fillColor=#F0FDF4;strokeColor=#059669;strokeWidth=2;" vertex="1" parent="1">
+            <mxGeometry x="800" y="120" width="280" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="d3" value="&lt;b&gt;D3&lt;/b&gt; | terminal_queue_cache (Redis)" style="shape=partialRectangle;top=0;bottom=0;fillColor=#F0FDF4;strokeColor=#059669;strokeWidth=2;" vertex="1" parent="1">
+            <mxGeometry x="800" y="350" width="280" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="e_req" value="Pickup Pin" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="e1" target="p41">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_canc" value="Cancel Trip" style="strokeColor=#DC2626;strokeWidth=2;" edge="1" parent="1" source="e1" target="p44">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_rec_d3" value="Restore #1 Slot" style="strokeColor=#D97706;strokeWidth=2;" edge="1" parent="1" source="p44" target="d3">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_p42_e2" value="Dispatch Alert" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="p42" target="e2">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_p46_d4" value="Trip Complete" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="p46" target="d4">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

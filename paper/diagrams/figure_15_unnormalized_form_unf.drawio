@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T06:21:03.011Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 15 - UNF">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="600" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="b_info" value="&lt;b&gt;UNNORMALIZED FORM (UNF) SPECIFICATION&lt;/b&gt;&lt;br&gt;Flat relation with non-atomic data, multi-valued fields, and repeating transport groups." style="rounded=1;fillColor=#FEF2F2;strokeColor=#EF4444;strokeWidth=1.5;" vertex="1" parent="1">
+            <mxGeometry x="60" y="80" width="1160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="t_unf" value="&lt;b&gt;UNF_SRH_LINK_TODA&lt;/b&gt;&lt;hr&gt;user_id, name, email, phone_number, role, password, email_verified_at,&lt;br&gt;&lt;b&gt;{ driver_id, mtop_number, mtop_cert_url, license_url, compliance_status, queue_pos, rating }&lt;/b&gt;,&lt;br&gt;&lt;b&gt;{ ride_id, pickup_location, destination, pickup_lat, pickup_lng, fare, status, cancellation_reason }&lt;/b&gt;,&lt;br&gt;&lt;b&gt;{ message_id, sender_id, message_text, is_read }&lt;/b&gt;,&lt;br&gt;&lt;b&gt;{ report_id, reporter_id, reported_id, category, description, status }&lt;/b&gt;" style="shape=table;startSize=30;container=1;fillColor=#1E293B;strokeColor=#334155;fontColor=#FFFFFF;align=left;spacingLeft=15;" vertex="1" parent="1">
+            <mxGeometry x="60" y="180" width="1160" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="b_anom" value="&lt;b&gt;DATABASE ANOMALIES IDENTIFIED:&lt;/b&gt;&lt;br&gt;• Insertion Anomaly: Cannot register a new driver without creating a ride transaction.&lt;br&gt;• Update Anomaly: Modifying user phone number requires updating all historical ride rows.&lt;br&gt;• Deletion Anomaly: Deleting a canceled ride removes all associated driver MTOP records." style="rounded=1;fillColor=#FFFBEB;strokeColor=#D97706;strokeWidth=1.5;align=left;spacingLeft=15;" vertex="1" parent="1">
+            <mxGeometry x="60" y="420" width="1160" height="100" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

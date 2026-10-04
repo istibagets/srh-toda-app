@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 700" width="1100" height="700">
+    <defs>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Times+New+Roman:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap');
+            text { font-family: 'Times New Roman', Times, serif; }
+            .fig-title { font-size: 13px; font-weight: bold; font-style: italic; fill: #000000; }
+            .entity-title { font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .process-num { font-size: 11px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .process-title { font-size: 11px; font-weight: normal; fill: #000000; text-anchor: middle; }
+            .store-text { font-size: 10px; font-weight: normal; fill: #000000; }
+            .flow-text { font-size: 9px; font-family: 'Times New Roman', serif; fill: #000000; }
+            .flow-text-right { font-size: 9px; font-family: 'Times New Roman', serif; fill: #000000; text-anchor: end; }
+            .flow-text-center { font-size: 9px; font-family: 'Times New Roman', serif; fill: #000000; text-anchor: middle; }
+        </style>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#000000" />
+        </marker>
+    </defs>
+    <!-- Pure White Background -->
+    <rect width="1100" height="700" fill="#FFFFFF"/>
+    
+    <!-- Figure Header -->
+    <g transform="translate(30, 25)">
+        <text class="fig-title" x="0" y="0">Figure 28. Level 1 Data Flow Diagram of SRH LINK-TODA</text>
+    </g>
+
+    
+    <!-- Entities Column (Left: X=60) -->
+    <g transform="translate(60, 100)">
+        <rect width="140" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+        <text class="entity-title" x="70" y="32">Reporter /</text>
+        <text class="entity-title" x="70" y="48">Passenger</text>
+    </g>
+
+    <g transform="translate(60, 240)">
+        <rect width="140" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+        <text class="entity-title" x="70" y="32">Tricycle Driver /</text>
+        <text class="entity-title" x="70" y="48">Operator</text>
+    </g>
+
+    <g transform="translate(60, 400)">
+        <rect width="140" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+        <text class="entity-title" x="70" y="32">TODA Admin /</text>
+        <text class="entity-title" x="70" y="48">Dispatcher</text>
+    </g>
+
+    <g transform="translate(60, 560)">
+        <rect width="140" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+        <text class="entity-title" x="70" y="40">Superadmin</text>
+    </g>
+
+    <!-- Processes Column (Center: X=420) -->
+    <!-- 1.0 -->
+    <g transform="translate(420, 80)">
+        <rect width="280" height="60" rx="6" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+        <line x1="0" y1="20" x2="280" y2="20" stroke="#000000" stroke-width="1"/>
+        <text class="process-num" x="140" y="15">1.0</text>
+        <text class="process-title" x="140" y="42">Manage Authentication and User Profiles</text>
+    </g>
+
+    <!-- 2.0 -->
+    <g transform="translate(420, 180)">
+        <rect width="280" height="60" rx="6" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+        <line x1="0" y1="20" x2="280" y2="20" stroke="#000000" stroke-width="1"/>
+        <text class="process-num" x="140" y="15">2.0</text>
+        <text class="process-title" x="140" y="42">Verify Driver Credentials and Compliance</text>
+    </g>
+
+    <!-- 3.0 -->
+    <g transform="translate(420, 280)">
+        <rect width="280" height="60" rx="6" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+        <line x1="0" y1="20" x2="280" y2="20" stroke="#000000" stroke-width="1"/>
+        <text class="process-num" x="140" y="15">3.0</text>
+        <text class="process-title" x="140" y="42">Manage Terminal 35m Geofence &amp; Queue</text>
+    </g>
+
+    <!-- 4.0 -->
+    <g transform="translate(420, 380)">
+        <rect width="280" height="60" rx="6" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+        <line x1="0" y1="20" x2="280" y2="20" stroke="#000000" stroke-width="1"/>
+        <text class="process-num" x="140" y="15">4.0</text>
+        <text class="process-title" x="140" y="42">Dispatch Ride, Meter Fare &amp; Priority Recovery</text>
+    </g>
+
+    <!-- 5.0 -->
+    <g transform="translate(420, 480)">
+        <rect width="280" height="60" rx="6" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+        <line x1="0" y1="20" x2="280" y2="20" stroke="#000000" stroke-width="1"/>
+        <text class="process-num" x="140" y="15">5.0</text>
+        <text class="process-title" x="140" y="42">Manage Incident Reports &amp; Disputes</text>
+    </g>
+
+    <!-- 6.0 -->
+    <g transform="translate(420, 580)">
+        <rect width="280" height="60" rx="6" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+        <line x1="0" y1="20" x2="280" y2="20" stroke="#000000" stroke-width="1"/>
+        <text class="process-num" x="140" y="15">6.0</text>
+        <text class="process-title" x="140" y="42">Manage TODA Remittance Ledger &amp; Audits</text>
+    </g>
+
+    <!-- Datastores Column (Right: X=860) -->
+    <!-- D1 -->
+    <g transform="translate(860, 85)">
+        <path d="M 0 0 L 180 0 M 0 50 L 180 50 M 40 0 L 40 50" fill="none" stroke="#000000" stroke-width="1.2"/>
+        <text class="node-title" x="15" y="30">D1</text>
+        <text class="store-text" x="50" y="30">User Records</text>
+    </g>
+
+    <!-- D2 -->
+    <g transform="translate(860, 185)">
+        <path d="M 0 0 L 180 0 M 0 50 L 180 50 M 40 0 L 40 50" fill="none" stroke="#000000" stroke-width="1.2"/>
+        <text class="node-title" x="15" y="30">D2</text>
+        <text class="store-text" x="50" y="30">Driver Records</text>
+    </g>
+
+    <!-- D3 -->
+    <g transform="translate(860, 285)">
+        <path d="M 0 0 L 180 0 M 0 50 L 180 50 M 40 0 L 40 50" fill="none" stroke="#000000" stroke-width="1.2"/>
+        <text class="node-title" x="15" y="30">D3</text>
+        <text class="store-text" x="50" y="30">Terminal Queue Records</text>
+    </g>
+
+    <!-- D4 -->
+    <g transform="translate(860, 385)">
+        <path d="M 0 0 L 180 0 M 0 50 L 180 50 M 40 0 L 40 50" fill="none" stroke="#000000" stroke-width="1.2"/>
+        <text class="node-title" x="15" y="30">D4</text>
+        <text class="store-text" x="50" y="30">Ride &amp; Telemetry Records</text>
+    </g>
+
+    <!-- D5 -->
+    <g transform="translate(860, 485)">
+        <path d="M 0 0 L 180 0 M 0 50 L 180 50 M 40 0 L 40 50" fill="none" stroke="#000000" stroke-width="1.2"/>
+        <text class="node-title" x="15" y="30">D5</text>
+        <text class="store-text" x="50" y="30">Incident Blotter Records</text>
+    </g>
+
+    <!-- D6 -->
+    <g transform="translate(860, 585)">
+        <path d="M 0 0 L 180 0 M 0 50 L 180 50 M 40 0 L 40 50" fill="none" stroke="#000000" stroke-width="1.2"/>
+        <text class="node-title" x="15" y="30">D6</text>
+        <text class="store-text" x="50" y="30">Activity Logs &amp; Dues</text>
+    </g>
+
+    <!-- BUS CONNECTORS (LEFT) -->
+    <!-- E1 -> P1.0 -->
+    <path d="M 200 115 L 420 115" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="210" y="110">Account Information</text>
+
+    <!-- E1 -> P4.0 -->
+    <path d="M 200 135 L 260 135 L 260 395 L 420 395" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="210" y="130">Ride Request Information</text>
+
+    <!-- E1 -> P5.0 -->
+    <path d="M 200 150 L 240 150 L 240 495 L 420 495" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="210" y="145">Incident Grievance Report</text>
+
+    <!-- E2 -> P2.0 -->
+    <path d="M 200 260 L 420 260 L 420 215" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="210" y="255">MTOP Credential Upload</text>
+
+    <!-- E2 -> P3.0 -->
+    <path d="M 200 280 L 420 280 L 420 310" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="210" y="275">35m Geofence Ping</text>
+
+    <!-- E2 -> P4.0 -->
+    <path d="M 200 295 L 280 295 L 280 415 L 420 415" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="210" y="290">Dispatch Acceptance</text>
+
+    <!-- E3 -> P2.0 -->
+    <path d="M 200 415 L 300 415 L 300 200 L 420 200" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="210" y="410">Accreditation Review</text>
+
+    <!-- E3 -> P3.0 -->
+    <path d="M 200 435 L 320 435 L 320 300 L 420 300" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="210" y="430">Manual Queue Override</text>
+
+    <!-- E3 -> P6.0 -->
+    <path d="M 200 455 L 300 455 L 300 600 L 420 600" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="210" y="450">Remittance Dues Audit</text>
+
+    <!-- E4 -> P4.0 -->
+    <path d="M 200 580 L 340 580 L 340 430 L 420 430" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="210" y="575">Tariff Settings</text>
+
+    <!-- E4 -> P6.0 -->
+    <path d="M 200 610 L 420 610" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="210" y="605">Audit Logs</text>
+
+    <!-- BUS CONNECTORS (RIGHT: Processes -> Datastores) -->
+    <path d="M 700 110 L 860 110" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <path d="M 700 210 L 860 210" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <path d="M 700 310 L 860 310" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <path d="M 700 410 L 860 410" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <path d="M 700 510 L 860 510" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <path d="M 700 610 L 860 610" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    
+</svg>

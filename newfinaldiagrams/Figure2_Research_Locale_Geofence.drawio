@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T07:28:29.359Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 2 - Research Locale and Geofence Map">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="980" pageHeight="600" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="map_frame" value="&lt;b&gt;SRH TRICYCLE TERMINAL OPERATIONAL BOUNDARY&lt;/b&gt;&lt;br&gt;Santa Rosa, Nueva Ecija (15.4247°N, 120.9416°E)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=center;verticalAlign=top;spacingTop=10;fontSize=12;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="50" y="60" width="860" height="480" as="geometry" />
+        </mxCell>
+        <mxCell id="road1" value="&lt;b&gt;Santa Rosa – Aliaga Road&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;align=center;verticalAlign=middle;fontSize=11;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="80" y="260" width="800" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="geofence" value="&lt;b&gt;35-Meter Radius Geofence Boundary&lt;/b&gt;&lt;br&gt;Auto Check-in &amp;amp; FIFO Queue Inclusion Zone" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;strokeDasharray=4 4;align=center;verticalAlign=middle;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="380" y="180" width="200" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="anchor" value="&lt;b&gt;Terminal Anchor Point&lt;/b&gt;&lt;br&gt;(15.4247°N, 120.9416°E)" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#000000;strokeColor=#000000;fontColor=#ffffff;align=center;verticalAlign=middle;fontSize=9;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="455" y="255" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="&lt;b&gt;MAP LEGEND &amp;amp; SPECIFICATIONS&lt;/b&gt;&lt;br&gt;• Geofence Radius: R = 35.0 meters&lt;br&gt;• Haversine Formula Distance Verification&lt;br&gt;• Active Check-in: Driver Distance &amp;le; 35m&lt;br&gt;• Out-of-Bounds: Distance &amp;gt; 35m" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;align=left;spacingLeft=10;verticalAlign=top;spacingTop=8;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="80" y="360" width="260" height="120" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T07:28:29.352Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 1 - Conceptual Framework">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1140" pageHeight="810" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="b_prob" value="&lt;b&gt;PROBLEM STATEMENT&lt;/b&gt;&lt;br&gt;&lt;br&gt;• Unregulated physical terminal queue congestion&lt;br&gt;• Passenger queue anxiety &amp;amp; unfair cutting in line&lt;br&gt;• Arbitrary driver overcharging &amp;amp; fare ambiguity&lt;br&gt;• Inefficient manual paper dispatching at terminal" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=12;verticalAlign=top;spacingTop=8;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="50" y="70" width="320" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="b_input" value="&lt;b&gt;INPUT REQUIREMENTS &amp;amp; STANDARDS&lt;/b&gt;&lt;br&gt;&lt;br&gt;• HTML5 Geolocation API (W3C GPS Standards)&lt;br&gt;• 35m Terminal Geofence (15.4247°N, 120.9416°E)&lt;br&gt;• Municipal MTOP Franchising &amp;amp; Driver Credentials&lt;br&gt;• ISO/IEC 25010:2023 Systems Quality Model" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=12;verticalAlign=top;spacingTop=8;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="770" y="70" width="320" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="b_proc" value="&lt;b&gt;PROCESS: 7-PHASE AGILE SDLC ENGINE&lt;/b&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Phase 1: Planning &amp;amp; Feasibility&lt;/b&gt; — Terminal observations, stakeholder alignment &amp;amp; user stories&lt;br&gt;&lt;b&gt;Phase 2: Requirements Analysis&lt;/b&gt; — 35m spatial threshold modeling &amp;amp; FIFO queue rules&lt;br&gt;&lt;b&gt;Phase 3: System Architecture &amp;amp; DB Design&lt;/b&gt; — 3NF relational schema &amp;amp; Reverb WebSocket :8080&lt;br&gt;&lt;b&gt;Phase 4: Full-Stack Implementation&lt;/b&gt; — Ionic PWA, Laravel 11 API, Priority Recovery Engine&lt;br&gt;&lt;b&gt;Phase 5: Verification &amp;amp; Testing&lt;/b&gt; — Haversine GPS boundary tests, load testing &amp;amp; failover&lt;br&gt;&lt;b&gt;Phase 6: Field Deployment&lt;/b&gt; — Live pilot at SRH Toda Terminal, Santa Rosa Aliaga Road&lt;br&gt;&lt;b&gt;Phase 7: System Quality Evaluation&lt;/b&gt; — ISO/IEC 25010:2023 empirical survey evaluation" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=left;spacingLeft=15;verticalAlign=top;spacingTop=10;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="210" y="300" width="720" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="b_out" value="&lt;b&gt;OUTPUT: DEPLOYED SRH LINK-TODA PWA PLATFORM&lt;/b&gt;&lt;br&gt;&lt;br&gt;• Commuter Progressive Web App: Real-time terminal queue display &amp;amp; distance-metered booking&lt;br&gt;• Driver Terminal Progressive Web App: HTML5 35m GPS check-in &amp;amp; Priority Recovery Engine (Auto #1 Slot)&lt;br&gt;• TODA Dispatcher &amp;amp; Superadmin Hub: Queue overrides, MTOP compliance, remittance ledger &amp;amp; audit trails&lt;br&gt;• Validated Software Quality: ISO/IEC 25010:2023 Overall Mean: 4.88 (Excellent Quality Standards)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=12;verticalAlign=top;spacingTop=8;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="170" y="560" width="800" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="b_fb" value="&lt;b&gt;FEEDBACK LOOP:&lt;/b&gt; Continuous Agile Sprint Reviews, Driver Usability Tweaks &amp;amp; ISO 25010 Evaluation Ratings" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;align=center;verticalAlign=middle;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="170" y="730" width="800" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontFamily=Times New Roman,Arial;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="b_prob" target="b_proc">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="210" y="250" /><mxPoint x="210" y="300" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontFamily=Times New Roman,Arial;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="b_input" target="b_proc">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="930" y="250" /><mxPoint x="930" y="300" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontFamily=Times New Roman,Arial;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="b_proc" target="b_out">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="570" y="510" /><mxPoint x="570" y="560" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e4" value="" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;dashed=1;endArrow=block;" edge="1" parent="1" source="b_out" target="b_fb">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e5" value="" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#000000;dashed=1;endArrow=block;" edge="1" parent="1" source="b_fb" target="b_proc">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="170" y="750" /><mxPoint x="110" y="750" /><mxPoint x="110" y="405" /><mxPoint x="210" y="405" /></Array>
+            </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -211,6 +211,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
   private currentActiveRouteCoordinates: [number, number][] = [];
   private currentRouteDestination: [number, number] | null = null;
   private currentRouteColor: string = '#2563eb';
+  private lastRoutedCoords: { lat: number; lng: number } | null = null;
 
   // 60/120fps Smooth Marker Interpolation Engine
   private markerAnimRafId: number | null = null;
@@ -253,7 +254,13 @@ export class HomePage implements AfterViewInit, OnDestroy {
     try {
       if (typeof window !== 'undefined') {
         const saved = localStorage.getItem(this.PASSENGER_RIDE_KEY);
-        return saved ? JSON.parse(saved) : null;
+        if (!saved) return null;
+        const parsed = JSON.parse(saved);
+        const status = String(parsed?.status || '').toLowerCase().trim();
+        if (['accepted', 'en_route', 'arrived', 'in_transit', 'fare_proposed', 'bargaining', 'searching'].includes(status)) {
+          return parsed;
+        }
+        localStorage.removeItem(this.PASSENGER_RIDE_KEY);
       }
     } catch { }
     return null;
@@ -768,6 +775,12 @@ export class HomePage implements AfterViewInit, OnDestroy {
     }
   }
 
+  // Separate AbortControllers per route type so a GPS update for one route
+  // never cancels an in-flight OSRM fetch for a different route.
+  // Sharing a single controller caused the "straight step-line" intermittent bug.
+  private tripRouteAbortController: AbortController | null = null;   // en_route / in_transit trip
+  private returnRouteAbortController: AbortController | null = null; // returning to terminal
+  /** @deprecated kept only so clearReturnRoutePolyline can null it out safely */
   private routeBetweenAbortController: AbortController | null = null;
   private roadRouteCache = new Map<string, [number, number][]>();
 
@@ -870,11 +883,21 @@ export class HomePage implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Fetches an OSRM road route between two points.
+   * Each call uses its own dedicated AbortController slot (keyed by `routeType`) so
+   * a fast GPS update for one route type never cancels an in-flight fetch for another.
+   *
+   * routeType:
+   *   'trip'   — active trip (en_route to pickup / in_transit to destination)
+   *   'return' — returning to terminal
+   */
   private async fetchRoadRouteBetweenPoints(
     fromLng: number,
     fromLat: number,
     toLng: number,
-    toLat: number
+    toLat: number,
+    routeType: 'trip' | 'return' = 'trip'
   ): Promise<[number, number][]> {
     if (this.calculateDistanceMeters(fromLat, fromLng, toLat, toLng) <= 10) {
       return [[fromLng, fromLat], [toLng, toLat]];
@@ -885,14 +908,26 @@ export class HomePage implements AfterViewInit, OnDestroy {
       return this.roadRouteCache.get(cacheKey)!;
     }
 
-    try {
-      if (this.routeBetweenAbortController) {
-        this.routeBetweenAbortController.abort();
+    // Cancel the previous fetch of the SAME route type only — never cross-cancel
+    if (routeType === 'return') {
+      if (this.returnRouteAbortController) {
+        this.returnRouteAbortController.abort();
       }
-      this.routeBetweenAbortController = new AbortController();
+      this.returnRouteAbortController = new AbortController();
+    } else {
+      if (this.tripRouteAbortController) {
+        this.tripRouteAbortController.abort();
+      }
+      this.tripRouteAbortController = new AbortController();
+    }
 
+    const signal = routeType === 'return'
+      ? this.returnRouteAbortController!.signal
+      : this.tripRouteAbortController!.signal;
+
+    try {
       const url = `https://router.project-osrm.org/route/v1/driving/${fromLng},${fromLat};${toLng},${toLat}?overview=full&geometries=geojson&steps=false`;
-      const response = await fetch(url, { signal: this.routeBetweenAbortController.signal });
+      const response = await fetch(url, { signal });
       if (response.ok) {
         const data = await response.json();
         if (data && data.routes && data.routes.length > 0 && data.routes[0].geometry?.coordinates?.length > 1) {
@@ -904,7 +939,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
       }
     } catch (e: any) {
       if (e?.name === 'AbortError') {
-        // Return empty array on abort so we NEVER overwrite existing route line with a straight fallback line!
+        // Return empty array on abort — NEVER overwrite an existing valid route line with a straight fallback
         return [];
       }
       console.warn('OSRM route fetch notice:', e);
@@ -923,11 +958,15 @@ export class HomePage implements AfterViewInit, OnDestroy {
     this.dashboardService.getActiveRide().subscribe({
       next: (res) => {
         const ride = res?.active_ride || res?.ride;
-        if (ride) {
+        const status = String(ride?.status || '').toLowerCase().trim();
+        const hasActiveTrip = !!ride && ['accepted', 'en_route', 'arrived', 'in_transit', 'fare_proposed', 'bargaining', 'searching'].includes(status);
+        if (hasActiveTrip) {
           this.activePassengerRide.set(ride);
+          try {
+            localStorage.setItem(this.PASSENGER_RIDE_KEY, JSON.stringify(ride));
+          } catch { }
           this.syncPassengerDriverTricycleMarker();
 
-          const status = String(ride.status || '').toLowerCase().trim();
           if (['accepted', 'en_route', 'arrived', 'in_transit'].includes(status)) {
             this.isUserPanned.set(false);
             this.mapControlState.set(3);
@@ -936,10 +975,21 @@ export class HomePage implements AfterViewInit, OnDestroy {
           }
         } else {
           this.activePassengerRide.set(null);
+          try {
+            localStorage.removeItem(this.PASSENGER_RIDE_KEY);
+          } catch { }
+          this.clearRouteLine();
           this.syncPassengerDriverTricycleMarker();
         }
       },
-      error: () => {}
+      error: () => {
+        this.activePassengerRide.set(null);
+        try {
+          localStorage.removeItem(this.PASSENGER_RIDE_KEY);
+        } catch { }
+        this.clearRouteLine();
+        this.syncPassengerDriverTricycleMarker();
+      }
     });
   }
 
@@ -1054,7 +1104,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
    */
   snapToNearestRoad(lng: number, lat: number): [number, number] {
     let nearestPoint: [number, number] = [lng, lat];
-    let minDistanceSq = Infinity;
+    let minDistanceSq = Infinity; // stored in metres²
 
     if (this.map) {
       try {
@@ -1076,9 +1126,11 @@ export class HomePage implements AfterViewInit, OnDestroy {
           }
         }
 
-        // 2. Query MapLibre rendered roadway vector features across an adaptive radius
+        // 2. Query MapLibre rendered roadway vector features.
+        // Use 20px radius — tight enough to catch only nearby roads at any zoom level.
+        // At z17 (close) 20px ≈ 5m.  At z14 (zoomed out) 20px ≈ 50m, still reasonable.
         const p = this.map.project([lng, lat]);
-        const r = 380; // 380px search radius easily bridges taps in fields back to roads
+        const r = 20;
         const bbox: [[number, number], [number, number]] = [
           [Math.max(0, p.x - r), Math.max(0, p.y - r)],
           [p.x + r, p.y + r],
@@ -1111,37 +1163,31 @@ export class HomePage implements AfterViewInit, OnDestroy {
           })
           .map((l: any) => l.id);
 
-        let features = roadLayerIds.length > 0
+        const features = roadLayerIds.length > 0
           ? this.map.queryRenderedFeatures(bbox, { layers: roadLayerIds })
           : this.map.queryRenderedFeatures(bbox);
 
-        // Viewport fallback: if user zoomed out or tapped far into field
-        if (!features || features.length === 0) {
-          features = roadLayerIds.length > 0
-            ? this.map.queryRenderedFeatures({ layers: roadLayerIds })
-            : [];
-        }
+        if (features && features.length > 0) {
+          for (const feat of features) {
+            if (feat.geometry.type !== 'LineString' && feat.geometry.type !== 'MultiLineString') {
+              continue;
+            }
 
-        for (const feat of features) {
-          // STRICT GEOMETRY CHECK: ONLY LineString and MultiLineString! NEVER Polygons!
-          if (feat.geometry.type !== 'LineString' && feat.geometry.type !== 'MultiLineString') {
-            continue;
-          }
+            const coords = (feat.geometry as any)?.coordinates;
+            if (!Array.isArray(coords)) continue;
 
-          const coords = (feat.geometry as any)?.coordinates;
-          if (!Array.isArray(coords)) continue;
-
-          const lines = feat.geometry.type === 'MultiLineString' ? coords : [coords];
-          for (const line of lines) {
-            if (!Array.isArray(line)) continue;
-            for (let i = 0; i < line.length - 1; i++) {
-              const a = line[i];
-              const b = line[i + 1];
-              if (Array.isArray(a) && Array.isArray(b) && a.length >= 2 && b.length >= 2) {
-                const proj = this.projectPointOnSegment(lng, lat, a, b);
-                if (proj.distSq < minDistanceSq) {
-                  minDistanceSq = proj.distSq;
-                  nearestPoint = [proj.x, proj.y];
+            const lines = feat.geometry.type === 'MultiLineString' ? coords : [coords];
+            for (const line of lines) {
+              if (!Array.isArray(line)) continue;
+              for (let i = 0; i < line.length - 1; i++) {
+                const a = line[i];
+                const b = line[i + 1];
+                if (Array.isArray(a) && Array.isArray(b) && a.length >= 2 && b.length >= 2) {
+                  const proj = this.projectPointOnSegment(lng, lat, a, b);
+                  if (proj.distSq < minDistanceSq) {
+                    minDistanceSq = proj.distSq;
+                    nearestPoint = [proj.x, proj.y];
+                  }
                 }
               }
             }
@@ -1152,7 +1198,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
       }
     }
 
-    // 3. Mathematical check against ROAD_NETWORKS
+    // 3. Mathematical check against hardcoded ROAD_NETWORKS centerlines
     for (const road of this.ROAD_NETWORKS) {
       for (let i = 0; i < road.length - 1; i++) {
         const a = road[i];
@@ -1165,9 +1211,13 @@ export class HomePage implements AfterViewInit, OnDestroy {
       }
     }
 
-    // If nearest road feature is farther than 45 meters, retain true physical coordinates
-    if (minDistanceSq > 2025) {
-      return [lng, lat];
+    // Only snap if within 30 metres of a known road.
+    // projectPointOnSegment returns distSq in metres² so 30m → threshold = 900.
+    // This is the correct unit — both vector-tile and ROAD_NETWORKS paths use the
+    // same metres² formula in projectPointOnSegment (111320 * cos(lat) for lng, 110540 for lat).
+    const SNAP_THRESHOLD_M2 = 900; // 30m²
+    if (minDistanceSq > SNAP_THRESHOLD_M2) {
+      return [lng, lat]; // Too far from any road — keep original tap coordinates
     }
 
     return nearestPoint;
@@ -1561,53 +1611,62 @@ export class HomePage implements AfterViewInit, OnDestroy {
           const isPassenger = this.authService.isPassenger();
           if (isPassenger) {
             const pRide = this.activePassengerRide();
-            // ONLY sync driver location if passenger has an active ongoing trip with THIS driver
-            if (pRide && (pRide.status === 'en_route' || pRide.status === 'accepted' || pRide.status === 'arrived' || pRide.status === 'in_transit')) {
-              const rideDriverId = pRide.driver?.id || pRide.driver_id;
-              const matchesRide = !!(loc.rideId && pRide.id && Number(loc.rideId) === Number(pRide.id));
-              const matchesDriver = !loc.driverId || !rideDriverId ||
-                Number(loc.driverId) === Number(rideDriverId) ||
-                Number(loc.driver_user_id) === Number(rideDriverId) ||
-                Number(loc.userId) === Number(rideDriverId) ||
-                Number(loc.driverTableId) === Number(pRide.driver?.driver_table_id);
+            const pStatus = String(pRide?.status || '').toLowerCase().trim();
+            const hasActiveTrip = !!pRide && ['accepted', 'en_route', 'arrived', 'in_transit'].includes(pStatus);
 
-              if (!matchesRide && !matchesDriver) {
-                return;
+            if (!hasActiveTrip) {
+              if (this.driverMarker) {
+                try { this.driverMarker.remove(); } catch { }
+                this.driverMarker = null;
               }
+              return;
+            }
 
-              // Update the active ride driver coordinates
-              this.activePassengerRide.update((r) =>
-                r ? { ...r, driver_lat: loc.lat, driver_lng: loc.lng, driver_heading: loc.heading } : null
-              );
+            const rideDriverId = pRide.driver?.id || pRide.driver_id;
+            const matchesRide = !!(loc.rideId && pRide.id && Number(loc.rideId) === Number(pRide.id));
+            const matchesDriver = !!(rideDriverId && (
+              (loc.driverId && Number(loc.driverId) === Number(rideDriverId)) ||
+              (loc.driver_user_id && Number(loc.driver_user_id) === Number(rideDriverId)) ||
+              (loc.userId && Number(loc.userId) === Number(rideDriverId)) ||
+              (loc.driverTableId && Number(loc.driverTableId) === Number(pRide.driver?.driver_table_id))
+            ));
 
-              const drvHeading = loc.heading || this.passengerRouteBearing || 0;
+            if (!matchesRide && !matchesDriver) {
+              return;
+            }
 
-              // Smoothly glide driver tricycle marker
-              if (!this.driverMarker) {
-                this.syncPassengerDriverTricycleMarker();
-              }
-              this.animateDriverMarkerTo(loc.lng, loc.lat, drvHeading, 500);
+            // Update the active ride driver coordinates
+            this.activePassengerRide.update((r) =>
+              r ? { ...r, driver_lat: loc.lat, driver_lng: loc.lng, driver_heading: loc.heading } : null
+            );
 
-              // If passenger has an active routeline, progressively trim it
-              if (this.currentActiveRouteCoordinates && this.currentActiveRouteCoordinates.length >= 2) {
-                const nearest = this.findNearestPointOnRoute(loc.lng, loc.lat, this.currentActiveRouteCoordinates);
-                if (nearest.distMeters <= 35 && nearest.segIndex < this.currentActiveRouteCoordinates.length - 1) {
-                  const remaining: [number, number][] = [
-                    nearest.point,
-                    ...this.currentActiveRouteCoordinates.slice(nearest.segIndex + 1),
-                  ];
-                  if (remaining.length >= 2) {
-                    this.currentActiveRouteCoordinates = remaining;
-                    this.applyRouteLineCoordinates(remaining, this.currentRouteColor);
-                  }
+            const drvHeading = loc.heading || this.passengerRouteBearing || 0;
+
+            // Smoothly glide driver tricycle marker
+            if (!this.driverMarker) {
+              this.syncPassengerDriverTricycleMarker();
+            }
+            this.animateDriverMarkerTo(loc.lng, loc.lat, drvHeading, 500);
+
+            // If passenger has an active routeline, progressively trim it
+            if (this.currentActiveRouteCoordinates && this.currentActiveRouteCoordinates.length >= 2) {
+              const nearest = this.findNearestPointOnRoute(loc.lng, loc.lat, this.currentActiveRouteCoordinates);
+              if (nearest.distMeters <= 35 && nearest.segIndex < this.currentActiveRouteCoordinates.length - 1) {
+                const remaining: [number, number][] = [
+                  nearest.point,
+                  ...this.currentActiveRouteCoordinates.slice(nearest.segIndex + 1),
+                ];
+                if (remaining.length >= 2) {
+                  this.currentActiveRouteCoordinates = remaining;
+                  this.applyRouteLineCoordinates(remaining, this.currentRouteColor);
                 }
               }
+            }
 
-              // Smoothly follow camera if centered
-              if (this.map && !this.isUserPanned()) {
-                const is3D = this.mapControlState() === 3;
-                this.smoothCameraFollow(loc.lng, loc.lat, is3D ? (this.passengerRouteBearing || drvHeading) : 0, is3D ? 60 : 0, 600);
-              }
+            // Smoothly follow camera if centered
+            if (this.map && !this.isUserPanned()) {
+              const is3D = this.mapControlState() === 3;
+              this.smoothCameraFollow(loc.lng, loc.lat, is3D ? (this.passengerRouteBearing || drvHeading) : 0, is3D ? 60 : 0, 600);
             }
           }
         });
@@ -2315,6 +2374,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
       mapInstance.on('zoomstart', markUserInteracting);
       mapInstance.on('rotatestart', markUserInteracting);
       mapInstance.on('pitchstart', markUserInteracting);
+      mapInstance.on('rotate', () => this.updateDriverHeadingCone(this.driverHeading()));
 
       mapInstance.on('error', (e: any) => {
         if (e && e.error && e.error.message && !mapInstance.isStyleLoaded()) {
@@ -2528,7 +2588,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
             anchor: 'center',
             offset: [0, 0],
             pitchAlignment: 'map',
-            rotationAlignment: 'map',
+            rotationAlignment: 'viewport',
           })
             .setLngLat([initLng, initLat])
             .addTo(mapInstance);
@@ -2607,7 +2667,6 @@ export class HomePage implements AfterViewInit, OnDestroy {
       }
 
       // Hide passenger's own location pin — they are in the tricycle, no need to show their GPS dot
-      // This also prevents the camera from being pulled to the passenger GPS position during the trip
       if (this.passengerMarker) {
         const el = this.passengerMarker.getElement();
         if (el) el.style.display = 'none';
@@ -2661,7 +2720,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
           anchor: 'center',
           offset: [0, 0],
           pitchAlignment: 'map',
-          rotationAlignment: 'map',
+          rotationAlignment: 'viewport',
         })
           .setLngLat([drvLng, drvLat])
           .addTo(this.map);
@@ -2682,6 +2741,9 @@ export class HomePage implements AfterViewInit, OnDestroy {
             `;
           }
         }
+        if (typeof this.driverMarker.setPitchAlignment === 'function') {
+          this.driverMarker.setPitchAlignment('map');
+        }
         this.driverMarker.setLngLat([drvLng, drvLat]);
       }
       this.updateDriverHeadingCone(drvHeading);
@@ -2693,10 +2755,12 @@ export class HomePage implements AfterViewInit, OnDestroy {
         } catch { }
         this.driverMarker = null;
       }
-      // Re-show the passenger's own location pin (they are back at their drop-off/current location)
+      this.clearReturnRoutePolyline();
+      // Re-show the passenger's own location pin
       if (this.passengerMarker) {
         const el = this.passengerMarker.getElement();
         if (el) el.style.display = '';
+        this.passengerMarker.setLngLat([this.driverLng(), this.driverLat()]);
       }
       if (this.mapControlState() === 3) {
         this.mapControlState.set(2);
@@ -2705,12 +2769,10 @@ export class HomePage implements AfterViewInit, OnDestroy {
   }
 
   private updateDriverHeadingCone(heading: number): void {
-    // --- Shortest-path bearing update ---
-    // Instead of always setting raw 0-360 degrees (which causes the browser CSS transition
-    // to spin the long way when crossing the 0/360 boundary), we maintain a cumulative
-    // unwrapped heading that only ever moves by the shortest angular delta (≤180°).
-    // e.g. going from 350° to 10° adds +20 to the cumulative value (not -340).
-    const normalizedNew = ((heading % 360) + 360) % 360;
+    const mapBearing = this.map ? this.map.getBearing() : 0;
+    const visualHeading = ((heading - mapBearing) % 360 + 360) % 360;
+
+    const normalizedNew = visualHeading;
     const normalizedCur = ((this.coneCumulativeHeading % 360) + 360) % 360;
     let delta = normalizedNew - normalizedCur;
     if (delta > 180) delta -= 360;
@@ -2773,7 +2835,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
             anchor: 'center',
             offset: [0, 0],
             pitchAlignment: 'map',
-            rotationAlignment: 'map',
+            rotationAlignment: 'viewport',
           })
             .setLngLat(nextLngLat)
             .addTo(this.map);
@@ -2788,6 +2850,9 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
     if (!this.markerCurrentLngLat) {
       this.markerCurrentLngLat = nextLngLat;
+      if (typeof this.driverMarker.setPitchAlignment === 'function') {
+        this.driverMarker.setPitchAlignment('map');
+      }
       this.driverMarker.setLngLat(nextLngLat);
       return;
     }
@@ -3341,62 +3406,14 @@ export class HomePage implements AfterViewInit, OnDestroy {
     } catch { }
   }
 
-  private routingAbortController: AbortController | null = null;
-  private lastRoutedCoords: { lat: number; lng: number } | null = null;
-
   private async fetchRoadRouteToTerminal(driverLng: number, driverLat: number): Promise<[number, number][]> {
-    const termLng = this.TERMINAL_LNG;
-    const termLat = this.TERMINAL_LAT;
-
-    if (this.calculateDistanceMeters(driverLat, driverLng, termLat, termLng) <= 10) {
-      return [[driverLng, driverLat], [termLng, termLat]];
-    }
-
-    try {
-      if (this.routingAbortController) {
-        this.routingAbortController.abort();
-      }
-      this.routingAbortController = new AbortController();
-
-      const url = `https://router.project-osrm.org/route/v1/driving/${driverLng},${driverLat};${termLng},${termLat}?overview=full&geometries=geojson&steps=false`;
-      const response = await fetch(url, { signal: this.routingAbortController.signal });
-      if (response.ok) {
-        const data = await response.json();
-        if (data && data.routes && data.routes.length > 0 && data.routes[0].geometry?.coordinates?.length > 1) {
-          return data.routes[0].geometry.coordinates as [number, number][];
-        }
-      }
-    } catch (e: any) {
-      if (e?.name !== 'AbortError') {
-        console.warn('OSRM route fetch notice:', e);
-      }
-    }
-
-    // High-accuracy fallback roadway path through Santa Rosa bridge and road corridor
-    return this.buildFallbackRoadRoute(driverLng, driverLat, termLng, termLat);
+    // Uses 'return' route type so it gets its own AbortController and never
+    // cross-cancels an active trip route fetch.
+    return this.fetchRoadRouteBetweenPoints(driverLng, driverLat, this.TERMINAL_LNG, this.TERMINAL_LAT, 'return');
   }
 
   private buildFallbackRoadRoute(fromLng: number, fromLat: number, toLng: number, toLat: number): [number, number][] {
-    const route: [number, number][] = [[fromLng, fromLat]];
-    const bridgeCoord: [number, number] = [120.92600, 15.42400];
-    const junctionCorridor: [number, number] = [120.92600, 15.42955];
-    const terminalJunction: [number, number] = [120.92240, 15.42955];
-
-    if (fromLat < 15.424) {
-      route.push([120.92600, Math.min(fromLat, 15.42000)]);
-      route.push(bridgeCoord);
-      route.push(junctionCorridor);
-      route.push(terminalJunction);
-      route.push([toLng, 15.42955]);
-      route.push([toLng, toLat]);
-    } else {
-      // Connect along the Santa Rosa Fort Magsaysay arterial corridor
-      route.push([fromLng, 15.42955]);
-      route.push([toLng, 15.42955]);
-      route.push([toLng, toLat]);
-    }
-
-    return route;
+    return [[fromLng, fromLat], [toLng, toLat]];
   }
 
   private async updateReturnRoutePolyline(driverLng: number, driverLat: number): Promise<void> {
@@ -3434,10 +3451,13 @@ export class HomePage implements AfterViewInit, OnDestroy {
   }
 
   private clearReturnRoutePolyline(): void {
+    // Abort both the new typed controller and the legacy shared one for safety
+    if (this.returnRouteAbortController) {
+      try { this.returnRouteAbortController.abort(); } catch { }
+      this.returnRouteAbortController = null;
+    }
     if (this.routeBetweenAbortController) {
-      try {
-        this.routeBetweenAbortController.abort();
-      } catch { }
+      try { this.routeBetweenAbortController.abort(); } catch { }
       this.routeBetweenAbortController = null;
     }
     this.currentActiveRouteCoordinates = [];

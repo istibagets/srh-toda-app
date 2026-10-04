@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T06:31:00.269Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 17 - Second Normal Form (2NF)">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="620" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="t_0" value="&lt;b&gt;users_2nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: user_id&lt;/b&gt;&lt;br&gt;full_name&lt;br&gt;email&lt;br&gt;phone&lt;br&gt;role_id&lt;br&gt;role_name&lt;br&gt;account_status" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="50" y="70" width="220" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="t_1" value="&lt;b&gt;drivers_2nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: driver_id&lt;/b&gt;&lt;br&gt;user_id&lt;br&gt;mtop_number&lt;br&gt;plate_number&lt;br&gt;license_number&lt;br&gt;body_number&lt;br&gt;queue_rank&lt;br&gt;geofence_status" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="300" y="70" width="250" height="155" as="geometry" />
+        </mxCell>
+        <mxCell id="t_2" value="&lt;b&gt;terminals_2nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: terminal_id&lt;/b&gt;&lt;br&gt;terminal_name&lt;br&gt;anchor_latitude&lt;br&gt;anchor_longitude&lt;br&gt;geofence_radius" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="580" y="70" width="250" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="t_3" value="&lt;b&gt;tariffs_2nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: tariff_id&lt;/b&gt;&lt;br&gt;base_fare&lt;br&gt;per_km_rate&lt;br&gt;night_differential" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="580" y="200" width="250" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="t_4" value="&lt;b&gt;rides_2nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: ride_id&lt;/b&gt;&lt;br&gt;passenger_id&lt;br&gt;driver_id&lt;br&gt;terminal_id&lt;br&gt;tariff_id&lt;br&gt;pickup_lat&lt;br&gt;drop_lat&lt;br&gt;distance_km&lt;br&gt;total_fare&lt;br&gt;ride_status" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="50" y="240" width="220" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="t_5" value="&lt;b&gt;messages_2nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: message_id&lt;/b&gt;&lt;br&gt;ride_id&lt;br&gt;sender_id&lt;br&gt;receiver_id&lt;br&gt;message_content&lt;br&gt;sent_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="300" y="250" width="250" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="t_6" value="&lt;b&gt;reports_2nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: report_id&lt;/b&gt;&lt;br&gt;ride_id&lt;br&gt;reporter_id&lt;br&gt;category&lt;br&gt;description&lt;br&gt;status&lt;br&gt;resolution" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="580" y="315" width="250" height="135" as="geometry" />
+        </mxCell>
+        <mxCell id="t_7" value="&lt;b&gt;remittances_2nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: remittance_id&lt;/b&gt;&lt;br&gt;driver_id&lt;br&gt;collector_id&lt;br&gt;amount&lt;br&gt;receipt_number&lt;br&gt;payment_date" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="50" y="445" width="220" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="t_8" value="&lt;b&gt;activity_logs_2nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: log_id&lt;/b&gt;&lt;br&gt;actor_id&lt;br&gt;action_type&lt;br&gt;ip_address&lt;br&gt;timestamp" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="300" y="400" width="250" height="110" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T06:21:25.967Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 20 - System Architecture">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="650" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="t1" value="&lt;b&gt;CLIENT PRESENTATION TIER&lt;/b&gt;&lt;br&gt;&lt;br&gt;• Ionic 8 &amp;amp; Angular 19 PWA&lt;br&gt;• MapLibre GL Vector Map Canvas&lt;br&gt;• HTML5 W3C Geolocation API&lt;br&gt;• Web Audio Synthesis Alerts&lt;br&gt;• Service Worker &amp;amp; Offline Manifest" style="rounded=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=2;align=left;spacingLeft=15;" vertex="1" parent="1">
+            <mxGeometry x="60" y="100" width="340" height="500" as="geometry" />
+        </mxCell>
+        <mxCell id="t2" value="&lt;b&gt;APPLICATION LOGIC TIER&lt;/b&gt;&lt;br&gt;&lt;br&gt;• Laravel 11 RESTful API Core&lt;br&gt;• Laravel Reverb WebSockets (Port 8080)&lt;br&gt;• Sanctum 64-char Bearer Token RBAC&lt;br&gt;• 35m Haversine Geofence Engine&lt;br&gt;• &lt;b&gt;Priority Queue Recovery Engine&lt;/b&gt;&lt;br&gt;• Distance-Tiered Tariff Metering" style="rounded=1;fillColor=#F5F3FF;strokeColor=#7C3AED;strokeWidth=2;align=left;spacingLeft=15;" vertex="1" parent="1">
+            <mxGeometry x="460" y="100" width="380" height="500" as="geometry" />
+        </mxCell>
+        <mxCell id="t3" value="&lt;b&gt;PERSISTENCE &amp;amp; EXTERNAL TIER&lt;/b&gt;&lt;br&gt;&lt;br&gt;• 3NF Relational Database (MySQL / SQLite)&lt;br&gt;• Redis In-Memory Queue State Cache&lt;br&gt;• Google Gmail SMTP Relay (OTP Code)&lt;br&gt;• OpenStreetMap Vector Tile Servers&lt;br&gt;• Append-Only Audit Trail Vault" style="rounded=1;fillColor=#ECFDF5;strokeColor=#059669;strokeWidth=2;align=left;spacingLeft=15;" vertex="1" parent="1">
+            <mxGeometry x="900" y="100" width="340" height="500" as="geometry" />
+        </mxCell>
+        <mxCell id="e_t1_t2" value="HTTPS REST / WSS Reverb (8080)" style="strokeColor=#2563EB;strokeWidth=2;" edge="1" parent="1" source="t1" target="t2">
+            <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_t2_t3" value="Eloquent ORM / Redis Protocol / SMTP" style="strokeColor=#059669;strokeWidth=2;" edge="1" parent="1" source="t2" target="t3">
+            <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

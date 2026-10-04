@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T06:21:25.966Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 3 - Data Gathering Flowchart">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="600" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="p1" value="&lt;b&gt;PHASE 1: PREPARATION&lt;/b&gt;&lt;br&gt;• Permits &amp;amp; Survey&lt;br&gt;• 35m Geofence Mapping" style="rounded=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;" vertex="1" parent="1">
+            <mxGeometry x="60" y="100" width="220" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="p2" value="&lt;b&gt;PHASE 2: DEVELOPMENT&lt;/b&gt;&lt;br&gt;• Agile SDLC Sprints&lt;br&gt;• Auth, Queue &amp;amp; Tariff" style="rounded=1;fillColor=#F5F3FF;strokeColor=#7C3AED;strokeWidth=1.5;" vertex="1" parent="1">
+            <mxGeometry x="340" y="100" width="220" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="p3" value="&lt;b&gt;PHASE 3: EXPERT REVIEW&lt;/b&gt;&lt;br&gt;• ISO/IEC 25010 (8 Metrics)&lt;br&gt;• WCAG 2.2 Accessibility" style="rounded=1;fillColor=#FFFBEB;strokeColor=#D97706;strokeWidth=1.5;" vertex="1" parent="1">
+            <mxGeometry x="620" y="100" width="220" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="p4" value="&lt;b&gt;PHASE 4: LIVE DEPLOYMENT&lt;/b&gt;&lt;br&gt;• N = 35 Field Respondents&lt;br&gt;• Live Terminal Geofence" style="rounded=1;fillColor=#ECFDF5;strokeColor=#059669;strokeWidth=1.5;" vertex="1" parent="1">
+            <mxGeometry x="900" y="100" width="220" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="dec" value="&lt;b&gt;Quality &amp;amp; UAT&lt;br&gt;Standards Met?&lt;/b&gt;" style="rhombus;fillColor=#FEF2F2;strokeColor=#EF4444;strokeWidth=2;" vertex="1" parent="1">
+            <mxGeometry x="930" y="260" width="160" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="p5" value="&lt;b&gt;PHASE 5: DATA GATHERING&lt;/b&gt;&lt;br&gt;• 5-Point Likert Scales&lt;br&gt;• TAM Survey Metrics" style="rounded=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;" vertex="1" parent="1">
+            <mxGeometry x="900" y="440" width="220" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="p6" value="&lt;b&gt;PHASE 6: STATISTICAL ANALYSIS&lt;/b&gt;&lt;br&gt;• Weighted Mean (4.88 High)&lt;br&gt;• ISO 25010 Quality Synthesis" style="rounded=1;fillColor=#F5F3FF;strokeColor=#7C3AED;strokeWidth=1.5;" vertex="1" parent="1">
+            <mxGeometry x="480" y="440" width="360" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="p7" value="&lt;b&gt;PHASE 7: REPORTING &amp;amp; LAUNCH&lt;/b&gt;&lt;br&gt;• Manuscript Compilation&lt;br&gt;• Turn-over to Santa Rosa TODA" style="rounded=1;fillColor=#ECFDF5;strokeColor=#059669;strokeWidth=1.5;" vertex="1" parent="1">
+            <mxGeometry x="60" y="440" width="360" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="p1" target="p2">
+            <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="p2" target="p3">
+            <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="p3" target="p4">
+            <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="p4" target="dec">
+            <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_yes" value="YES" style="strokeColor=#059669;strokeWidth=2;" edge="1" parent="1" source="dec" target="p5">
+            <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_no" value="NO (Agile Refinement)" style="strokeColor=#DC2626;strokeWidth=1.5;dashed=1;" edge="1" parent="1" source="dec" target="p2">
+            <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="p5" target="p6">
+            <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="p6" target="p7">
+            <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

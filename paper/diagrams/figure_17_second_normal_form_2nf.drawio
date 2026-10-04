@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T06:21:03.013Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 17 - 2NF">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="600" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="b_info" value="&lt;b&gt;SECOND NORMAL FORM (2NF) SPECIFICATION&lt;/b&gt;&lt;br&gt;Partial Dependencies eliminated by decomposing into distinct determinant entities." style="rounded=1;fillColor=#ECFDF5;strokeColor=#059669;strokeWidth=1.5;" vertex="1" parent="1">
+            <mxGeometry x="60" y="80" width="1160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="t_u2" value="&lt;b&gt;USERS_2NF&lt;/b&gt;&lt;hr&gt;&lt;u&gt;id&lt;/u&gt;, name, email, phone_number, role, password, email_verified_at, is_active" style="shape=table;startSize=30;container=1;fillColor=#1E40AF;strokeColor=#1D4ED8;fontColor=#FFFFFF;" vertex="1" parent="1">
+            <mxGeometry x="60" y="170" width="360" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="t_d2" value="&lt;b&gt;DRIVERS_2NF&lt;/b&gt;&lt;hr&gt;&lt;u&gt;id&lt;/u&gt;, user_id (FK), full_name, mtop_number, mtop_cert_url, license_url, compliance_status" style="shape=table;startSize=30;container=1;fillColor=#059669;strokeColor=#047857;fontColor=#FFFFFF;" vertex="1" parent="1">
+            <mxGeometry x="460" y="170" width="380" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="t_r2" value="&lt;b&gt;RIDES_2NF&lt;/b&gt;&lt;hr&gt;&lt;u&gt;id&lt;/u&gt;, passenger_id (FK), driver_id (FK), pickup_loc, destination, fare, status" style="shape=table;startSize=30;container=1;fillColor=#1D4ED8;strokeColor=#1E40AF;fontColor=#FFFFFF;" vertex="1" parent="1">
+            <mxGeometry x="880" y="170" width="340" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="t_m2" value="&lt;b&gt;MESSAGES_2NF&lt;/b&gt;&lt;hr&gt;&lt;u&gt;id&lt;/u&gt;, ride_id (FK), sender_id (FK), message, is_read" style="shape=table;startSize=30;container=1;fillColor=#334155;strokeColor=#1E293B;fontColor=#FFFFFF;" vertex="1" parent="1">
+            <mxGeometry x="60" y="310" width="360" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="t_rep2" value="&lt;b&gt;REPORTS_2NF&lt;/b&gt;&lt;hr&gt;&lt;u&gt;id&lt;/u&gt;, reporter_id (FK), reported_id (FK), ride_id (FK), category, description, status" style="shape=table;startSize=30;container=1;fillColor=#DC2626;strokeColor=#B91C1C;fontColor=#FFFFFF;" vertex="1" parent="1">
+            <mxGeometry x="460" y="310" width="380" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="t_log2" value="&lt;b&gt;ACTIVITY_LOGS_2NF&lt;/b&gt;&lt;hr&gt;&lt;u&gt;id&lt;/u&gt;, user_id (FK), action, ip_address, user_agent, created_at" style="shape=table;startSize=30;container=1;fillColor=#7C3AED;strokeColor=#6D28D9;fontColor=#FFFFFF;" vertex="1" parent="1">
+            <mxGeometry x="880" y="310" width="340" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="b_trans" value="&lt;b&gt;FLAGGED TRANSITIVE DEPENDENCIES FOR 3NF RESOLUTION:&lt;/b&gt;&lt;br&gt;• In DRIVERS_2NF: user_id determines full_name and user credentials.&lt;br&gt;• In RIDES_2NF: driver_id determines driver franchise status.&lt;br&gt;• Resolving into 3NF ensures every non-key attribute depends ONLY on the Primary Key." style="rounded=1;fillColor=#F5F3FF;strokeColor=#7C3AED;strokeWidth=1.5;" vertex="1" parent="1">
+            <mxGeometry x="60" y="440" width="1160" height="90" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T06:21:03.008Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 11 - DFD Level 2 Process 2.0">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="500" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="e2" value="&lt;b&gt;E2: Driver&lt;/b&gt;" style="rounded=0;fillColor=#F8FAFC;strokeColor=#059669;" vertex="1" parent="1">
+            <mxGeometry x="60" y="100" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="&lt;b&gt;E3: TODA Admin&lt;/b&gt;" style="rounded=0;fillColor=#F8FAFC;strokeColor=#2563EB;" vertex="1" parent="1">
+            <mxGeometry x="60" y="360" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="p21" value="&lt;b&gt;2.1&lt;/b&gt;&lt;br&gt;Upload MTOP &amp;amp; License Documents" style="rounded=1;arcSize=20;fillColor=#EFF6FF;strokeColor=#2563EB;" vertex="1" parent="1">
+            <mxGeometry x="300" y="100" width="380" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="p22" value="&lt;b&gt;2.2&lt;/b&gt;&lt;br&gt;Review Accreditation via Admin Console" style="rounded=1;arcSize=20;fillColor=#EFF6FF;strokeColor=#2563EB;" vertex="1" parent="1">
+            <mxGeometry x="300" y="220" width="380" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="p23" value="&lt;b&gt;2.3&lt;/b&gt;&lt;br&gt;Enforce Terminal Compliance Gatekeeper" style="rounded=1;arcSize=20;fillColor=#EFF6FF;strokeColor=#2563EB;" vertex="1" parent="1">
+            <mxGeometry x="300" y="340" width="380" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="d2" value="&lt;b&gt;D2&lt;/b&gt; | drivers_3nf" style="shape=partialRectangle;top=0;bottom=0;fillColor=#F0FDF4;strokeColor=#059669;strokeWidth=2;" vertex="1" parent="1">
+            <mxGeometry x="760" y="180" width="260" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="e_up" value="MTOP Upload" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="e2" target="p21">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_p21_d2" value="Save URLs" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="p21" target="d2">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_rev" value="Approve/Reject" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="e3" target="p22">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_p22_d2" value="Update Status" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="p22" target="d2">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

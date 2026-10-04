@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T06:30:39.619Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 5 - Driver UI Mockup">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="520" pageHeight="680" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="frame" value="&lt;b&gt;Driver PWA Interface Mockup&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=center;verticalAlign=top;spacingTop=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="100" y="60" width="320" height="560" as="geometry" />
+        </mxCell>
+        <mxCell id="header" value="&lt;b&gt;DRIVER TERMINAL CONSOLE&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="110" y="100" width="300" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="geo_status" value="&lt;b&gt;35m Geofence Status: ACTIVE&lt;/b&gt;&lt;br&gt;Terminal Distance: &lt;b&gt;12.4 meters&lt;/b&gt;&lt;br&gt;Assigned Queue Rank: &lt;b&gt;#1 (Next in Line)&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="110" y="150" width="300" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="recovery_alert" value="&lt;b&gt;[ PRIORITY RECOVERY ACTIVE ]&lt;/b&gt;&lt;br&gt;Previous ride canceled by passenger.&lt;br&gt;Driver restored to front of queue." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="110" y="230" width="300" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="dispatch_card" value="&lt;b&gt;INCOMING DISPATCH PROMPT&lt;/b&gt;&lt;br&gt;Passenger: Maria S. | Fare: PHP 45.00&lt;br&gt;Destination: Brgy. Rajal Centro" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="110" y="300" width="300" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="btn_accept" value="&lt;b&gt;[ ACCEPT DISPATCH ]&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="110" y="400" width="145" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="btn_pass" value="&lt;b&gt;[ PASS (10s) ]&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="265" y="400" width="145" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="dues_card" value="&lt;b&gt;Daily Dues Remittance&lt;/b&gt;: Paid (PHP 20.00)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="110" y="460" width="300" height="45" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

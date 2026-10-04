@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T06:21:03.005Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 8 - Context Diagram">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="750" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="p0" value="&lt;b&gt;PROCESS 0.0&lt;/b&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;SRH LINK-TODA&lt;/b&gt;&lt;br&gt;Central Paratransit Dispatch &amp;amp; Governance Platform&lt;br&gt;&lt;br&gt;&lt;i&gt;(35m Geofencing, Priority Queue Recovery, Distance Tariff, WebSocket Reverb 8080)&lt;/i&gt;" style="rounded=1;arcSize=20;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=2.5;align=center;verticalAlign=middle;fontSize=12;" vertex="1" parent="1">
+            <mxGeometry x="460" y="260" width="340" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" value="&lt;b&gt;E1: Passenger / Commuter&lt;/b&gt;&lt;br&gt;&lt;br&gt;• Ride Booking Pins&lt;br&gt;• OTP Token&lt;br&gt;• Cash Fare Payor&lt;br&gt;• Grievance Reporter" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#1E293B;strokeWidth=2;align=left;spacingLeft=12;verticalAlign=top;spacingTop=8;fontSize=11;" vertex="1" parent="1">
+            <mxGeometry x="80" y="100" width="220" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="&lt;b&gt;E2: Tricycle Driver&lt;/b&gt;&lt;br&gt;&lt;br&gt;• 35m Geofence GPS&lt;br&gt;• MTOP Upload&lt;br&gt;• Dispatch Accept&lt;br&gt;• Dues Remitter" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#059669;strokeWidth=2;align=left;spacingLeft=12;verticalAlign=top;spacingTop=8;fontSize=11;" vertex="1" parent="1">
+            <mxGeometry x="80" y="500" width="220" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="&lt;b&gt;E3: TODA Administrator&lt;/b&gt;&lt;br&gt;&lt;br&gt;• Queue Overrides&lt;br&gt;• MTOP Verification&lt;br&gt;• Dispute Blotters&lt;br&gt;• Remittance Ledger" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#2563EB;strokeWidth=2;align=left;spacingLeft=12;verticalAlign=top;spacingTop=8;fontSize=11;" vertex="1" parent="1">
+            <mxGeometry x="960" y="100" width="220" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="&lt;b&gt;E4: Superadministrator&lt;/b&gt;&lt;br&gt;&lt;br&gt;• Tariff Calibration&lt;br&gt;• Geofence Config&lt;br&gt;• System Audit Trail&lt;br&gt;• Maintenance Mode" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#7C3AED;strokeWidth=2;align=left;spacingLeft=12;verticalAlign=top;spacingTop=8;fontSize=11;" vertex="1" parent="1">
+            <mxGeometry x="960" y="500" width="220" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="f1" value="Registration, OTP, Pickup/Drop-off Pins" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;strokeColor=#2563EB;strokeWidth=1.5;endArrow=block;" edge="1" parent="1" source="e1" target="p0">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f2" value="Queue Rank, Matched Driver #, Telemetry, Fare Receipt" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;strokeColor=#2563EB;strokeWidth=1.5;endArrow=block;" edge="1" parent="1" source="p0" target="e1">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f3" value="35m GPS Ping, MTOP Credentials, Accept Dispatch" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;strokeColor=#059669;strokeWidth=1.5;endArrow=block;" edge="1" parent="1" source="e2" target="p0">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f4" value="FIFO Slot (#1), Priority Recovery State, Remittance Log" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;strokeColor=#059669;strokeWidth=1.5;endArrow=block;" edge="1" parent="1" source="p0" target="e2">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f5" value="Manual Queue Overrides, MTOP Approvals, Dispute Resolutions" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;strokeColor=#2563EB;strokeWidth=1.5;endArrow=block;" edge="1" parent="1" source="e3" target="p0">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f6" value="Live Queue Monitor, Pending Accreditations, Remittance Ledger" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;strokeColor=#2563EB;strokeWidth=1.5;endArrow=block;" edge="1" parent="1" source="p0" target="e3">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f7" value="Municipal Tariff Multipliers, 35m GPS Coords" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;strokeColor=#7C3AED;strokeWidth=1.5;endArrow=block;" edge="1" parent="1" source="e4" target="p0">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f8" value="Activity Audit Logs, Socket Metrics" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;strokeColor=#7C3AED;strokeWidth=1.5;endArrow=block;" edge="1" parent="1" source="p0" target="e4">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

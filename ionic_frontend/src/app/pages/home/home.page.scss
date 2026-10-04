@@ -30,9 +30,9 @@
   height: 100%;
   z-index: 1;
   background: #e2e8f0;
-  contain: strict;
-  transform: translate3d(0, 0, 0);
-  -webkit-transform: translate3d(0, 0, 0);
+  /* NOTE: contain:strict intentionally removed — it creates an isolated compositing
+     stacking context that shifts MapLibre's pixel-origin for DOM markers on
+     zoom/pan/rotate, causing the tricycle icon to drift across the screen. */
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T06:21:03.011Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 14 - ERD">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="750" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="t_users" value="&lt;b&gt;USERS&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK&lt;/b&gt; id: BIGINT&lt;br&gt;name: VARCHAR&lt;br&gt;email: VARCHAR (UQ)&lt;br&gt;phone_number: VARCHAR&lt;br&gt;role: ENUM&lt;br&gt;password: VARCHAR&lt;br&gt;email_verified_at: TIMESTAMP&lt;br&gt;is_active: BOOL" style="shape=table;startSize=30;container=1;fillColor=#1E293B;strokeColor=#334155;fontColor=#FFFFFF;align=left;spacingLeft=10;" vertex="1" parent="1">
+            <mxGeometry x="60" y="100" width="260" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="t_drivers" value="&lt;b&gt;DRIVERS&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK&lt;/b&gt; id: BIGINT&lt;br&gt;&lt;b&gt;FK&lt;/b&gt; user_id: BIGINT&lt;br&gt;full_name: VARCHAR&lt;br&gt;mtop_number: VARCHAR&lt;br&gt;mtop_cert_url: VARCHAR&lt;br&gt;license_url: VARCHAR&lt;br&gt;compliance_status: VARCHAR&lt;br&gt;is_online: BOOL&lt;br&gt;queue_pos: INT&lt;br&gt;rating: DECIMAL" style="shape=table;startSize=30;container=1;fillColor=#059669;strokeColor=#047857;fontColor=#FFFFFF;align=left;spacingLeft=10;" vertex="1" parent="1">
+            <mxGeometry x="440" y="100" width="280" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="t_rides" value="&lt;b&gt;RIDES&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK&lt;/b&gt; id: BIGINT&lt;br&gt;&lt;b&gt;FK&lt;/b&gt; passenger_id: BIGINT&lt;br&gt;&lt;b&gt;FK&lt;/b&gt; driver_id: BIGINT&lt;br&gt;pickup_location: VARCHAR&lt;br&gt;destination: VARCHAR&lt;br&gt;pickup_lat / lng: DECIMAL&lt;br&gt;fare: DECIMAL (8,2)&lt;br&gt;status: VARCHAR&lt;br&gt;cancellation_reason: VARCHAR" style="shape=table;startSize=30;container=1;fillColor=#1D4ED8;strokeColor=#1E40AF;fontColor=#FFFFFF;align=left;spacingLeft=10;" vertex="1" parent="1">
+            <mxGeometry x="840" y="100" width="280" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="t_messages" value="&lt;b&gt;MESSAGES&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK&lt;/b&gt; id: BIGINT&lt;br&gt;&lt;b&gt;FK&lt;/b&gt; ride_id: BIGINT&lt;br&gt;&lt;b&gt;FK&lt;/b&gt; sender_id: BIGINT&lt;br&gt;message: TEXT&lt;br&gt;is_read: BOOL&lt;br&gt;created_at: TIMESTAMP" style="shape=table;startSize=30;container=1;fillColor=#334155;strokeColor=#1E293B;fontColor=#FFFFFF;align=left;spacingLeft=10;" vertex="1" parent="1">
+            <mxGeometry x="60" y="440" width="260" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="t_reports" value="&lt;b&gt;REPORTS&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK&lt;/b&gt; id: BIGINT&lt;br&gt;&lt;b&gt;FK&lt;/b&gt; reporter_id: BIGINT&lt;br&gt;&lt;b&gt;FK&lt;/b&gt; reported_id: BIGINT&lt;br&gt;&lt;b&gt;FK&lt;/b&gt; ride_id: BIGINT&lt;br&gt;category: VARCHAR&lt;br&gt;description: TEXT&lt;br&gt;status: VARCHAR&lt;br&gt;resolution_notes: TEXT" style="shape=table;startSize=30;container=1;fillColor=#DC2626;strokeColor=#B91C1C;fontColor=#FFFFFF;align=left;spacingLeft=10;" vertex="1" parent="1">
+            <mxGeometry x="440" y="440" width="280" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="t_logs" value="&lt;b&gt;ACTIVITY_LOGS&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK&lt;/b&gt; id: BIGINT&lt;br&gt;&lt;b&gt;FK&lt;/b&gt; user_id: BIGINT&lt;br&gt;action: VARCHAR&lt;br&gt;ip_address: VARCHAR&lt;br&gt;user_agent: VARCHAR&lt;br&gt;created_at: TIMESTAMP" style="shape=table;startSize=30;container=1;fillColor=#7C3AED;strokeColor=#6D28D9;fontColor=#FFFFFF;align=left;spacingLeft=10;" vertex="1" parent="1">
+            <mxGeometry x="840" y="440" width="280" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_u_d" value="1 : 1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;strokeColor=#059669;strokeWidth=2;endArrow=ERone;endFill=1;startArrow=ERone;startFill=1;" edge="1" parent="1" source="t_users" target="t_drivers">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_d_r" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;strokeColor=#1D4ED8;strokeWidth=2;endArrow=ERmany;endFill=1;startArrow=ERone;startFill=1;" edge="1" parent="1" source="t_drivers" target="t_rides">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_u_r" value="1 : N (Passenger)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;strokeColor=#1D4ED8;strokeWidth=2;endArrow=ERmany;endFill=1;startArrow=ERone;startFill=1;" edge="1" parent="1" source="t_users" target="t_rides">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="190" y="70" /><mxPoint x="980" y="70" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_r_m" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;strokeColor=#334155;strokeWidth=2;endArrow=ERmany;endFill=1;startArrow=ERone;startFill=1;" edge="1" parent="1" source="t_rides" target="t_messages">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_u_rep" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;strokeColor=#DC2626;strokeWidth=2;endArrow=ERmany;endFill=1;startArrow=ERone;startFill=1;" edge="1" parent="1" source="t_users" target="t_reports">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_u_log" value="1 : N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpStyle=arc;strokeColor=#7C3AED;strokeWidth=2;endArrow=ERmany;endFill=1;startArrow=ERone;startFill=1;" edge="1" parent="1" source="t_users" target="t_logs">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

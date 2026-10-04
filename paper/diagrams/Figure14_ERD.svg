@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 740" width="1220" height="740">
+    <defs>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Times+New+Roman:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap');
+            text { font-family: 'Times New Roman', Times, serif; }
+            .fig-title { font-size: 13px; font-weight: bold; font-style: italic; fill: #000000; }
+            .header-text { font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .entity-title { font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .process-num { font-size: 11px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .process-title { font-size: 11px; font-weight: normal; fill: #000000; text-anchor: middle; }
+            .node-title { font-size: 11px; font-weight: bold; fill: #000000; }
+            .node-desc { font-size: 10px; font-weight: normal; fill: #000000; }
+            .store-id { font-size: 11px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .store-name { font-size: 10.5px; font-weight: normal; fill: #000000; }
+            .flow-text { font-size: 9px; fill: #000000; }
+            .flow-text-right { font-size: 9px; fill: #000000; text-anchor: end; }
+            .flow-text-center { font-size: 9px; fill: #000000; text-anchor: middle; }
+        </style>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#000000" />
+        </marker>
+        <marker id="crowsfoot-one" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 5 0 L 5 10 M 8 0 L 8 10" stroke="#000000" stroke-width="1.2" fill="none" />
+        </marker>
+        <marker id="crowsfoot-many" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 M 10 0 L 10 10" stroke="#000000" stroke-width="1.2" fill="none" />
+        </marker>
+    </defs>
+    <!-- Pure White Background -->
+    <rect width="1220" height="740" fill="#FFFFFF"/>
+    
+    <!-- Figure Header -->
+    <g transform="translate(30, 25)">
+        <text class="fig-title" x="0" y="0">Figure 14. Entity Relationship Diagram (ERD / Relational 3NF Schema)</text>
+    </g>
+
+    
+        <g transform="translate(50, 90)">
+            <rect width="270" height="210" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+            <rect width="270" height="22" fill="#FFFFFF" stroke="#000000" stroke-width="1"/>
+            <text class="table-head" x="135" y="15" text-anchor="middle">users_3nf</text>
+            <text class="table-head" x="8" y="38">PK: id</text>
+            
+            <text class="node-desc" x="8" y="52">name: varchar(255)</text><text class="node-desc" x="8" y="66">email: varchar(255) (UQ)</text><text class="node-desc" x="8" y="80">contact_number: varchar(50)</text><text class="node-desc" x="8" y="94">role: enum(passenger,driver,admin)</text><text class="node-desc" x="8" y="108">is_active: tinyint(1)</text><text class="node-desc" x="8" y="122">profile_photo_url: text</text><text class="node-desc" x="8" y="136">email_verified_at: timestamp</text><text class="node-desc" x="8" y="150">created_at: timestamp</text>
+        </g>
+        <g transform="translate(420, 90)">
+            <rect width="290" height="230" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+            <rect width="290" height="22" fill="#FFFFFF" stroke="#000000" stroke-width="1"/>
+            <text class="table-head" x="145" y="15" text-anchor="middle">drivers_3nf</text>
+            <text class="table-head" x="8" y="38">PK: id</text>
+            <text class="flow-text" x="8" y="52">FK: user_id -> users_3nf.id</text>
+            <text class="node-desc" x="8" y="66">mtop_number: varchar(50)</text><text class="node-desc" x="8" y="80">plate_number: varchar(50)</text><text class="node-desc" x="8" y="94">license_number: varchar(50)</text><text class="node-desc" x="8" y="108">compliance_status: varchar(50)</text><text class="node-desc" x="8" y="122">is_online: tinyint(1)</text><text class="node-desc" x="8" y="136">queue_position: int (nullable)</text><text class="node-desc" x="8" y="150">queue_joined_at: timestamp</text><text class="node-desc" x="8" y="164">outside_geofence_at: timestamp</text><text class="node-desc" x="8" y="178">last_activity_at: timestamp</text>
+        </g>
+        <g transform="translate(810, 90)">
+            <rect width="330" height="300" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+            <rect width="330" height="22" fill="#FFFFFF" stroke="#000000" stroke-width="1"/>
+            <text class="table-head" x="165" y="15" text-anchor="middle">rides_3nf</text>
+            <text class="table-head" x="8" y="38">PK: id</text>
+            <text class="flow-text" x="8" y="52">FK: passenger_id -> users_3nf.id</text><text class="flow-text" x="8" y="66">FK: driver_id -> users_3nf.id</text>
+            <text class="node-desc" x="8" y="80">pickup_location: text</text><text class="node-desc" x="8" y="94">pickup_latitude: decimal(10,8)</text><text class="node-desc" x="8" y="108">pickup_longitude: decimal(11,8)</text><text class="node-desc" x="8" y="122">destination: text</text><text class="node-desc" x="8" y="136">destination_latitude: decimal(10,8)</text><text class="node-desc" x="8" y="150">destination_longitude: decimal(11,8)</text><text class="node-desc" x="8" y="164">fare: decimal(8,2)</text><text class="node-desc" x="8" y="178">proposed_fare: decimal(8,2)</text><text class="node-desc" x="8" y="192">distance_km: decimal(8,2)</text><text class="node-desc" x="8" y="206">status: enum(pending,accepted,completed,cancelled)</text><text class="node-desc" x="8" y="220">cancellation_reason: text</text><text class="node-desc" x="8" y="234">passenger_rating: int</text><text class="node-desc" x="8" y="248">created_at: timestamp</text>
+        </g>
+        <g transform="translate(810, 450)">
+            <rect width="330" height="140" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+            <rect width="330" height="22" fill="#FFFFFF" stroke="#000000" stroke-width="1"/>
+            <text class="table-head" x="165" y="15" text-anchor="middle">messages_3nf</text>
+            <text class="table-head" x="8" y="38">PK: id</text>
+            <text class="flow-text" x="8" y="52">FK: ride_id -> rides_3nf.id</text><text class="flow-text" x="8" y="66">FK: sender_id -> users_3nf.id</text>
+            <text class="node-desc" x="8" y="80">message: text</text><text class="node-desc" x="8" y="94">is_read: tinyint(1)</text><text class="node-desc" x="8" y="108">created_at: timestamp</text>
+        </g>
+        <g transform="translate(420, 390)">
+            <rect width="290" height="180" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+            <rect width="290" height="22" fill="#FFFFFF" stroke="#000000" stroke-width="1"/>
+            <text class="table-head" x="145" y="15" text-anchor="middle">reports_3nf</text>
+            <text class="table-head" x="8" y="38">PK: id</text>
+            <text class="flow-text" x="8" y="52">FK: reporter_id -> users_3nf.id</text><text class="flow-text" x="8" y="66">FK: driver_id -> users_3nf.id</text><text class="flow-text" x="8" y="80">FK: ride_id -> rides_3nf.id</text>
+            <text class="node-desc" x="8" y="94">type: varchar(100)</text><text class="node-desc" x="8" y="108">description: text</text><text class="node-desc" x="8" y="122">attachment_url: text</text><text class="node-desc" x="8" y="136">status: enum(pending,under_review,resolved)</text><text class="node-desc" x="8" y="150">admin_remarks: text</text><text class="node-desc" x="8" y="164">created_at: timestamp</text>
+        </g>
+        <g transform="translate(50, 380)">
+            <rect width="270" height="160" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+            <rect width="270" height="22" fill="#FFFFFF" stroke="#000000" stroke-width="1"/>
+            <text class="table-head" x="135" y="15" text-anchor="middle">activity_logs_3nf</text>
+            <text class="table-head" x="8" y="38">PK: id</text>
+            <text class="flow-text" x="8" y="52">FK: user_id -> users_3nf.id</text>
+            <text class="node-desc" x="8" y="66">action: varchar(255)</text><text class="node-desc" x="8" y="80">description: text</text><text class="node-desc" x="8" y="94">ip_address: varchar(45)</text><text class="node-desc" x="8" y="108">user_agent: text</text><text class="node-desc" x="8" y="122">created_at: timestamp</text>
+        </g>
+    <!-- USERS -> DRIVERS -->
+    <path d="M 320 160 L 420 160" fill="none" stroke="#000000" stroke-width="1.2" marker-start="url(#crowsfoot-one)" marker-end="url(#crowsfoot-one)"/>
+
+    <!-- DRIVERS -> RIDES -->
+    <path d="M 710 160 L 810 160" fill="none" stroke="#000000" stroke-width="1.2" marker-start="url(#crowsfoot-one)" marker-end="url(#crowsfoot-many)"/>
+
+    <!-- RIDES -> MESSAGES -->
+    <path d="M 975 390 L 975 450" fill="none" stroke="#000000" stroke-width="1.2" marker-start="url(#crowsfoot-one)" marker-end="url(#crowsfoot-many)"/>
+
+    <!-- RIDES -> REPORTS -->
+    <path d="M 810 330 L 750 330 L 750 480 L 710 480" fill="none" stroke="#000000" stroke-width="1.2" marker-start="url(#crowsfoot-one)" marker-end="url(#crowsfoot-many)"/>
+
+    <!-- USERS -> ACTIVITY LOGS -->
+    <path d="M 185 300 L 185 380" fill="none" stroke="#000000" stroke-width="1.2" marker-start="url(#crowsfoot-one)" marker-end="url(#crowsfoot-many)"/>
+    
+</svg>

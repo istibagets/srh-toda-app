@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T07:43:14.546Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 6 - Admin UI Mockup">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="960" pageHeight="580" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="frame" value="&lt;b&gt;SRH LINK-TODA TODA DISPATCHER &amp;amp; SUPERADMIN CONSOLE&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;verticalAlign=top;align=center;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="60" y="50" width="840" height="490" as="geometry" />
+        </mxCell>
+        <mxCell id="kpi1" value="&lt;b&gt;Active Standby Drivers&lt;/b&gt;&lt;br&gt;14 Tricycles" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="80" y="130" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="kpi2" value="&lt;b&gt;Completed Trips Today&lt;/b&gt;&lt;br&gt;184 Trips" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="280" y="130" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="kpi3" value="&lt;b&gt;Daily Remittance&lt;/b&gt;&lt;br&gt;PHP 3,680.00" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="480" y="130" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="kpi4" value="&lt;b&gt;Incident Blotters&lt;/b&gt;&lt;br&gt;0 Pending Disputes" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="680" y="130" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="queue_table" value="&lt;b&gt;LIVE FIFO QUEUE MONITOR &amp;amp; OVERRIDE&lt;/b&gt;&lt;br&gt;&lt;br&gt;Rank 1: Body #042 (Juan Dela Cruz) - STANDBY&lt;br&gt;Rank 2: Body #108 (Pedro Santos) - STANDBY&lt;br&gt;Rank 3: Body #015 (Carlos Reyes) - DISPATCHED&lt;br&gt;Rank 4: Body #088 (Mario Bautista) - STANDBY" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;align=left;spacingLeft=10;verticalAlign=top;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="80" y="205" width="480" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="tariff_panel" value="&lt;b&gt;MUNICIPAL TARIFF &amp;amp; GEOFENCE&lt;/b&gt;&lt;br&gt;&lt;br&gt;Base Fare: PHP 20.00 (First 1.0 km)&lt;br&gt;Per KM Multiplier: PHP 10.00&lt;br&gt;Geofence Radius: 35.0 Meters&lt;br&gt;Dispatch Timeout: 15 Seconds" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;align=left;spacingLeft=10;verticalAlign=top;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="570" y="205" width="310" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="footer" value="Immutable System Audit Trail &amp;bull; Laravel Reverb Socket Status: CONNECTED (Port 8080) &amp;bull; MariaDB 10.11 Synced" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="80" y="400" width="800" height="35" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

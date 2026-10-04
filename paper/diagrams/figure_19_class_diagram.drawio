@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T06:21:03.014Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 19 - Class Diagram">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="600" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="cl_user" value="&lt;b&gt;User&lt;/b&gt;&lt;hr&gt;+ id: BigInt&lt;br&gt;+ name: String&lt;br&gt;+ email: String&lt;br&gt;+ role: UserRole&lt;hr&gt;+ register(): User&lt;br&gt;+ verifyOtp(): Bool&lt;br&gt;+ createToken(): String" style="shape=table;startSize=30;container=1;fillColor=#1E40AF;strokeColor=#1D4ED8;fontColor=#FFFFFF;" vertex="1" parent="1">
+            <mxGeometry x="60" y="100" width="240" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="cl_driver" value="&lt;b&gt;Driver&lt;/b&gt;&lt;hr&gt;+ id: BigInt&lt;br&gt;+ userId: BigInt&lt;br&gt;+ mtopNumber: String&lt;br&gt;+ complianceStatus: Status&lt;hr&gt;+ uploadMTOP(): Void&lt;br&gt;+ checkInGeofence(): Bool&lt;br&gt;+ updateQueueRank(): Void" style="shape=table;startSize=30;container=1;fillColor=#059669;strokeColor=#047857;fontColor=#FFFFFF;" vertex="1" parent="1">
+            <mxGeometry x="340" y="100" width="260" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="cl_ride" value="&lt;b&gt;Ride&lt;/b&gt;&lt;hr&gt;+ id: BigInt&lt;br&gt;+ passengerId: BigInt&lt;br&gt;+ driverId: BigInt&lt;br&gt;+ fare: Decimal&lt;br&gt;+ status: RideStatus&lt;hr&gt;+ requestRide(): Ride&lt;br&gt;+ cancelRide(): Void&lt;br&gt;+ completeTrip(): Void" style="shape=table;startSize=30;container=1;fillColor=#1D4ED8;strokeColor=#1E40AF;fontColor=#FFFFFF;" vertex="1" parent="1">
+            <mxGeometry x="640" y="100" width="260" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="cl_report" value="&lt;b&gt;IncidentReport&lt;/b&gt;&lt;hr&gt;+ id: BigInt&lt;br&gt;+ reporterId: BigInt&lt;br&gt;+ rideId: BigInt&lt;br&gt;+ category: Category&lt;hr&gt;+ submitReport(): Report&lt;br&gt;+ resolveReport(): Void" style="shape=table;startSize=30;container=1;fillColor=#DC2626;strokeColor=#B91C1C;fontColor=#FFFFFF;" vertex="1" parent="1">
+            <mxGeometry x="940" y="100" width="240" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="srv_geo" value="&lt;b&gt;&amp;lt;&amp;lt;Service&amp;gt;&amp;gt; GeofenceService&lt;/b&gt;&lt;hr&gt;+ terminalLat: Decimal&lt;br&gt;+ terminalLng: Decimal&lt;br&gt;+ radiusMeters: 35.00&lt;hr&gt;+ calculateHaversine(): Meters&lt;br&gt;+ isInsideTerminal(): Bool" style="shape=table;startSize=30;container=1;fillColor=#F0FDF4;strokeColor=#059669;fontColor=#065F46;" vertex="1" parent="1">
+            <mxGeometry x="60" y="340" width="320" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="srv_queue" value="&lt;b&gt;&amp;lt;&amp;lt;Engine&amp;gt;&amp;gt; PriorityQueueManager&lt;/b&gt;&lt;hr&gt;+ activeQueue: List&amp;lt;Driver&amp;gt;&lt;br&gt;+ priorityBuffer: Map&lt;hr&gt;+ enqueueDriver(): Slot&lt;br&gt;+ restorePrioritySlot(): #1 Slot&lt;br&gt;+ broadcastQueueState(): Event" style="shape=table;startSize=30;container=1;fillColor=#EFF6FF;strokeColor=#2563EB;fontColor=#1E40AF;" vertex="1" parent="1">
+            <mxGeometry x="420" y="340" width="360" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="srv_fare" value="&lt;b&gt;&amp;lt;&amp;lt;Service&amp;gt;&amp;gt; FareCalculator&lt;/b&gt;&lt;hr&gt;+ baseTariff: 20.00&lt;br&gt;+ perKmRate: 5.00&lt;hr&gt;+ computeTariff(): Decimal&lt;br&gt;+ accrueDues(): DuesRecord" style="shape=table;startSize=30;container=1;fillColor=#FFFBEB;strokeColor=#D97706;fontColor=#92400E;" vertex="1" parent="1">
+            <mxGeometry x="820" y="340" width="360" height="150" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

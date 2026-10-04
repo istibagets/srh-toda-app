@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T07:43:14.553Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Level 2 DFD - Process 1.0">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="960" pageHeight="480" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="ent_user" value="&lt;b&gt;COMMUTER / DRIVER&lt;/b&gt;" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=center;verticalAlign=middle;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="60" y="75" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ent_admin" value="&lt;b&gt;SUPERADMIN&lt;/b&gt;" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=center;verticalAlign=middle;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="60" y="255" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="p_1.1" value="&lt;b&gt;1.1&lt;/b&gt;&lt;hr&gt;Validate Mobile OTP" style="rounded=6;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=center;verticalAlign=top;spacingTop=4;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="320" y="80" width="250" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="p_1.2" value="&lt;b&gt;1.2&lt;/b&gt;&lt;hr&gt;Verify Role Authority" style="rounded=6;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=center;verticalAlign=top;spacingTop=4;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="320" y="170" width="250" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="p_1.3" value="&lt;b&gt;1.3&lt;/b&gt;&lt;hr&gt;Issue Laravel Sanctum Token" style="rounded=6;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=center;verticalAlign=top;spacingTop=4;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="320" y="260" width="250" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="p_1.4" value="&lt;b&gt;1.4&lt;/b&gt;&lt;hr&gt;Initialize Reverb WebSocket" style="rounded=6;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=center;verticalAlign=top;spacingTop=4;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="320" y="350" width="250" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="ds_D1" value="&lt;b&gt;D1 | users_3nf&lt;/b&gt;" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=middle;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="690" y="260" width="200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="f_1" value="Input Credentials" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="ent_user" target="p_1.1">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="p_1.1" target="p_1.2">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f_3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="p_1.2" target="p_1.3">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f_4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="p_1.3" target="ds_D1">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f_5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="p_1.3" target="p_1.4">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f_6" value="Admin Login" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="ent_admin" target="p_1.2">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f_7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="p_1.4" target="ds_D1">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

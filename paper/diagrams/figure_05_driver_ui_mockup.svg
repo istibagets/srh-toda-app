@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 640" width="520" height="640">
+    <defs>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Times+New+Roman:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap');
+            text { font-family: 'Times New Roman', Times, serif; }
+            .fig-title { font-size: 13px; font-weight: bold; font-style: italic; fill: #000000; }
+            .header-text { font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .entity-title { font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .process-num { font-size: 11px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .process-title { font-size: 11px; font-weight: normal; fill: #000000; text-anchor: middle; }
+            .node-title { font-size: 11px; font-weight: bold; fill: #000000; }
+            .node-text { font-size: 10px; font-weight: normal; fill: #000000; }
+            .store-text { font-size: 10px; font-weight: normal; fill: #000000; }
+            .table-head { font-size: 11px; font-weight: bold; fill: #000000; font-family: 'Times New Roman', serif; }
+            .table-cell { font-size: 10px; font-weight: normal; fill: #000000; font-family: 'Times New Roman', serif; }
+            .table-cell-bold { font-size: 10px; font-weight: bold; fill: #000000; font-family: 'Times New Roman', serif; }
+            .flow-text { font-size: 9px; font-family: 'Times New Roman', serif; fill: #000000; }
+            .flow-text-right { font-size: 9px; font-family: 'Times New Roman', serif; fill: #000000; text-anchor: end; }
+            .flow-text-center { font-size: 9px; font-family: 'Times New Roman', serif; fill: #000000; text-anchor: middle; }
+        </style>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#000000" />
+        </marker>
+        <marker id="crowsfoot-one" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 5 0 L 5 10 M 8 0 L 8 10" stroke="#000000" stroke-width="1.2" fill="none" />
+        </marker>
+        <marker id="crowsfoot-many" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 M 10 0 L 10 10" stroke="#000000" stroke-width="1.2" fill="none" />
+        </marker>
+    </defs>
+    <!-- Pure White Background -->
+    <rect width="520" height="640" fill="#FFFFFF"/>
+    
+    <!-- Figure Header -->
+    <g transform="translate(30, 25)">
+        <text class="fig-title" x="0" y="0">Figure 5. Driver Progressive Web App (PWA) Interface Mockup with 35m Geofence Status</text>
+    </g>
+
+    
+    <!-- Mobile Frame -->
+    <rect x="100" y="60" width="320" height="540" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+
+    <!-- App Header -->
+    <rect x="110" y="95" width="300" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="1"/>
+    <text class="table-cell-bold" x="260" y="120" text-anchor="middle">DRIVER TERMINAL CONSOLE</text>
+
+    <!-- 35m Geofence Telemetry Card -->
+    <rect x="110" y="145" width="300" height="75" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+    <text class="table-cell-bold" x="125" y="168">35m Geofence Status: VERIFIED / IN-BOUNDS</text>
+    <text class="node-text" x="125" y="188">Terminal Distance: 12.4m (&#8804; 35m Threshold)</text>
+    <text class="table-cell-bold" x="125" y="208">Assigned FIFO Queue Rank: #1 (Front of Line)</text>
+
+    <!-- Priority Recovery Banner -->
+    <rect x="110" y="230" width="300" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.2" stroke-dasharray="3,3"/>
+    <text class="table-cell-bold" x="260" y="252" text-anchor="middle">[ PRIORITY RECOVERY ACTIVE ]</text>
+    <text class="flow-text-center" x="260" y="272">Previous passenger canceled ride. Rank #1 preserved.</text>
+
+    <!-- Dispatch Alert Card -->
+    <rect x="110" y="295" width="300" height="95" fill="#FFFFFF" stroke="#000000" stroke-width="1"/>
+    <text class="table-cell-bold" x="125" y="318">INCOMING DISPATCH REQUEST</text>
+    <text class="node-text" x="125" y="338">Passenger: Maria Santos | Phone: 0917-***-1234</text>
+    <text class="node-text" x="125" y="358">Destination: Brgy. Rajal Centro (2.8 km)</text>
+    <text class="table-cell-bold" x="125" y="378">Estimated Metered Fare: PHP 45.00</text>
+
+    <!-- Action Buttons -->
+    <rect x="110" y="400" width="145" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+    <text class="table-cell-bold" x="182" y="425" text-anchor="middle">ACCEPT (15s)</text>
+
+    <rect x="265" y="400" width="145" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="1"/>
+    <text class="table-cell" x="337" y="425" text-anchor="middle">PASS / SKIP</text>
+
+    <!-- Daily Remittance &amp; Nav -->
+    <rect x="110" y="455" width="300" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="1"/>
+    <text class="node-text" x="125" y="480">Daily Dues Remittance: <tspan font-weight="bold">PAID (PHP 20.00)</tspan></text>
+
+    <rect x="110" y="505" width="300" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="1"/>
+    <text class="flow-text-center" x="260" y="530">Queue   &#8226;   Trip History   &#8226;   Remittance   &#8226;   Profile</text>
+    
+</svg>

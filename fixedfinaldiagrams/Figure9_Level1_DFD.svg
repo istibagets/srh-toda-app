@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 580" width="1300" height="580">
+    <defs>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Times+New+Roman:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap');
+            text { font-family: 'Times New Roman', Times, serif; }
+            .fig-title { font-size: 13px; font-weight: bold; font-style: italic; fill: #000000; }
+            .header-text { font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .entity-title { font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .process-num { font-size: 11px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .process-title { font-size: 11px; font-weight: normal; fill: #000000; text-anchor: middle; }
+            .node-title { font-size: 11px; font-weight: bold; fill: #000000; }
+            .node-desc { font-size: 10px; font-weight: normal; fill: #000000; }
+            .table-head { font-size: 11px; font-weight: bold; fill: #000000; }
+            .store-id { font-size: 11px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .store-name { font-size: 10.5px; font-weight: normal; fill: #000000; }
+            .flow-text { font-size: 9px; fill: #000000; }
+            .flow-text-right { font-size: 9px; fill: #000000; text-anchor: end; }
+            .flow-text-center { font-size: 9px; fill: #000000; text-anchor: middle; }
+        </style>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#000000" />
+        </marker>
+        <marker id="crowsfoot-one" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 5 0 L 5 10 M 8 0 L 8 10" stroke="#000000" stroke-width="1.2" fill="none" />
+        </marker>
+        <marker id="crowsfoot-many" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 M 10 0 L 10 10" stroke="#000000" stroke-width="1.2" fill="none" />
+        </marker>
+    </defs>
+    <!-- Pure White Background -->
+    <rect width="1300" height="580" fill="#FFFFFF"/>
+    
+    <!-- Figure Header -->
+    <g transform="translate(30, 25)">
+        <text class="fig-title" x="0" y="0">Figure 9. Level 1 Data Flow Diagram (DFD) of the SRH LINK-TODA Architecture</text>
+    </g>
+
+    
+    <!-- Entities -->
+    <g transform="translate(60, 110)"><rect width="140" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/><text class="entity-title" x="70" y="36">PASSENGER</text></g>
+    <g transform="translate(60, 350)"><rect width="140" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/><text class="entity-title" x="70" y="36">DRIVER</text></g>
+    <g transform="translate(1040, 350)"><rect width="160" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/><text class="entity-title" x="80" y="33">TODA DISPATCHER &amp;</text><text class="entity-title" x="80" y="49">SUPERADMIN</text></g>
+
+    <!-- Processes -->
+    <g transform="translate(300, 80)"><rect width="220" height="60" rx="6" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/><line x1="0" y1="20" x2="220" y2="20" stroke="#000000" stroke-width="1"/><text class="process-num" x="110" y="15">1.0</text><text class="process-title" x="110" y="42">Authenticate &amp; Session Profile</text></g>
+    <g transform="translate(600, 80)"><rect width="220" height="60" rx="6" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/><line x1="0" y1="20" x2="220" y2="20" stroke="#000000" stroke-width="1"/><text class="process-num" x="110" y="15">2.0</text><text class="process-title" x="110" y="42">Verify Driver MTOP &amp; License</text></g>
+    <g transform="translate(300, 220)"><rect width="220" height="60" rx="6" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/><line x1="0" y1="20" x2="220" y2="20" stroke="#000000" stroke-width="1"/><text class="process-num" x="110" y="15">3.0</text><text class="process-title" x="110" y="42">Process 35m Geofence Queue</text></g>
+    <g transform="translate(600, 220)"><rect width="220" height="60" rx="6" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/><line x1="0" y1="20" x2="220" y2="20" stroke="#000000" stroke-width="1"/><text class="process-num" x="110" y="15">4.0</text><text class="process-title" x="110" y="42">Calculate Fare &amp; Dispatch Ride</text></g>
+    <g transform="translate(300, 360)"><rect width="220" height="60" rx="6" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/><line x1="0" y1="20" x2="220" y2="20" stroke="#000000" stroke-width="1"/><text class="process-num" x="110" y="15">5.0</text><text class="process-title" x="110" y="42">Record Incident Blotters</text></g>
+    <g transform="translate(600, 360)"><rect width="220" height="60" rx="6" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/><line x1="0" y1="20" x2="220" y2="20" stroke="#000000" stroke-width="1"/><text class="process-num" x="110" y="15">6.0</text><text class="process-title" x="110" y="42">Reconcile Remittance Dues</text></g>
+
+    <!-- Data Stores (Open Right End) -->
+    <g transform="translate(300, 480)">
+        <path d="M 140 0 L 0 0 L 0 40 L 140 40" fill="none" stroke="#000000" stroke-width="1.2"/>
+        <line x1="35" y1="0" x2="35" y2="40" stroke="#000000" stroke-width="1.2"/>
+        <text class="store-id" x="17" y="25">D1</text><text class="store-name" x="45" y="25">users_3nf</text>
+    </g>
+    <g transform="translate(460, 480)">
+        <path d="M 140 0 L 0 0 L 0 40 L 140 40" fill="none" stroke="#000000" stroke-width="1.2"/>
+        <line x1="35" y1="0" x2="35" y2="40" stroke="#000000" stroke-width="1.2"/>
+        <text class="store-id" x="17" y="25">D2</text><text class="store-name" x="45" y="25">drivers_3nf</text>
+    </g>
+    <g transform="translate(620, 480)">
+        <path d="M 140 0 L 0 0 L 0 40 L 140 40" fill="none" stroke="#000000" stroke-width="1.2"/>
+        <line x1="35" y1="0" x2="35" y2="40" stroke="#000000" stroke-width="1.2"/>
+        <text class="store-id" x="17" y="25">D3</text><text class="store-name" x="45" y="25">queue_3nf</text>
+    </g>
+    <g transform="translate(780, 480)">
+        <path d="M 140 0 L 0 0 L 0 40 L 140 40" fill="none" stroke="#000000" stroke-width="1.2"/>
+        <line x1="35" y1="0" x2="35" y2="40" stroke="#000000" stroke-width="1.2"/>
+        <text class="store-id" x="17" y="25">D4</text><text class="store-name" x="45" y="25">tariffs_3nf</text>
+    </g>
+    <g transform="translate(940, 480)">
+        <path d="M 140 0 L 0 0 L 0 40 L 140 40" fill="none" stroke="#000000" stroke-width="1.2"/>
+        <line x1="35" y1="0" x2="35" y2="40" stroke="#000000" stroke-width="1.2"/>
+        <text class="store-id" x="17" y="25">D5</text><text class="store-name" x="45" y="25">rides_3nf</text>
+    </g>
+    <g transform="translate(1100, 480)">
+        <path d="M 150 0 L 0 0 L 0 40 L 150 40" fill="none" stroke="#000000" stroke-width="1.2"/>
+        <line x1="35" y1="0" x2="35" y2="40" stroke="#000000" stroke-width="1.2"/>
+        <text class="store-id" x="17" y="25">D6</text><text class="store-name" x="45" y="25">activity_logs_3nf</text>
+    </g>
+
+    <!-- Orthogonal Connectors -->
+    <!-- Passenger -> 1.0 -->
+    <path d="M 200 125 L 300 125" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="210" y="120">Credentials</text>
+
+    <!-- Passenger -> 4.0 -->
+    <path d="M 200 145 L 250 145 L 250 240 L 600 240" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="255" y="235">Book Ride</text>
+
+    <!-- Driver -> 3.0 -->
+    <path d="M 200 365 L 250 365 L 250 260 L 300 260" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="210" y="360">35m GPS Ping</text>
+
+    <!-- Driver -> 6.0 -->
+    <path d="M 200 395 L 250 395 L 250 400 L 600 400" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="255" y="415">Daily Dues</text>
+
+    <!-- 1.0 -> 2.0 -->
+    <path d="M 520 110 L 600 110" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <!-- 3.0 -> 4.0 -->
+    <path d="M 520 250 L 600 250" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <!-- 5.0 -> 6.0 -->
+    <path d="M 520 390 L 600 390" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+
+    <!-- Admin Connectors -->
+    <path d="M 1040 370 L 820 370" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text-right" x="1030" y="365">Audit Ledger</text>
+
+    <path d="M 1040 395 L 900 395 L 900 260 L 820 260" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text-right" x="1030" y="390">Tariff Multiplier</text>
+    
+</svg>

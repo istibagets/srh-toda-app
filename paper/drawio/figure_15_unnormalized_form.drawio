@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T06:31:00.267Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 15 - Unnormalized Form (UNF)">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="940" pageHeight="680" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="tbl_master" value="&lt;b&gt;tbl_srh_toda_masterrecord&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK | userID&lt;/b&gt;&lt;br&gt;&lt;br&gt;
+&lt;b&gt;Scalar Attributes (Left):&lt;/b&gt;&lt;br&gt;
+fullName&lt;br&gt;
+emailAddress&lt;br&gt;
+contactNumber&lt;br&gt;
+userRole&lt;br&gt;
+roleID&lt;br&gt;
+roleName&lt;br&gt;
+accountStatus&lt;br&gt;
+otpCode&lt;br&gt;
+otpExpiresAt&lt;br&gt;
+profilePhotoPath&lt;br&gt;
+terminalID&lt;br&gt;
+terminalName&lt;br&gt;
+terminalLatitude&lt;br&gt;
+terminalLongitude&lt;br&gt;
+geofenceRadiusMeters&lt;br&gt;
+tariffID&lt;br&gt;
+baseFare&lt;br&gt;
+baseDistanceKm&lt;br&gt;
+perKmRate&lt;br&gt;
+nightDifferentialMultiplier&lt;br&gt;
+effectiveDate&lt;br&gt;
+isTariffActive&lt;br&gt;
+createdAt&lt;br&gt;
+updatedAt&lt;br&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=left;spacingLeft=15;verticalAlign=top;spacingTop=10;fontFamily=Times New Roman;fontSize=10;" vertex="1" parent="1">
+            <mxGeometry x="80" y="60" width="320" height="560" as="geometry" />
+        </mxCell>
+        <mxCell id="tbl_master_right" value="&lt;b&gt;Repeating Groups (Right):&lt;/b&gt;&lt;br&gt;&lt;br&gt;
+&lt;b&gt;{&lt;/b&gt; driverID, mtopNumber, plateNumber, licenseNumber, bodyNumber, driverContact, isAccredited, accreditationDate, queueRank, geofenceStatus, currentLatitude, currentLongitude, lastGeofencePingAt &lt;b&gt;}&lt;/b&gt;&lt;br&gt;&lt;br&gt;
+&lt;b&gt;{&lt;/b&gt; rideID, passengerID, pickupLatitude, pickupLongitude, pickupAddress, dropoffLatitude, dropoffLongitude, dropoffAddress, routeDistanceKm, estimatedFare, finalFare, paymentMethod, paymentStatus, rideStatus, cancellationReason, requestedAt, completedAt &lt;b&gt;}&lt;/b&gt;&lt;br&gt;&lt;br&gt;
+&lt;b&gt;{&lt;/b&gt; messageID, rideID, senderID, receiverID, messageContent, messageType, isRead, sentAt &lt;b&gt;}&lt;/b&gt;&lt;br&gt;&lt;br&gt;
+&lt;b&gt;{&lt;/b&gt; reportID, rideID, reporterID, reportedUserID, reportCategory, incidentDescription, incidentLocation, evidenceAttachment, reportStatus, resolutionNotes, resolvedBy, reportedAt, resolvedAt &lt;b&gt;}&lt;/b&gt;&lt;br&gt;&lt;br&gt;
+&lt;b&gt;{&lt;/b&gt; remittanceID, driverID, collectorID, dailyDuesAmount, receiptNumber, paymentDate, remittanceStatus, remittanceNotes &lt;b&gt;}&lt;/b&gt;&lt;br&gt;&lt;br&gt;
+&lt;b&gt;{&lt;/b&gt; auditLogID, actorID, actionType, entityAffected, ipAddress, userAgent, statePayloadJson, logTimestamp &lt;b&gt;}&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=left;spacingLeft=15;verticalAlign=top;spacingTop=10;fontFamily=Times New Roman;fontSize=10;" vertex="1" parent="1">
+            <mxGeometry x="400" y="60" width="460" height="560" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 640" width="1100" height="640">
+    <defs>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Times+New+Roman:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap');
+            text { font-family: 'Times New Roman', Times, serif; }
+            .fig-title { font-size: 13px; font-weight: bold; font-style: italic; fill: #000000; }
+            .entity-title { font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .process-num { font-size: 11px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .process-title { font-size: 11px; font-weight: normal; fill: #000000; text-anchor: middle; }
+            .store-text { font-size: 10px; font-weight: normal; fill: #000000; }
+            .flow-text { font-size: 9px; font-family: 'Times New Roman', serif; fill: #000000; }
+            .flow-text-right { font-size: 9px; font-family: 'Times New Roman', serif; fill: #000000; text-anchor: end; }
+            .flow-text-center { font-size: 9px; font-family: 'Times New Roman', serif; fill: #000000; text-anchor: middle; }
+        </style>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#000000" />
+        </marker>
+    </defs>
+    <!-- Pure White Background -->
+    <rect width="1100" height="640" fill="#FFFFFF"/>
+    
+    <!-- Figure Header -->
+    <g transform="translate(30, 25)">
+        <text class="fig-title" x="0" y="0">Figure 27. Context Diagram of SRH LINK-TODA</text>
+    </g>
+
+    
+    <!-- Top-Left Entity: PASSENGER / COMMUTER -->
+    <rect x="100" y="80" width="180" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+    <text class="entity-title" x="190" y="112">PASSENGER /</text>
+    <text class="entity-title" x="190" y="128">COMMUTER</text>
+
+    <!-- Top-Right Entity: TRICYCLE DRIVER -->
+    <rect x="820" y="80" width="180" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+    <text class="entity-title" x="910" y="112">TRICYCLE DRIVER /</text>
+    <text class="entity-title" x="910" y="128">OPERATOR</text>
+
+    <!-- Bottom-Left Entity: SUPERADMIN -->
+    <rect x="100" y="480" width="180" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+    <text class="entity-title" x="190" y="520">SUPERADMIN</text>
+
+    <!-- Bottom-Right Entity: TODA ADMIN -->
+    <rect x="820" y="480" width="180" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+    <text class="entity-title" x="910" y="512">TODA ADMIN /</text>
+    <text class="entity-title" x="910" y="528">DISPATCHER</text>
+
+    <!-- Central Process Box (Process 0) -->
+    <rect x="440" y="260" width="220" height="110" rx="8" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+    <line x1="440" y1="285" x2="660" y2="285" stroke="#000000" stroke-width="1"/>
+    <text class="process-num" x="550" y="278">0</text>
+    <text class="header-text" x="550" y="325" font-size="14">SRH LINK-TODA</text>
+
+    <!-- TOP-LEFT BUS (Passenger -> P0) -->
+    <!-- Inflows -->
+    <path d="M 280 95 L 470 95 L 470 260" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="290" y="90">Ride Request &amp; Location Coords</text>
+
+    <path d="M 280 110 L 490 110 L 490 260" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="290" y="105">Account &amp; Profile Information</text>
+
+    <path d="M 280 125 L 510 125 L 510 260" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="290" y="120">Incident &amp; Grievance Reports</text>
+
+    <!-- Outflows -->
+    <path d="M 450 260 L 450 140 L 280 140" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="290" y="135">Queue Status &amp; Telemetry</text>
+
+    <path d="M 430 260 L 430 155 L 280 155" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="290" y="150">Fare Calculation &amp; Receipt</text>
+
+    <!-- TOP-RIGHT BUS (Driver -> P0) -->
+    <!-- Inflows -->
+    <path d="M 820 95 L 630 95 L 630 260" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text-right" x="810" y="90">35m Geofence GPS Coordinates</text>
+
+    <path d="M 820 110 L 610 110 L 610 260" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text-right" x="810" y="105">MTOP &amp; Licensing Documents</text>
+
+    <path d="M 820 125 L 590 125 L 590 260" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text-right" x="810" y="120">Dispatch Acceptance / Pass</text>
+
+    <!-- Outflows -->
+    <path d="M 650 260 L 650 140 L 820 140" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text-right" x="810" y="135">FIFO Queue Rank &amp; Priority Recovery</text>
+
+    <path d="M 670 260 L 670 155 L 820 155" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text-right" x="810" y="150">Dispatch Prompts &amp; Pickup Landmark</text>
+
+    <!-- BOTTOM-LEFT BUS (Superadmin -> P0) -->
+    <!-- Inflows -->
+    <path d="M 280 495 L 450 495 L 450 370" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="290" y="490">Municipal Tariff Calibration</text>
+
+    <path d="M 280 510 L 470 510 L 470 370" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="290" y="505">35m Geofence Terminal Anchor Setup</text>
+
+    <!-- Outflows -->
+    <path d="M 490 370 L 490 525 L 280 525" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="290" y="520">Immutable System Activity Logs</text>
+
+    <path d="M 510 370 L 510 540 L 280 540" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="290" y="535">Platform Telemetry &amp; System Health</text>
+
+    <!-- BOTTOM-RIGHT BUS (TODA Admin -> P0) -->
+    <!-- Inflows -->
+    <path d="M 820 495 L 650 495 L 650 370" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text-right" x="810" y="490">Manual Queue Overrides</text>
+
+    <path d="M 820 510 L 630 510 L 630 370" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text-right" x="810" y="505">MTOP Accreditation Verification</text>
+
+    <!-- Outflows -->
+    <path d="M 610 370 L 610 525 L 820 525" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text-right" x="810" y="520">Live Terminal Queue Monitor</text>
+
+    <path d="M 590 370 L 590 540 L 820 540" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text-right" x="810" y="535">Daily Remittance Ledger &amp; Disputes</text>
+    
+</svg>

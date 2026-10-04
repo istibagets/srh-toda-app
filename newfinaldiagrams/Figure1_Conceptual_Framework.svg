@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 800" width="1140" height="800">
+    <defs>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Times+New+Roman:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap');
+            text { font-family: 'Times New Roman', Times, serif; }
+            .fig-title { font-size: 13px; font-weight: bold; font-style: italic; fill: #000000; }
+            .header-text { font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .entity-title { font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .process-num { font-size: 11px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .process-title { font-size: 11px; font-weight: normal; fill: #000000; text-anchor: middle; }
+            .node-title { font-size: 11px; font-weight: bold; fill: #000000; }
+            .node-desc { font-size: 10px; font-weight: normal; fill: #000000; }
+            .table-head { font-size: 11px; font-weight: bold; fill: #000000; }
+            .store-id { font-size: 11px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .store-name { font-size: 10.5px; font-weight: normal; fill: #000000; }
+            .flow-text { font-size: 9px; fill: #000000; }
+            .flow-text-right { font-size: 9px; fill: #000000; text-anchor: end; }
+            .flow-text-center { font-size: 9px; fill: #000000; text-anchor: middle; }
+        </style>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#000000" />
+        </marker>
+        <marker id="crowsfoot-one" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 5 0 L 5 10 M 8 0 L 8 10" stroke="#000000" stroke-width="1.2" fill="none" />
+        </marker>
+        <marker id="crowsfoot-many" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 M 10 0 L 10 10" stroke="#000000" stroke-width="1.2" fill="none" />
+        </marker>
+    </defs>
+    <!-- Pure White Background -->
+    <rect width="1140" height="800" fill="#FFFFFF"/>
+    
+    <!-- Figure Header -->
+    <g transform="translate(30, 25)">
+        <text class="fig-title" x="0" y="0">Figure 1. Conceptual Framework for SRH LINK-TODA (IPO Model + Agile SDLC)</text>
+    </g>
+
+    
+    <!-- Problem Statement Box -->
+    <g transform="translate(50, 70)">
+        <rect width="320" height="180" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+        <text class="table-head" x="160" y="24" text-anchor="middle">PROBLEM STATEMENT</text>
+        <line x1="12" y1="32" x2="308" y2="32" stroke="#000000" stroke-width="1"/>
+        <text class="node-desc" x="16" y="58">• Unregulated physical terminal queue congestion</text>
+        <text class="node-desc" x="16" y="83">• Passenger queue anxiety &amp; unfair cutting in line</text>
+        <text class="node-desc" x="16" y="108">• Arbitrary driver overcharging &amp; fare ambiguity</text>
+        <text class="node-desc" x="16" y="133">• Inefficient manual paper dispatching at terminal</text>
+    </g>
+
+    <!-- Input Requirements Box -->
+    <g transform="translate(770, 70)">
+        <rect width="320" height="180" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+        <text class="table-head" x="160" y="24" text-anchor="middle">INPUT REQUIREMENTS &amp; STANDARDS</text>
+        <line x1="12" y1="32" x2="308" y2="32" stroke="#000000" stroke-width="1"/>
+        <text class="node-desc" x="16" y="58">• HTML5 Geolocation API (W3C GPS Standards)</text>
+        <text class="node-desc" x="16" y="83">• 35m Terminal Geofence (15.4247°N, 120.9416°E)</text>
+        <text class="node-desc" x="16" y="108">• Municipal MTOP Franchising &amp; Driver Credentials</text>
+        <text class="node-desc" x="16" y="133">• ISO/IEC 25010:2023 Systems Quality Model</text>
+    </g>
+
+    <!-- Process Box (7-Phase Agile SDLC) -->
+    <g transform="translate(210, 300)">
+        <rect width="720" height="210" rx="6" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+        <text class="table-head" x="360" y="24" text-anchor="middle">PROCESS: 7-PHASE AGILE SDLC ENGINE</text>
+        <line x1="15" y1="34" x2="705" y2="34" stroke="#000000" stroke-width="1"/>
+        <g transform="translate(20, 52)">
+            <text class="node-title" x="0" y="15">Phase 1: Planning &amp; Feasibility</text>
+            <text class="node-desc" x="15" y="32">Terminal field observations, stakeholder alignment &amp; user stories</text>
+            <text class="node-title" x="0" y="54">Phase 2: Requirements Analysis</text>
+            <text class="node-desc" x="15" y="71">35m spatial threshold modeling, FIFO rules &amp; metric definitions</text>
+            <text class="node-title" x="0" y="93">Phase 3: System Architecture &amp; DB Design</text>
+            <text class="node-desc" x="15" y="110">3NF relational schema, REST API endpoints, Reverb WebSocket :8080</text>
+            <text class="node-title" x="370" y="15">Phase 4: Full-Stack Implementation</text>
+            <text class="node-desc" x="385" y="32">Ionic PWA, Laravel 11 API, Priority Recovery Algorithm</text>
+            <text class="node-title" x="370" y="54">Phase 5: Verification &amp; Testing</text>
+            <text class="node-desc" x="385" y="71">Haversine GPS boundary tests, load testing &amp; failover</text>
+            <text class="node-title" x="370" y="93">Phase 6 &amp; 7: Deployment &amp; ISO Evaluation</text>
+            <text class="node-desc" x="385" y="110">Live pilot at SRH Terminal &amp; ISO 25010 empirical evaluation</text>
+        </g>
+    </g>
+
+    <!-- Output Box -->
+    <g transform="translate(170, 560)">
+        <rect width="800" height="135" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+        <text class="table-head" x="400" y="24" text-anchor="middle">OUTPUT: DEPLOYED SRH LINK-TODA PWA PLATFORM</text>
+        <line x1="15" y1="32" x2="785" y2="32" stroke="#000000" stroke-width="1"/>
+        <text class="node-desc" x="20" y="54">• Commuter PWA: Real-time terminal standby queue display &amp; distance-metered booking</text>
+        <text class="node-desc" x="20" y="74">• Driver Terminal PWA: HTML5 35m GPS duty check-in &amp; Priority Recovery Engine (Auto #1 Slot)</text>
+        <text class="node-desc" x="20" y="94">• TODA Dispatcher &amp; Superadmin Hub: Queue overrides, MTOP compliance, remittance ledger &amp; audit trails</text>
+        <text class="node-desc" x="20" y="114">• Validated Software Quality: ISO/IEC 25010:2023 Overall Mean: 4.88 (Excellent Quality Standards)</text>
+    </g>
+
+    <!-- Feedback Loop -->
+    <g transform="translate(170, 730)">
+        <rect width="800" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="1"/>
+        <text class="node-title" x="400" y="25" text-anchor="middle">FEEDBACK LOOP: Agile Sprint Reviews, Driver Usability Tweaks &amp; ISO 25010 Stakeholder Ratings</text>
+    </g>
+
+    <!-- Connectors: Strictly 90-degree right angles -->
+    <path d="M 210 250 L 210 300" fill="none" stroke="#000000" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <path d="M 930 250 L 930 300" fill="none" stroke="#000000" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <path d="M 570 510 L 570 560" fill="none" stroke="#000000" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <path d="M 570 695 L 570 730" fill="none" stroke="#000000" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+    <path d="M 170 750 L 110 750 L 110 405 L 210 405" fill="none" stroke="#000000" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+    
+</svg>

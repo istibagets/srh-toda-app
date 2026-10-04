@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T07:43:14.570Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 16 - First Normal Form (1NF)">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="920" pageHeight="460" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="rides_1nf" value="&lt;b&gt;rides_1nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: ride_id&lt;/b&gt;&lt;br&gt;passenger_name&lt;br&gt;passenger_phone&lt;br&gt;driver_name&lt;br&gt;driver_plate&lt;br&gt;driver_mtop&lt;br&gt;terminal_anchor&lt;br&gt;pickup_coords&lt;br&gt;dropoff_coords&lt;br&gt;distance_km&lt;br&gt;fare_amount&lt;br&gt;status" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="50" y="70" width="280" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="chat_messages_1nf" value="&lt;b&gt;chat_messages_1nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: message_id, ride_id&lt;/b&gt;&lt;br&gt;sender_name&lt;br&gt;message_content&lt;br&gt;sent_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="360" y="70" width="240" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="incident_reports_1nf" value="&lt;b&gt;incident_reports_1nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: report_id, ride_id&lt;/b&gt;&lt;br&gt;reporter_name&lt;br&gt;category&lt;br&gt;description&lt;br&gt;status" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="630" y="70" width="240" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="remittance_ledger_1nf" value="&lt;b&gt;remittance_ledger_1nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: remittance_id, driver_mtop&lt;/b&gt;&lt;br&gt;daily_dues&lt;br&gt;receipt_num&lt;br&gt;payment_date" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="360" y="190" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="audit_logs_1nf" value="&lt;b&gt;audit_logs_1nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: log_id&lt;/b&gt;&lt;br&gt;user_name&lt;br&gt;action_type&lt;br&gt;ip_address&lt;br&gt;timestamp" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="630" y="190" width="240" height="90" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

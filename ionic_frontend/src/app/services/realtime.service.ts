@@ -45,10 +45,11 @@ export class RealtimeService {
     window.Pusher = Pusher;
 
     try {
+      const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
       const token = this.authService.token();
-      const host = environment.reverb?.host || window.location.hostname;
+      const host = environment.reverb?.host || (isHttps ? 'srh-link-toda.duckdns.org' : window.location.hostname);
       const port = environment.reverb?.port || 8080;
-      const scheme = environment.reverb?.scheme || 'http';
+      const scheme = isHttps ? 'https' : (environment.reverb?.scheme || 'http');
 
       this.echoInstance = new Echo({
         broadcaster: 'reverb',

@@ -39,3 +39,9 @@ Thumbs.db
 paper/_temp*/
 paper/scratch*/
 paper/*.txt
+
+# Python & Scratch
+__pycache__/
+*.py[cod]
+scratch/
+test_callout.png

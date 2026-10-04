@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T07:08:13.696Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 3 - Data Gathering Flowchart">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1140" pageHeight="720" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="st_0" value="&lt;b&gt;STAGE 1: System Development &amp;amp; Lab Validation&lt;/b&gt;&lt;hr&gt;Implementation of Laravel 11 API, 35m Haversine algorithm, and Reverb WebSocket telemetry under lab test cases." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontFamily=Times New Roman,Arial;fontSize=11;" vertex="1" parent="1">
+            <mxGeometry x="240" y="80" width="660" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="st_1" value="&lt;b&gt;STAGE 2: Participant Orientation &amp;amp; Training&lt;/b&gt;&lt;hr&gt;Onboarding session with SRH TODA drivers, commuters, and dispatchers demonstrating PWA operation and 35m check-in." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontFamily=Times New Roman,Arial;fontSize=11;" vertex="1" parent="1">
+            <mxGeometry x="240" y="195" width="660" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="e_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontFamily=Times New Roman,Arial;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="st_0" target="st_1">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="570" y="155" /><mxPoint x="570" y="195" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="st_2" value="&lt;b&gt;STAGE 3: Field Pilot Testing &amp;amp; Live Observation&lt;/b&gt;&lt;hr&gt;14-day operational field pilot at Santa Rosa Aliaga Road terminal executing real-time dispatches and queue rotations." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontFamily=Times New Roman,Arial;fontSize=11;" vertex="1" parent="1">
+            <mxGeometry x="240" y="310" width="660" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="e_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontFamily=Times New Roman,Arial;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="st_1" target="st_2">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="570" y="270" /><mxPoint x="570" y="310" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="st_3" value="&lt;b&gt;STAGE 4: Survey Administration (ISO 25010 &amp;amp; TAM)&lt;/b&gt;&lt;hr&gt;Administering standardized Likert-scale questionnaires to Commuters (n=100), Drivers (n=30), and IT Experts (n=5)." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontFamily=Times New Roman,Arial;fontSize=11;" vertex="1" parent="1">
+            <mxGeometry x="240" y="425" width="660" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="e_3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontFamily=Times New Roman,Arial;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="st_2" target="st_3">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="570" y="385" /><mxPoint x="570" y="425" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="st_4" value="&lt;b&gt;STAGE 5: Data Collation &amp;amp; Statistical Analysis&lt;/b&gt;&lt;hr&gt;Computing composite Mean, Standard Deviation, and Likert verbal interpretations validating system quality &amp;amp; acceptability." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontFamily=Times New Roman,Arial;fontSize=11;" vertex="1" parent="1">
+            <mxGeometry x="240" y="540" width="660" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="e_4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontFamily=Times New Roman,Arial;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="st_3" target="st_4">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="570" y="500" /><mxPoint x="570" y="540" /></Array>
+            </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T06:21:03.000Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 1 - Conceptual Framework">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="750" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="c_input" value="&lt;b&gt;INPUT (REQUIREMENTS &amp;amp; STANDARDS)&lt;/b&gt;&lt;br&gt;&lt;br&gt;• Unregulated Manual Queue &amp;amp; Commuter Anxiety&lt;br&gt;• HTML5 GPS &amp;amp; 35m Geofence Anchor (15.4247°N, 120.9416°E)&lt;br&gt;• Municipal MTOP &amp;amp; Driver LTO Credentials&lt;br&gt;• ISO/IEC 25010:2023 &amp;amp; WCAG 2.2 Standards&lt;br&gt;• Technology Acceptance Model (TAM: PEOU &amp;amp; PU)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=2;align=left;spacingLeft=15;verticalAlign=top;spacingTop=10;fontSize=11;" vertex="1" parent="1">
+            <mxGeometry x="60" y="120" width="340" height="480" as="geometry" />
+        </mxCell>
+        <mxCell id="c_process" value="&lt;b&gt;PROCESS (AGILE SDLC &amp;amp; ALGORITHMS)&lt;/b&gt;&lt;br&gt;&lt;br&gt;• Agile 7-Phase Software Development Sprints&lt;br&gt;• 35-Meter Haversine Geofence Proximity Trigger&lt;br&gt;• Priority-Based Queue Recovery Engine (Auto #1 Slot)&lt;br&gt;• Distance-Tiered Municipal Tariff Calculator&lt;br&gt;• 6-Digit Gmail OTP &amp;amp; Sanctum Bearer Token Auth&lt;br&gt;• Laravel Reverb (8080) &amp;amp; Redis WebSocket Broadcast&lt;br&gt;• MapLibre GL Vector Tile Streaming" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F3FF;strokeColor=#7C3AED;strokeWidth=2;align=left;spacingLeft=15;verticalAlign=top;spacingTop=10;fontSize=11;" vertex="1" parent="1">
+            <mxGeometry x="460" y="120" width="360" height="480" as="geometry" />
+        </mxCell>
+        <mxCell id="c_output" value="&lt;b&gt;OUTPUT (DEPLOYED PWA PLATFORM)&lt;/b&gt;&lt;br&gt;&lt;br&gt;• Passenger Progressive Web App (Real-time Queue Monitor)&lt;br&gt;• Driver Terminal PWA (35m Check-in &amp;amp; FIFO Dispatch)&lt;br&gt;• TODA Administrator Hub (Accreditation &amp;amp; Remittance Ledger)&lt;br&gt;• Superadmin Console (Tariff Calibration &amp;amp; Activity Audits)&lt;br&gt;• Validated ISO 25010 Software Quality (Overall: 4.88)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#059669;strokeWidth=2;align=left;spacingLeft=15;verticalAlign=top;spacingTop=10;fontSize=11;" vertex="1" parent="1">
+            <mxGeometry x="880" y="120" width="340" height="480" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" value="System Requirements" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#2563EB;strokeWidth=2;" edge="1" parent="1" source="c_input" target="c_process">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e2" value="PWA Artifacts" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#059669;strokeWidth=2;" edge="1" parent="1" source="c_process" target="c_output">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="c_feedback" value="&lt;b&gt;FEEDBACK &amp;amp; CONTINUOUS REFINEMENT (AGILE SPRINT REVIEWS &amp;amp; TAM USER EVALUATION)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#64748B;strokeWidth=1.5;align=center;verticalAlign=middle;fontSize=11;" vertex="1" parent="1">
+            <mxGeometry x="60" y="640" width="1160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e_fb1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#64748B;strokeWidth=1.5;dashed=1;" edge="1" parent="1" source="c_output" target="c_feedback">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_fb2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#64748B;strokeWidth=1.5;dashed=1;" edge="1" parent="1" source="c_feedback" target="c_input">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T07:43:14.541Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 3 - Data Gathering Flowchart">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1140" pageHeight="750" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="step_1" value="&lt;b&gt;Step 1: Preparation &amp; Instrument Formulation&lt;/b&gt;&lt;hr&gt;Drafting structured survey questionnaires aligned with ISO/IEC 25010:2023 8 product quality criteria." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=14;verticalAlign=top;spacingTop=6;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="240" y="70" width="660" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="e_flow_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="step_1" target="step_2">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="570" y="145" /><mxPoint x="570" y="175" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="step_2" value="&lt;b&gt;Step 2: Ethical Clearance &amp; Administrative Consent&lt;/b&gt;&lt;hr&gt;Securing formal authorization from Santa Rosa LGU &amp; TODA Executive Council for on-site study." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=14;verticalAlign=top;spacingTop=6;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="240" y="175" width="660" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="e_flow_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="step_2" target="step_3">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="570" y="250" /><mxPoint x="570" y="280" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="step_3" value="&lt;b&gt;Step 3: Live Field Deployment &amp; System Simulation&lt;/b&gt;&lt;hr&gt;Conducting live pilot testing with 30 drivers, 100 passengers &amp; 2 TODA dispatchers at SRH terminal." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=14;verticalAlign=top;spacingTop=6;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="240" y="280" width="660" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="e_flow_3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="step_3" target="step_4">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="570" y="355" /><mxPoint x="570" y="385" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="step_4" value="&lt;b&gt;Step 4: Empirical Data Gathering &amp; Telemetry Ingestion&lt;/b&gt;&lt;hr&gt;Administering 5-point Likert survey instruments and retrieving Redis WebSocket performance logs." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=14;verticalAlign=top;spacingTop=6;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="240" y="385" width="660" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="e_flow_4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="step_4" target="step_5">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="570" y="460" /><mxPoint x="570" y="490" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="step_5" value="&lt;b&gt;Step 5: Statistical Analysis &amp; Metric Computation&lt;/b&gt;&lt;hr&gt;Calculating Weighted Mean, Standard Deviation &amp; Criterion-level Acceptability rankings." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=14;verticalAlign=top;spacingTop=6;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="240" y="490" width="660" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="e_flow_5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="step_5" target="step_6">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points"><mxPoint x="570" y="565" /><mxPoint x="570" y="595" /></Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="step_6" value="&lt;b&gt;Step 6: System Validation &amp; Final Documentation&lt;/b&gt;&lt;hr&gt;Synthesizing evaluation results (Overall Mean: 4.88) and formulating post-deployment recommendations." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=14;verticalAlign=top;spacingTop=6;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="240" y="595" width="660" height="75" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T06:30:39.815Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 20 - System Architecture Diagram">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="600" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="l1" value="&lt;b&gt;PRESENTATION TIER (PROGRESSIVE WEB APPLICATIONS)&lt;/b&gt;&lt;br&gt;&lt;br&gt;• Commuter Client (Ionic / Angular PWA)&lt;br&gt;• Driver Terminal Client (HTML5 GPS &amp;amp; Audio Alerts)&lt;br&gt;• TODA Dispatcher &amp;amp; Superadmin Web Portal&lt;br&gt;• MapLibre GL Vector Map Tile Rendering&lt;br&gt;• Service Worker &amp;amp; Offline Cache Storage" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=10;verticalAlign=top;spacingTop=8;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="50" y="80" width="280" height="460" as="geometry" />
+        </mxCell>
+        <mxCell id="l2" value="&lt;b&gt;APPLICATION &amp;amp; REAL-TIME TIER (NGINX &amp;amp; LARAVEL 11)&lt;/b&gt;&lt;br&gt;&lt;br&gt;• Nginx Reverse Proxy (SSL / HTTPS Termination)&lt;br&gt;• Laravel 11 RESTful JSON API Controllers&lt;br&gt;• Laravel Sanctum Stateful Token Authentication&lt;br&gt;• 35m Haversine Geofence Verification Engine&lt;br&gt;• Priority-Based Queue Recovery Engine (Auto #1)&lt;br&gt;• Distance-Tiered Municipal Tariff Calculator&lt;br&gt;• Laravel Reverb Bi-directional WebSocket Engine (:8080)&lt;br&gt;• Redis In-Memory Pub/Sub Telemetry Broker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=10;verticalAlign=top;spacingTop=8;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="380" y="80" width="330" height="460" as="geometry" />
+        </mxCell>
+        <mxCell id="l3" value="&lt;b&gt;DATA PERSISTENCE &amp;amp; EXTERNAL SERVICES&lt;/b&gt;&lt;br&gt;&lt;br&gt;• MariaDB 10.11 InnoDB Relational Database&lt;br&gt;• Redis 7 In-Memory Cache (Live Queue &amp;amp; OTPs)&lt;br&gt;• Gmail SMTP Service (6-Digit OTP Delivery)&lt;br&gt;• OpenStreetMap / CARTO Vector Map Tiles&lt;br&gt;• Linux Host Operating System (Ubuntu 24.04 LTS)&lt;br&gt;• Immutable SHA-256 Audit Log Storage" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=10;verticalAlign=top;spacingTop=8;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="760" y="80" width="280" height="460" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" value="HTTPS / REST API &amp;amp; WSS :8080" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontColor=#000000;jumpStyle=arc;endArrow=block;endFill=1;fontFamily=Times New Roman;" edge="1" parent="1" source="l1" target="l2">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e2" value="SQL Queries &amp;amp; Redis Pub/Sub" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontColor=#000000;jumpStyle=arc;endArrow=block;endFill=1;fontFamily=Times New Roman;" edge="1" parent="1" source="l2" target="l3">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

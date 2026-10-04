@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T07:43:14.567Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 14 - Entity Relationship Diagram">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1260" pageHeight="800" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="t_users" value="&lt;b&gt;users_3nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: id&lt;/b&gt;&lt;br&gt;name: varchar(255)&lt;br&gt;email: varchar(255) (UQ)&lt;br&gt;contact_number: varchar(50)&lt;br&gt;role: enum(passenger,driver,admin)&lt;br&gt;is_active: tinyint(1)&lt;br&gt;profile_photo_url: text&lt;br&gt;email_verified_at: timestamp&lt;br&gt;created_at: timestamp" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="50" y="90" width="270" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="t_drivers" value="&lt;b&gt;drivers_3nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: id&lt;/b&gt;&lt;br&gt;&lt;i&gt;FK: user_id -&gt; users_3nf.id&lt;/i&gt;&lt;br&gt;mtop_number: varchar(50)&lt;br&gt;plate_number: varchar(50)&lt;br&gt;license_number: varchar(50)&lt;br&gt;compliance_status: varchar(50)&lt;br&gt;is_online: tinyint(1)&lt;br&gt;queue_position: int (nullable)&lt;br&gt;queue_joined_at: timestamp&lt;br&gt;outside_geofence_at: timestamp&lt;br&gt;last_activity_at: timestamp" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="420" y="90" width="290" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="t_rides" value="&lt;b&gt;rides_3nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: id&lt;/b&gt;&lt;br&gt;&lt;i&gt;FK: passenger_id -&gt; users_3nf.id&lt;/i&gt;&lt;br&gt;&lt;i&gt;FK: driver_id -&gt; users_3nf.id&lt;/i&gt;&lt;br&gt;pickup_location: text&lt;br&gt;pickup_latitude: decimal(10,8)&lt;br&gt;pickup_longitude: decimal(11,8)&lt;br&gt;destination: text&lt;br&gt;destination_latitude: decimal(10,8)&lt;br&gt;destination_longitude: decimal(11,8)&lt;br&gt;fare: decimal(8,2)&lt;br&gt;proposed_fare: decimal(8,2)&lt;br&gt;distance_km: decimal(8,2)&lt;br&gt;status: enum(pending,accepted,completed,cancelled)&lt;br&gt;cancellation_reason: text&lt;br&gt;passenger_rating: int&lt;br&gt;created_at: timestamp" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="810" y="90" width="330" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="t_messages" value="&lt;b&gt;messages_3nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: id&lt;/b&gt;&lt;br&gt;&lt;i&gt;FK: ride_id -&gt; rides_3nf.id&lt;/i&gt;&lt;br&gt;&lt;i&gt;FK: sender_id -&gt; users_3nf.id&lt;/i&gt;&lt;br&gt;message: text&lt;br&gt;is_read: tinyint(1)&lt;br&gt;created_at: timestamp" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="810" y="450" width="330" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="t_reports" value="&lt;b&gt;reports_3nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: id&lt;/b&gt;&lt;br&gt;&lt;i&gt;FK: reporter_id -&gt; users_3nf.id&lt;/i&gt;&lt;br&gt;&lt;i&gt;FK: driver_id -&gt; users_3nf.id&lt;/i&gt;&lt;br&gt;&lt;i&gt;FK: ride_id -&gt; rides_3nf.id&lt;/i&gt;&lt;br&gt;type: varchar(100)&lt;br&gt;description: text&lt;br&gt;attachment_url: text&lt;br&gt;status: enum(pending,under_review,resolved)&lt;br&gt;admin_remarks: text&lt;br&gt;created_at: timestamp" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="420" y="390" width="290" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="t_logs" value="&lt;b&gt;activity_logs_3nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: id&lt;/b&gt;&lt;br&gt;&lt;i&gt;FK: user_id -&gt; users_3nf.id&lt;/i&gt;&lt;br&gt;action: varchar(255)&lt;br&gt;description: text&lt;br&gt;ip_address: varchar(45)&lt;br&gt;user_agent: text&lt;br&gt;created_at: timestamp" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="50" y="380" width="270" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="e_u_d" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1.2;endArrow=ERoneToMany;" edge="1" parent="1" source="t_users" target="t_drivers">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_d_r" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1.2;endArrow=ERoneToMany;" edge="1" parent="1" source="t_drivers" target="t_rides">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_r_m" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1.2;endArrow=ERoneToMany;" edge="1" parent="1" source="t_rides" target="t_messages">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_r_rep" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1.2;endArrow=ERoneToMany;" edge="1" parent="1" source="t_rides" target="t_reports">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_u_log" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1.2;endArrow=ERoneToMany;" edge="1" parent="1" source="t_users" target="t_logs">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

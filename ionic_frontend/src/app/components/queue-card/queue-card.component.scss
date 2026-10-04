@@ -130,8 +130,8 @@
         box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
 
         &.first-queue-badge {
-          background: linear-gradient(to right, #10b981, #0d9488, #2563eb);
-          box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);
+          background: linear-gradient(to right, #059669, #10b981, #34d399);
+          box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
         }
       }
 
@@ -264,7 +264,7 @@
     }
 
     &.bg-online-first {
-      background: linear-gradient(135deg, #059669 0%, #10b981 35%, #0284c7 80%, #2563eb 100%);
+      background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
     }
 
     &.bg-online-other {
@@ -538,9 +538,9 @@
         box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 
         &.first {
-          background-color: #2563eb;
+          background-color: #059669;
           color: #ffffff;
-          border-color: #2563eb;
+          border-color: #047857;
           box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
         }
       }

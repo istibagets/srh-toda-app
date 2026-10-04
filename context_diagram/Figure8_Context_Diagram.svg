@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1560 980" width="1560" height="980">
+    <defs>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Times+New+Roman:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap');
+            text { font-family: 'Times New Roman', Times, serif; }
+            .fig-title { font-size: 15px; font-weight: bold; font-style: italic; fill: #000000; }
+            .fig-subtitle { font-size: 11.5px; font-style: italic; fill: #444444; }
+            .entity-title { font-size: 13px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .entity-sub { font-size: 10px; font-style: italic; fill: #000000; text-anchor: middle; }
+            .process-num { font-size: 15px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .process-name { font-size: 14.5px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .process-sub { font-size: 10.5px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .process-bullet { font-size: 10px; fill: #000000; text-anchor: middle; }
+            .flow-text-left { font-size: 9.5px; fill: #000000; text-anchor: start; }
+            .flow-text-right { font-size: 9.5px; fill: #000000; text-anchor: end; }
+            .flow-text-center { font-size: 9.5px; fill: #000000; text-anchor: middle; }
+        </style>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#000000" />
+        </marker>
+    </defs>
+
+    <!-- Pure White Background -->
+    <rect width="1560" height="980" fill="#FFFFFF"/>
+
+    <!-- Document Figure Header -->
+    <g transform="translate(60, 35)">
+        <text class="fig-title" x="0" y="0">Figure 8. Context Diagram (Level 0 DFD) of the SRH LINK-TODA System</text>
+        <text class="fig-subtitle" x="0" y="18">A Progressive Web Application-Based Queue Management System with Geolocation, Geofencing, and Priority-Based Queue Algorithm</text>
+    </g>
+
+    <!-- ========================================================================= -->
+    <!-- 4-CORNER SYMMETRICAL EXTERNAL ENTITIES (Width: 240, Height: 85)           -->
+    <!-- Left Entities: X=80..320 | Right Entities: X=1240..1480                   -->
+    <!-- Top Entities: Y=80..165  | Bottom Entities: Y=815..900                   -->
+    <!-- ========================================================================= -->
+
+    <!-- Top-Left Entity: PASSENGER / COMMUTER (Center: X=200, Y=122.5) -->
+    <g transform="translate(80, 80)">
+        <rect width="240" height="85" fill="#FFFFFF" stroke="#000000" stroke-width="1.4"/>
+        <text class="entity-title" x="120" y="34">PASSENGER / COMMUTER</text>
+        <text class="entity-sub" x="120" y="52">(Ionic Commuter PWA Client)</text>
+        <text class="entity-sub" x="120" y="68">Mobile Booking &amp; Live Queue Tracker</text>
+    </g>
+
+    <!-- Top-Right Entity: TRICYCLE DRIVER / OPERATOR (Center: X=1360, Y=122.5) -->
+    <g transform="translate(1240, 80)">
+        <rect width="240" height="85" fill="#FFFFFF" stroke="#000000" stroke-width="1.4"/>
+        <text class="entity-title" x="120" y="34">TRICYCLE DRIVER / OPERATOR</text>
+        <text class="entity-sub" x="120" y="52">(Ionic Driver Terminal PWA)</text>
+        <text class="entity-sub" x="120" y="68">35m GPS Ingestion &amp; Dispatch Terminal</text>
+    </g>
+
+    <!-- Bottom-Left Entity: SUPERADMIN / MUNICIPAL LGU (Center: X=200, Y=857.5) -->
+    <g transform="translate(80, 815)">
+        <rect width="240" height="85" fill="#FFFFFF" stroke="#000000" stroke-width="1.4"/>
+        <text class="entity-title" x="120" y="34">SUPERADMIN / MUNICIPAL LGU</text>
+        <text class="entity-sub" x="120" y="52">(Municipal Administrative Console)</text>
+        <text class="entity-sub" x="120" y="68">Tariff Matrix, MTOP &amp; System Audits</text>
+    </g>
+
+    <!-- Bottom-Right Entity: TODA OFFICIAL / DISPATCHER (Center: X=1360, Y=857.5) -->
+    <g transform="translate(1240, 815)">
+        <rect width="240" height="85" fill="#FFFFFF" stroke="#000000" stroke-width="1.4"/>
+        <text class="entity-title" x="120" y="34">TODA OFFICIAL / DISPATCHER</text>
+        <text class="entity-sub" x="120" y="52">(Terminal Operations Hub)</text>
+        <text class="entity-sub" x="120" y="68">Live FIFO Queue Overrides &amp; Blotters</text>
+    </g>
+
+    <!-- ========================================================================= -->
+    <!-- CENTRAL PROCESS 0.0: SRH LINK-TODA PLATFORM (Center: X=780, Y=490)        -->
+    <!-- Box: X=560..1000 (width 440), Y=330..650 (height 320)                     -->
+    <!-- ========================================================================= -->
+    <g transform="translate(560, 330)">
+        <rect width="440" height="320" rx="10" fill="#FFFFFF" stroke="#000000" stroke-width="1.8"/>
+        <line x1="0" y1="36" x2="440" y2="36" stroke="#000000" stroke-width="1.2"/>
+        <text class="process-num" x="220" y="25">0.0</text>
+        
+        <text class="process-name" x="220" y="64">SRH LINK-TODA PWA PLATFORM</text>
+        <text class="process-sub" x="220" y="82">(Queue Management, Geofencing, Priority Recovery &amp; Tariff Engine)</text>
+        <line x1="25" y1="92" x2="415" y2="92" stroke="#000000" stroke-width="0.8"/>
+        
+        <!-- Core System Engines & Services (Detailed & Centered) -->
+        <text class="process-bullet" x="220" y="118">&#8226; FIFO Queue Management &amp; Priority Recovery Engine (Auto #1 Slot)</text>
+        <text class="process-bullet" x="220" y="142">&#8226; HTML5 GPS 35m Terminal Geofence Detection (Haversine Formula)</text>
+        <text class="process-bullet" x="220" y="166">&#8226; Municipal Distance-Metered Tariff Calculator &amp; Fare Verification</text>
+        <text class="process-bullet" x="220" y="190">&#8226; Real-Time Bi-Directional WebSocket Telemetry (Laravel Reverb :8080)</text>
+        <text class="process-bullet" x="220" y="214">&#8226; Multi-Mode Dispatch Engine (Terminal, Walk-In &amp; Wayside Drops)</text>
+        <text class="process-bullet" x="220" y="238">&#8226; Daily Remittance Dues Ledger &amp; Electronic Receipt Generation</text>
+        <text class="process-bullet" x="220" y="262">&#8226; Incident Blotter Grievance Logging &amp; Mediation Hearing Engine</text>
+        <text class="process-bullet" x="220" y="286">&#8226; Immutable SHA-256 Audit Trail &amp; Redis Cache State Ingestion</text>
+        <text class="process-bullet" x="220" y="306">&#8226; Decoupled RESTful API Engine (Laravel 11 Backend + MariaDB 10.11)</text>
+    </g>
+
+    <!-- ========================================================================= -->
+    <!-- TOP-LEFT QUADRANT: PASSENGER <-> PROCESS 0.0 (5 COMPLETE FLOWS)           -->
+    <!-- All lines route with dedicated clear channels: Zero line crossing text    -->
+    <!-- ========================================================================= -->
+
+    <!-- Flow P1 (Inflow): Ride Request with GPS Coordinates -->
+    <path d="M 320 95 L 610 95 L 610 330" fill="none" stroke="#000000" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text class="flow-text-left" x="330" y="87">Ride Booking Request (Pickup Pin, Destination Coords &amp; Distance KM)</text>
+
+    <!-- Flow P2 (Inflow): Account Registration & Mobile OTP -->
+    <path d="M 320 120 L 660 120 L 660 330" fill="none" stroke="#000000" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text class="flow-text-left" x="330" y="112">User Registration, Mobile Number &amp; OTP Verification Credentials</text>
+
+    <!-- Flow P3 (Inflow): Fare Proposal / In-App Chat / Blotter Filing -->
+    <path d="M 320 145 L 710 145 L 710 330" fill="none" stroke="#000000" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text class="flow-text-left" x="330" y="137">Fare Counter-Proposal, In-App Chat Messages &amp; Incident Blotter Reports</text>
+
+    <!-- Flow P4 (Outflow): Live Standby Queue & Driver Telemetry -->
+    <path d="M 560 360 L 400 360 L 400 185 L 200 185 L 200 165" fill="none" stroke="#000000" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text class="flow-text-left" x="415" y="353">Live Terminal Standby Queue Status, Driver ETA &amp; Vehicle Roster Broadcast</text>
+
+    <!-- Flow P5 (Outflow): Computed Fare & Digital E-Receipt -->
+    <path d="M 560 395 L 360 395 L 360 210 L 160 210 L 160 165" fill="none" stroke="#000000" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text class="flow-text-left" x="375" y="388">Computed Municipal Distance Fare, Digital E-Receipt &amp; Blotter Resolution</text>
+
+    <!-- ========================================================================= -->
+    <!-- TOP-RIGHT QUADRANT: DRIVER <-> PROCESS 0.0 (5 COMPLETE FLOWS - MIRROR)    -->
+    <!-- ========================================================================= -->
+
+    <!-- Flow D1 (Inflow): 35m GPS Geofence Ping & Duty Toggle -->
+    <path d="M 1240 95 L 950 95 L 950 330" fill="none" stroke="#000000" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text class="flow-text-right" x="1230" y="87">35m Geofence GPS Coordinates (HTML5 Geolocation) &amp; Duty Activation</text>
+
+    <!-- Flow D2 (Inflow): MTOP Credentials & Franchise Profile -->
+    <path d="M 1240 120 L 900 120 L 900 330" fill="none" stroke="#000000" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text class="flow-text-right" x="1230" y="112">MTOP Franchise Credentials, Driver License &amp; Vehicle Body Number</text>
+
+    <!-- Flow D3 (Inflow): Dispatch Acceptance & Remittance -->
+    <path d="M 1240 145 L 850 145 L 850 330" fill="none" stroke="#000000" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text class="flow-text-right" x="1230" y="137">Dispatch Acceptance Response, Trip Completion &amp; Daily Dues Remittance</text>
+
+    <!-- Flow D4 (Outflow): Priority Queue Slot & Geofence Status -->
+    <path d="M 1000 360 L 1160 360 L 1160 185 L 1360 185 L 1360 165" fill="none" stroke="#000000" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text class="flow-text-right" x="1145" y="353">FIFO Queue Rank (#1 Standby Priority Slot) &amp; 35m In-Bounds Status</text>
+
+    <!-- Flow D5 (Outflow): Priority Recovery & Dispatch Alerts -->
+    <path d="M 1000 395 L 1200 395 L 1200 210 L 1400 210 L 1400 165" fill="none" stroke="#000000" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text class="flow-text-right" x="1185" y="388">Priority Queue Recovery Alert (Auto #1 Slot) &amp; Passenger Dispatch Jobs</text>
+
+    <!-- ========================================================================= -->
+    <!-- BOTTOM-LEFT QUADRANT: SUPERADMIN <-> PROCESS 0.0 (4 COMPLETE FLOWS)       -->
+    <!-- ========================================================================= -->
+
+    <!-- Flow S1 (Inflow): Municipal Tariff & Geofence Calibration -->
+    <path d="M 320 835 L 610 835 L 610 650" fill="none" stroke="#000000" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text class="flow-text-left" x="330" y="827">Municipal Tariff Calibration (Base Fare, Per-KM Multiplier &amp; 35m Radius)</text>
+
+    <!-- Flow S2 (Inflow): User Roles, Status & System Maintenance -->
+    <path d="M 320 860 L 660 860 L 660 650" fill="none" stroke="#000000" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text class="flow-text-left" x="330" y="852">User Account Provisioning, Role Permissions, Status Toggles &amp; Cache Reset</text>
+
+    <!-- Flow S3 (Outflow): Immutable SHA-256 Audit Logs -->
+    <path d="M 560 590 L 400 590 L 400 770 L 200 770 L 200 815" fill="none" stroke="#000000" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text class="flow-text-left" x="415" y="583">Immutable SHA-256 Audit Trails, User Session Logs &amp; Security Telemetry</text>
+
+    <!-- Flow S4 (Outflow): Global Platform Analytics & Revenue Summary -->
+    <path d="M 560 625 L 360 625 L 360 795 L 160 795 L 160 815" fill="none" stroke="#000000" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text class="flow-text-left" x="375" y="618">Platform-Wide Revenue Analytics, Driver MTOP Registry &amp; Ledger Summary</text>
+
+    <!-- ========================================================================= -->
+    <!-- BOTTOM-RIGHT QUADRANT: TODA DISPATCHER <-> PROCESS 0.0 (4 COMPLETE FLOWS) -->
+    <!-- ========================================================================= -->
+
+    <!-- Flow T1 (Inflow): Manual Queue Reordering & Overrides -->
+    <path d="M 1240 835 L 950 835 L 950 650" fill="none" stroke="#000000" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text class="flow-text-right" x="1230" y="827">Manual FIFO Queue Reordering, Shift Overrides &amp; Driver Off-Duty Ejection</text>
+
+    <!-- Flow T2 (Inflow): Driver Compliance & Blotter Resolutions -->
+    <path d="M 1240 860 L 900 860 L 900 650" fill="none" stroke="#000000" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text class="flow-text-right" x="1230" y="852">Driver MTOP Compliance Verification, Blotter Hearings &amp; Announcements</text>
+
+    <!-- Flow T3 (Outflow): Live Terminal Queue Telemetry -->
+    <path d="M 1000 590 L 1160 590 L 1160 770 L 1360 770 L 1360 815" fill="none" stroke="#000000" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text class="flow-text-right" x="1145" y="583">Live Terminal Standby Queue Telemetry &amp; Driver In-Bounds Status Monitor</text>
+
+    <!-- Flow T4 (Outflow): Daily Remittance Records & Incident Docket -->
+    <path d="M 1000 625 L 1200 625 L 1200 795 L 1400 795 L 1400 815" fill="none" stroke="#000000" stroke-width="1.2" marker-end="url(#arrow)"/>
+    <text class="flow-text-right" x="1185" y="618">Daily Remittance Ledger Dues Collection &amp; Active Blotter Grievance Feed</text>
+
+</svg>

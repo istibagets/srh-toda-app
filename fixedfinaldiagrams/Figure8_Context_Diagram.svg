@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 580" width="1120" height="580">
+    <defs>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Times+New+Roman:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap');
+            text { font-family: 'Times New Roman', Times, serif; }
+            .fig-title { font-size: 13px; font-weight: bold; font-style: italic; fill: #000000; }
+            .header-text { font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .entity-title { font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .process-num { font-size: 11px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .process-title { font-size: 11px; font-weight: normal; fill: #000000; text-anchor: middle; }
+            .node-title { font-size: 11px; font-weight: bold; fill: #000000; }
+            .node-desc { font-size: 10px; font-weight: normal; fill: #000000; }
+            .table-head { font-size: 11px; font-weight: bold; fill: #000000; }
+            .store-id { font-size: 11px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .store-name { font-size: 10.5px; font-weight: normal; fill: #000000; }
+            .flow-text { font-size: 9px; fill: #000000; }
+            .flow-text-right { font-size: 9px; fill: #000000; text-anchor: end; }
+            .flow-text-center { font-size: 9px; fill: #000000; text-anchor: middle; }
+        </style>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#000000" />
+        </marker>
+        <marker id="crowsfoot-one" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 5 0 L 5 10 M 8 0 L 8 10" stroke="#000000" stroke-width="1.2" fill="none" />
+        </marker>
+        <marker id="crowsfoot-many" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 M 10 0 L 10 10" stroke="#000000" stroke-width="1.2" fill="none" />
+        </marker>
+    </defs>
+    <!-- Pure White Background -->
+    <rect width="1120" height="580" fill="#FFFFFF"/>
+    
+    <!-- Figure Header -->
+    <g transform="translate(30, 25)">
+        <text class="fig-title" x="0" y="0">Figure 8. Context Diagram (Level 0 DFD) of the SRH LINK-TODA System</text>
+    </g>
+
+    
+    <!-- Entities -->
+    <g transform="translate(60, 130)"><rect width="140" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/><text class="entity-title" x="70" y="40">PASSENGER</text></g>
+    <g transform="translate(60, 390)"><rect width="140" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/><text class="entity-title" x="70" y="40">DRIVER</text></g>
+    
+    <!-- Central Process 0.0 -->
+    <g transform="translate(380, 190)">
+        <rect width="340" height="210" rx="6" fill="#FFFFFF" stroke="#000000" stroke-width="1.5"/>
+        <line x1="0" y1="30" x2="340" y2="30" stroke="#000000" stroke-width="1"/>
+        <text class="process-num" x="170" y="20">0.0</text>
+        <text class="table-head" x="170" y="55" text-anchor="middle">SRH LINK-TODA PWA PLATFORM</text>
+        <text class="flow-text-center" x="170" y="85">35m Geofence Monitoring &amp; Duty Ingestion</text>
+        <text class="flow-text-center" x="170" y="105">Priority Queue Recovery Algorithm Engine</text>
+        <text class="flow-text-center" x="170" y="125">Municipal Distance-Metered Tariff Calculator</text>
+        <text class="flow-text-center" x="170" y="145">Real-Time WebSockets Telemetry (Reverb :8080)</text>
+        <text class="flow-text-center" x="170" y="165">Digital Remittance &amp; Incident Blotter Ledgers</text>
+    </g>
+
+    <!-- Superadmin -->
+    <g transform="translate(890, 260)"><rect width="160" height="80" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/><text class="entity-title" x="80" y="38">TODA DISPATCHER &amp;</text><text class="entity-title" x="80" y="54">SUPERADMIN</text></g>
+
+    <!-- Passenger Flows -->
+    <path d="M 200 145 L 380 145" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="210" y="140">Ride Request &amp; GPS Pin</text>
+
+    <path d="M 200 165 L 300 165 L 300 230 L 380 230" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="210" y="160">Blotter Incident Grievance</text>
+
+    <path d="M 380 270 L 280 270 L 280 185 L 200 185" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="210" y="200">Metered Fare &amp; Driver ETA</text>
+
+    <!-- Driver Flows -->
+    <path d="M 200 405 L 300 405 L 300 340 L 380 340" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="210" y="400">35m GPS Ingestion &amp; Check-In</text>
+
+    <path d="M 200 425 L 380 425" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="210" y="420">Accept Dispatch &amp; Dues Remittance</text>
+
+    <path d="M 380 370 L 280 370 L 280 445 L 200 445" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text" x="210" y="460">Priority Recovery &amp; Queue Rank</text>
+
+    <!-- Admin Flows -->
+    <path d="M 890 280 L 720 280" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text-right" x="880" y="275">Queue Override &amp; Tariff Multipliers</text>
+
+    <path d="M 720 330 L 890 330" fill="none" stroke="#000000" stroke-width="1" marker-end="url(#arrow)"/>
+    <text class="flow-text-right" x="880" y="325">Telemetry, Blotters &amp; Audit Logs</text>
+    
+</svg>

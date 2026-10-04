@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T07:43:14.571Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 17 - Second Normal Form (2NF)">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="550" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="users_2nf" value="&lt;b&gt;users_2nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: user_id&lt;/b&gt;&lt;br&gt;full_name&lt;br&gt;email&lt;br&gt;phone&lt;br&gt;role_name&lt;br&gt;created_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="50" y="70" width="230" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="drivers_2nf" value="&lt;b&gt;drivers_2nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: driver_id&lt;/b&gt;&lt;br&gt;user_id (FK)&lt;br&gt;mtop_number&lt;br&gt;plate_number&lt;br&gt;license_num&lt;br&gt;geofence_status" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="320" y="70" width="240" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="tariffs_2nf" value="&lt;b&gt;tariffs_2nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: tariff_id&lt;/b&gt;&lt;br&gt;base_fare&lt;br&gt;per_km_rate&lt;br&gt;effective_date" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="600" y="70" width="230" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="rides_2nf" value="&lt;b&gt;rides_2nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: ride_id&lt;/b&gt;&lt;br&gt;passenger_id (FK)&lt;br&gt;driver_id (FK)&lt;br&gt;pickup_lat&lt;br&gt;pickup_lng&lt;br&gt;dropoff_lat&lt;br&gt;dropoff_lng&lt;br&gt;distance_km&lt;br&gt;fare_amount&lt;br&gt;status" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="50" y="220" width="250" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="chat_messages_2nf" value="&lt;b&gt;chat_messages_2nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: message_id&lt;/b&gt;&lt;br&gt;ride_id (FK)&lt;br&gt;sender_id (FK)&lt;br&gt;message_text&lt;br&gt;sent_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="330" y="220" width="230" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="incident_reports_2nf" value="&lt;b&gt;incident_reports_2nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: report_id&lt;/b&gt;&lt;br&gt;ride_id (FK)&lt;br&gt;reporter_id (FK)&lt;br&gt;category&lt;br&gt;description&lt;br&gt;status" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="600" y="200" width="230" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="remittance_ledger_2nf" value="&lt;b&gt;remittance_ledger_2nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: remittance_id&lt;/b&gt;&lt;br&gt;driver_id (FK)&lt;br&gt;daily_dues_amount&lt;br&gt;receipt_no&lt;br&gt;payment_date" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="330" y="350" width="230" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="audit_logs_2nf" value="&lt;b&gt;audit_logs_2nf&lt;/b&gt;&lt;hr&gt;&lt;b&gt;PK: log_id&lt;/b&gt;&lt;br&gt;user_id (FK)&lt;br&gt;action_type&lt;br&gt;ip_address&lt;br&gt;timestamp" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=top;spacingTop=6;fontSize=10;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="600" y="340" width="230" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="e_2nf_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="users_2nf" target="drivers_2nf">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_2nf_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="drivers_2nf" target="rides_2nf">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_2nf_3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="tariffs_2nf" target="rides_2nf">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_2nf_4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="rides_2nf" target="chat_messages_2nf">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_2nf_5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="rides_2nf" target="incident_reports_2nf">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_2nf_6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="drivers_2nf" target="remittance_ledger_2nf">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

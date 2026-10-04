@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T06:30:39.527Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 8 - Context Diagram">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="650" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="e_rep" value="&lt;b&gt;REPORTER /&lt;br&gt;PASSENGER&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=center;verticalAlign=middle;fontFamily=Times New Roman;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
+            <mxGeometry x="100" y="80" width="180" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="e_officer" value="&lt;b&gt;TRICYCLE DRIVER /&lt;br&gt;OPERATOR&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=center;verticalAlign=middle;fontFamily=Times New Roman;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
+            <mxGeometry x="820" y="80" width="180" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="e_admin" value="&lt;b&gt;SUPERADMIN&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=center;verticalAlign=middle;fontFamily=Times New Roman;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
+            <mxGeometry x="100" y="480" width="180" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="e_local" value="&lt;b&gt;TODA ADMIN /&lt;br&gt;DISPATCHER&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=center;verticalAlign=middle;fontFamily=Times New Roman;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
+            <mxGeometry x="820" y="480" width="180" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="p0" value="&lt;b&gt;0&lt;/b&gt;&lt;hr&gt;&lt;b&gt;SRH LINK-TODA&lt;/b&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=center;verticalAlign=middle;fontFamily=Times New Roman;fontSize=14;fontColor=#000000;" vertex="1" parent="1">
+            <mxGeometry x="440" y="260" width="220" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="f1" value="Ride Request &amp; Location Coords" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontColor=#000000;jumpStyle=arc;endArrow=block;endFill=1;" edge="1" parent="1" source="e_rep" target="p0">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f2" value="Account and Profile Information" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontColor=#000000;jumpStyle=arc;endArrow=block;endFill=1;" edge="1" parent="1" source="e_rep" target="p0">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f3" value="Queue Status &amp; Driver Telemetry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontColor=#000000;jumpStyle=arc;endArrow=block;endFill=1;" edge="1" parent="1" source="p0" target="e_rep">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f4" value="Fare Confirmation &amp; Receipt" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontColor=#000000;jumpStyle=arc;endArrow=block;endFill=1;" edge="1" parent="1" source="p0" target="e_rep">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f5" value="35m Geofence GPS Coordinates" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontColor=#000000;jumpStyle=arc;endArrow=block;endFill=1;" edge="1" parent="1" source="e_officer" target="p0">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f6" value="MTOP and Licensing Credentials" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontColor=#000000;jumpStyle=arc;endArrow=block;endFill=1;" edge="1" parent="1" source="e_officer" target="p0">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f7" value="Assigned Queue Rank &amp; Recovery Slot" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontColor=#000000;jumpStyle=arc;endArrow=block;endFill=1;" edge="1" parent="1" source="p0" target="e_officer">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f8" value="Dispatch Prompts &amp; Passenger Coords" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontColor=#000000;jumpStyle=arc;endArrow=block;endFill=1;" edge="1" parent="1" source="p0" target="e_officer">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f9" value="Municipal Tariff Calibration" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontColor=#000000;jumpStyle=arc;endArrow=block;endFill=1;" edge="1" parent="1" source="e_admin" target="p0">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f10" value="35m Terminal Geofence Config" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontColor=#000000;jumpStyle=arc;endArrow=block;endFill=1;" edge="1" parent="1" source="e_admin" target="p0">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f11" value="Immutable System Activity Logs" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontColor=#000000;jumpStyle=arc;endArrow=block;endFill=1;" edge="1" parent="1" source="p0" target="e_admin">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f12" value="Platform Telemetry &amp; Audit Reports" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontColor=#000000;jumpStyle=arc;endArrow=block;endFill=1;" edge="1" parent="1" source="p0" target="e_admin">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f13" value="Manual Queue Overrides" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontColor=#000000;jumpStyle=arc;endArrow=block;endFill=1;" edge="1" parent="1" source="e_local" target="p0">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f14" value="MTOP Accreditation Verification" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontColor=#000000;jumpStyle=arc;endArrow=block;endFill=1;" edge="1" parent="1" source="e_local" target="p0">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f15" value="Live Terminal Queue Monitor" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontColor=#000000;jumpStyle=arc;endArrow=block;endFill=1;" edge="1" parent="1" source="p0" target="e_local">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f16" value="Daily Dues Remittance Ledger" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;fontColor=#000000;jumpStyle=arc;endArrow=block;endFill=1;" edge="1" parent="1" source="p0" target="e_local">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T07:43:14.540Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 2 - Research Locale &amp; Geofence">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="940" pageHeight="600" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="outer_bound" value="&lt;b&gt;Research Locale: Santa Rosa Homes Tricycle Terminal Area&lt;/b&gt;&lt;br&gt;Brgy. Tagumpay / Santa Rosa Homes, Santa Rosa, N.E. (15.4247°N, 120.9416°E)" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;verticalAlign=top;align=center;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="60" y="60" width="800" height="480" as="geometry" />
+        </mxCell>
+        <mxCell id="geofence_circle" value="&lt;b&gt;35-METER ACTIVE GEOFENCE RADIUS&lt;/b&gt;&lt;br&gt;(Auto Duty Ingestion &amp;amp; Priority Anchor Zone)" style="ellipse;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;strokeDasharray=4 3;align=center;verticalAlign=middle;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="260" y="140" width="400" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="terminal_center" value="&lt;b&gt;SRH TERMINAL ANCHOR POINT&lt;/b&gt;&lt;br&gt;Lat: 15.4247°N | Lng: 120.9416°E&lt;br&gt;[ GPS Base Station / Standby Dispatch ]" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=center;verticalAlign=middle;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="340" y="250" width="240" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="road_access" value="&lt;b&gt;Access Road / Terminal Entry &amp;amp; Exit Lane&lt;/b&gt;" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;align=center;verticalAlign=middle;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="90" y="265" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="commuter_shed" value="&lt;b&gt;Passenger Waiting Shed &amp;amp; Loading Bay&lt;/b&gt;" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;align=center;verticalAlign=middle;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="690" y="265" width="150" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="road_access" target="geofence_circle">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="terminal_center" target="commuter_shed">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

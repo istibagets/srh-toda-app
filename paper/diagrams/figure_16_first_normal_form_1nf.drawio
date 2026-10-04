@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T06:21:03.012Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 16 - 1NF">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="650" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="b_info" value="&lt;b&gt;FIRST NORMAL FORM (1NF) &amp;amp; FUNCTIONAL DEPENDENCY DIAGRAM&lt;/b&gt;&lt;br&gt;Repeating groups eliminated. Composite PK: &lt;b&gt;[user_id + driver_id + ride_id + message_id + report_id]&lt;/b&gt;" style="rounded=1;fillColor=#EFF6FF;strokeColor=#2563EB;strokeWidth=1.5;" vertex="1" parent="1">
+            <mxGeometry x="60" y="80" width="1160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="t_1nf" value="&lt;b&gt;1NF_SRH_LINK_TODA (ATOMIC TABLE)&lt;/b&gt;&lt;hr&gt;&lt;u&gt;user_id&lt;/u&gt;, &lt;u&gt;driver_id&lt;/u&gt;, &lt;u&gt;ride_id&lt;/u&gt;, &lt;u&gt;message_id&lt;/u&gt;, &lt;u&gt;report_id&lt;/u&gt;, name, email, phone_number, role, password, mtop_number, mtop_cert_url, license_url, compliance_status, pickup_location, destination, fare, status, message_text, category, description" style="shape=table;startSize=30;container=1;fillColor=#1E293B;strokeColor=#334155;fontColor=#FFFFFF;align=left;spacingLeft=15;" vertex="1" parent="1">
+            <mxGeometry x="60" y="170" width="1160" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="pd1" value="&lt;b&gt;PARTIAL DEPENDENCY 1 (Violates 2NF)&lt;/b&gt;&lt;br&gt;user_id ———&gt; (name, email, phone_number, role, password)" style="rounded=1;fillColor=#FEE2E2;strokeColor=#EF4444;strokeWidth=1.5;" vertex="1" parent="1">
+            <mxGeometry x="60" y="320" width="560" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="pd2" value="&lt;b&gt;PARTIAL DEPENDENCY 2 (Violates 2NF)&lt;/b&gt;&lt;br&gt;driver_id ———&gt; (mtop_number, mtop_cert_url, license_url, compliance_status)" style="rounded=1;fillColor=#FEE2E2;strokeColor=#EF4444;strokeWidth=1.5;" vertex="1" parent="1">
+            <mxGeometry x="660" y="320" width="560" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="pd3" value="&lt;b&gt;PARTIAL DEPENDENCY 3 (Violates 2NF)&lt;/b&gt;&lt;br&gt;ride_id ———&gt; (pickup_location, destination, pickup_lat, pickup_lng, fare, status)" style="rounded=1;fillColor=#FEE2E2;strokeColor=#EF4444;strokeWidth=1.5;" vertex="1" parent="1">
+            <mxGeometry x="60" y="410" width="560" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="pd4" value="&lt;b&gt;PARTIAL DEPENDENCY 4 &amp;amp; 5 (Violates 2NF)&lt;/b&gt;&lt;br&gt;message_id ———&gt; (message_text) | report_id ———&gt; (category, description)" style="rounded=1;fillColor=#FEE2E2;strokeColor=#EF4444;strokeWidth=1.5;" vertex="1" parent="1">
+            <mxGeometry x="660" y="410" width="560" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="td1" value="&lt;b&gt;TRANSITIVE DEPENDENCIES (Violates 3NF)&lt;/b&gt;&lt;br&gt;ride_id ———&gt; driver_id ———&gt; (mtop_number) | report_id ———&gt; ride_id ———&gt; (fare, passenger_id)" style="rounded=1;fillColor=#F5F3FF;strokeColor=#7C3AED;strokeWidth=1.5;" vertex="1" parent="1">
+            <mxGeometry x="60" y="500" width="1160" height="70" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

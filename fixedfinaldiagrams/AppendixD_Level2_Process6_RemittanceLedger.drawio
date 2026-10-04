@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T07:43:14.565Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Level 2 DFD - Process 6.0">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="960" pageHeight="480" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="ent_driv" value="&lt;b&gt;DRIVER&lt;/b&gt;" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=center;verticalAlign=middle;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="60" y="75" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ent_admin" value="&lt;b&gt;SUPERADMIN&lt;/b&gt;" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=center;verticalAlign=middle;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="60" y="255" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="p_6.1" value="&lt;b&gt;6.1&lt;/b&gt;&lt;hr&gt;Receive Daily Dues Remittance" style="rounded=6;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=center;verticalAlign=top;spacingTop=4;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="320" y="80" width="250" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="p_6.2" value="&lt;b&gt;6.2&lt;/b&gt;&lt;hr&gt;Issue Electronic Receipt" style="rounded=6;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=center;verticalAlign=top;spacingTop=4;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="320" y="170" width="250" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="p_6.3" value="&lt;b&gt;6.3&lt;/b&gt;&lt;hr&gt;Reconcile Daily Ledger" style="rounded=6;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=center;verticalAlign=top;spacingTop=4;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="320" y="260" width="250" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="p_6.4" value="&lt;b&gt;6.4&lt;/b&gt;&lt;hr&gt;Generate SHA-256 Audit Log" style="rounded=6;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=center;verticalAlign=top;spacingTop=4;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="320" y="350" width="250" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="ds_D6" value="&lt;b&gt;D6 | activity_logs_3nf&lt;/b&gt;" style="rounded=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;align=left;spacingLeft=8;verticalAlign=middle;fontFamily=Times New Roman;" vertex="1" parent="1">
+            <mxGeometry x="690" y="260" width="200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="f_1" value="Pay Dues" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="ent_driv" target="p_6.1">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="p_6.1" target="p_6.2">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f_3" value="E-Receipt" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="p_6.2" target="ent_driv">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f_4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="p_6.2" target="p_6.3">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f_5" value="Audit Ledger" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="ent_admin" target="p_6.3">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f_6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="p_6.3" target="ds_D6">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f_7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="p_6.3" target="p_6.4">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="f_8" value="Audit Hash" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#000000;strokeWidth=1;endArrow=block;endFill=1;" edge="1" parent="1" source="p_6.4" target="ent_admin">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

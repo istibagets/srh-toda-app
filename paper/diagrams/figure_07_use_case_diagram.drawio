@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-03T06:21:03.003Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="diagram_1" name="Figure 7 - Use Case Diagram">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="750" math="0" shadow="0">
+      <root>
+        
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+    
+        <mxCell id="act_p" value="Passenger / Commuter" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fillColor=#1E293B;strokeColor=#1E293B;" vertex="1" parent="1">
+            <mxGeometry x="80" y="200" width="40" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="act_d" value="Tricycle Driver" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fillColor=#059669;strokeColor=#059669;" vertex="1" parent="1">
+            <mxGeometry x="80" y="440" width="40" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="act_adm" value="TODA Administrator" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fillColor=#2563EB;strokeColor=#2563EB;" vertex="1" parent="1">
+            <mxGeometry x="1080" y="200" width="40" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="act_sadm" value="Superadministrator" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fillColor=#7C3AED;strokeColor=#7C3AED;" vertex="1" parent="1">
+            <mxGeometry x="1080" y="440" width="40" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="bnd" value="&lt;b&gt;SRH LINK-TODA PLATFORM&lt;/b&gt;" style="shape=swimlane;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#64748B;strokeWidth=2;startSize=30;" vertex="1" parent="1">
+            <mxGeometry x="220" y="80" width="760" height="600" as="geometry" />
+        </mxCell>
+        <mxCell id="uc1" value="Authenticate &amp;amp; OTP Verification" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;" vertex="1" parent="1">
+            <mxGeometry x="260" y="130" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc2" value="View Terminal Queue Status" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;" vertex="1" parent="1">
+            <mxGeometry x="260" y="200" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc3" value="Request Ride &amp;amp; Meter Fare" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;" vertex="1" parent="1">
+            <mxGeometry x="260" y="270" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc4" value="Cancel Dispatch (Priority Recovery)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;" vertex="1" parent="1">
+            <mxGeometry x="260" y="340" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc5" value="File Incident Blotter Grievance" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;" vertex="1" parent="1">
+            <mxGeometry x="260" y="410" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc6" value="35m Geofence Terminal Check-In" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#059669;" vertex="1" parent="1">
+            <mxGeometry x="260" y="480" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc7" value="Accept Dispatch &amp;amp; Route Telemetry" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#059669;" vertex="1" parent="1">
+            <mxGeometry x="260" y="550" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc8" value="Upload MTOP &amp;amp; License Credentials" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#059669;" vertex="1" parent="1">
+            <mxGeometry x="260" y="615" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc9" value="Execute Manual Queue Override" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;" vertex="1" parent="1">
+            <mxGeometry x="680" y="150" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc10" value="Verify Driver MTOP Accreditation" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;" vertex="1" parent="1">
+            <mxGeometry x="680" y="230" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc11" value="Moderate Blotter Dispute Hearings" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;" vertex="1" parent="1">
+            <mxGeometry x="680" y="310" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc12" value="Audit Daily Remittance Ledger" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#2563EB;" vertex="1" parent="1">
+            <mxGeometry x="680" y="390" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc13" value="Calibrate Municipal Fare Matrix" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F5F3FF;strokeColor=#7C3AED;" vertex="1" parent="1">
+            <mxGeometry x="680" y="490" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc14" value="Inspect Immutable Activity Logs" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F5F3FF;strokeColor=#7C3AED;" vertex="1" parent="1">
+            <mxGeometry x="680" y="570" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e_act_p1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="act_p" target="uc1">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_act_p2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="act_p" target="uc2">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_act_p3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="act_p" target="uc3">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_act_p4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="act_p" target="uc4">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_act_p5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="act_p" target="uc5">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_act_d1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="act_d" target="uc1">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_act_d2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="act_d" target="uc6">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_act_d3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="act_d" target="uc7">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_act_d4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="act_d" target="uc8">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_act_adm1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="act_adm" target="uc9">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_act_adm2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="act_adm" target="uc10">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_act_adm3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="act_adm" target="uc11">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_act_adm4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="act_adm" target="uc12">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_act_sadm1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="act_sadm" target="uc13">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="e_act_sadm2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;jumpStyle=arc;strokeColor=#334155;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="act_sadm" target="uc14">
+            <mxGeometry relative="1" as="geometry">
+                
+            </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

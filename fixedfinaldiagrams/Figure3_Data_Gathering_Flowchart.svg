@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 720" width="1140" height="720">
+    <defs>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Times+New+Roman:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap');
+            text { font-family: 'Times New Roman', Times, serif; }
+            .fig-title { font-size: 13px; font-weight: bold; font-style: italic; fill: #000000; }
+            .header-text { font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .entity-title { font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .process-num { font-size: 11px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .process-title { font-size: 11px; font-weight: normal; fill: #000000; text-anchor: middle; }
+            .node-title { font-size: 11px; font-weight: bold; fill: #000000; }
+            .node-desc { font-size: 10px; font-weight: normal; fill: #000000; }
+            .table-head { font-size: 11px; font-weight: bold; fill: #000000; }
+            .store-id { font-size: 11px; font-weight: bold; fill: #000000; text-anchor: middle; }
+            .store-name { font-size: 10.5px; font-weight: normal; fill: #000000; }
+            .flow-text { font-size: 9px; fill: #000000; }
+            .flow-text-right { font-size: 9px; fill: #000000; text-anchor: end; }
+            .flow-text-center { font-size: 9px; fill: #000000; text-anchor: middle; }
+        </style>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#000000" />
+        </marker>
+        <marker id="crowsfoot-one" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 5 0 L 5 10 M 8 0 L 8 10" stroke="#000000" stroke-width="1.2" fill="none" />
+        </marker>
+        <marker id="crowsfoot-many" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 M 10 0 L 10 10" stroke="#000000" stroke-width="1.2" fill="none" />
+        </marker>
+    </defs>
+    <!-- Pure White Background -->
+    <rect width="1140" height="720" fill="#FFFFFF"/>
+    
+    <!-- Figure Header -->
+    <g transform="translate(30, 25)">
+        <text class="fig-title" x="0" y="0">Figure 3. Empirical Data Gathering and System Evaluation Flowchart (ISO/IEC 25010:2023)</text>
+    </g>
+
+    
+        <g transform="translate(240, 70)">
+            <rect width="660" height="75" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+            <line x1="0" y1="24" x2="660" y2="24" stroke="#000000" stroke-width="1"/>
+            <text class="table-head" x="15" y="17">Step 1: Preparation &amp; Instrument Formulation</text>
+            <text class="node-desc" x="15" y="48">Drafting structured survey questionnaires aligned with ISO/IEC 25010:2023 8 product quality criteria.</text>
+        </g>
+            <path d="M 570 145 L 570 175" fill="none" stroke="#000000" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <g transform="translate(240, 175)">
+            <rect width="660" height="75" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+            <line x1="0" y1="24" x2="660" y2="24" stroke="#000000" stroke-width="1"/>
+            <text class="table-head" x="15" y="17">Step 2: Ethical Clearance &amp; Administrative Consent</text>
+            <text class="node-desc" x="15" y="48">Securing formal authorization from Santa Rosa LGU &amp; TODA Executive Council for on-site study.</text>
+        </g>
+            <path d="M 570 250 L 570 280" fill="none" stroke="#000000" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <g transform="translate(240, 280)">
+            <rect width="660" height="75" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+            <line x1="0" y1="24" x2="660" y2="24" stroke="#000000" stroke-width="1"/>
+            <text class="table-head" x="15" y="17">Step 3: Live Field Deployment &amp; System Simulation</text>
+            <text class="node-desc" x="15" y="48">Conducting live pilot testing with 30 drivers, 100 passengers &amp; 2 TODA dispatchers at SRH terminal.</text>
+        </g>
+            <path d="M 570 355 L 570 385" fill="none" stroke="#000000" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <g transform="translate(240, 385)">
+            <rect width="660" height="75" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+            <line x1="0" y1="24" x2="660" y2="24" stroke="#000000" stroke-width="1"/>
+            <text class="table-head" x="15" y="17">Step 4: Empirical Data Gathering &amp; Telemetry Ingestion</text>
+            <text class="node-desc" x="15" y="48">Administering 5-point Likert survey instruments and retrieving Redis WebSocket performance logs.</text>
+        </g>
+            <path d="M 570 460 L 570 490" fill="none" stroke="#000000" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <g transform="translate(240, 490)">
+            <rect width="660" height="75" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+            <line x1="0" y1="24" x2="660" y2="24" stroke="#000000" stroke-width="1"/>
+            <text class="table-head" x="15" y="17">Step 5: Statistical Analysis &amp; Metric Computation</text>
+            <text class="node-desc" x="15" y="48">Calculating Weighted Mean, Standard Deviation &amp; Criterion-level Acceptability rankings.</text>
+        </g>
+            <path d="M 570 565 L 570 595" fill="none" stroke="#000000" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <g transform="translate(240, 595)">
+            <rect width="660" height="75" fill="#FFFFFF" stroke="#000000" stroke-width="1.2"/>
+            <line x1="0" y1="24" x2="660" y2="24" stroke="#000000" stroke-width="1"/>
+            <text class="table-head" x="15" y="17">Step 6: System Validation &amp; Final Documentation</text>
+            <text class="node-desc" x="15" y="48">Synthesizing evaluation results (Overall Mean: 4.88) and formulating post-deployment recommendations.</text>
+        </g>
+</svg>
