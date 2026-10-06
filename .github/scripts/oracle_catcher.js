@@ -23,14 +23,15 @@ async function run() {
   const faultDomains = [undefined, "FAULT-DOMAIN-1", "FAULT-DOMAIN-2", "FAULT-DOMAIN-3"];
 
   log("=================================================");
-  log("🚀 GITHUB ACTIONS: ORACLE ALWAYS-FREE CATCHER ACTIVE");
+  log("🚀 GITHUB ACTIONS: 5-HOUR NON-STOP ORACLE CATCHER");
   log("Tenancy: " + provider.getTenantId());
   log("Shape: VM.Standard.A1.Flex (1 OCPU, 6 GB RAM)");
   log("Image: Canonical Ubuntu 24.04 aarch64");
+  log("Frequency: Non-stop every 60 seconds (up to 300 checks)");
   log("=================================================");
 
   const startTime = Date.now();
-  const maxDurationMs = 25 * 60 * 1000; // Run for 25 minutes per GitHub run
+  const maxDurationMs = 5 * 60 * 60 * 1000; // 5 hours continuous checking!
 
   let attempt = 0;
 
@@ -88,11 +89,11 @@ async function run() {
       }
     }
 
-    const delayMs = 60000 + Math.floor(Math.random() * 10000);
+    const delayMs = 60000 + Math.floor(Math.random() * 8000);
     await new Promise(r => setTimeout(r, delayMs));
   }
 
-  log("25 minutes elapsed for this GitHub Action cycle. Clean exit. Next scheduled run will continue automatically.");
+  log("5-hour run complete. Starting next shift.");
 }
 
 run().catch(err => {
