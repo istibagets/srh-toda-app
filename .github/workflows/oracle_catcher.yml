@@ -1,0 +1,39 @@
+﻿name: Oracle Always Free Catcher
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/30 * * * *'
+
+jobs:
+  hunt_slot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install OCI Dependencies
+        run: |
+          npm install oci-sdk oci-common oci-core
+
+      - name: Setup OCI Authentication
+        run: |
+          mkdir -p ~/.oci
+          cat << 'EOF' > ~/.oci/config
+          ${{ secrets.OCI_CONFIG }}
+          EOF
+          cat << 'EOF' > ~/.oci/oci_api_key.pem
+          ${{ secrets.OCI_KEY }}
+          EOF
+          chmod 600 ~/.oci/oci_api_key.pem
+
+      - name: Run Slot Catcher
+        env:
+          SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
+        run: |
+          node .github/scripts/oracle_catcher.js
