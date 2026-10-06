@@ -3,7 +3,12 @@
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/30 * * * *'
+    # Backup trigger every 4 hours in case a run ever stops
+    - cron: '0 */4 * * *'
+
+permissions:
+  actions: write
+  contents: read
 
 jobs:
   hunt_slot:
@@ -32,8 +37,17 @@ jobs:
           EOF
           chmod 600 ~/.oci/oci_api_key.pem
 
-      - name: Run Slot Catcher
+      - name: Run Slot Catcher (Continuous Loop)
+        id: catcher
         env:
           SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
         run: |
           node .github/scripts/oracle_catcher.js
+
+      - name: Chain Next Shift Automatically (Runs Forever Until Found)
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Shift finished without a slot. Automatically chaining the next shift right now..."
+          gh workflow run oracle_catcher.yml --ref main
