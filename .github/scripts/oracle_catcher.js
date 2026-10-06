@@ -75,6 +75,8 @@ async function run() {
       log("Instance ID: " + res.instance.id);
       log("Display Name: " + res.instance.displayName);
       log("Lifecycle State: " + res.instance.lifecycleState);
+      
+      // Exit 0 = GREEN CHECKMARK ONLY ON TRUE CREATION!
       process.exit(0);
     } catch (err) {
       const msg = err.message || "";
@@ -93,7 +95,8 @@ async function run() {
     await new Promise(r => setTimeout(r, delayMs));
   }
 
-  log("5-hour run complete. Starting next shift.");
+  log("5-hour shift finished without a slot opening. Exiting with status 1 so you know it is still hunting.");
+  process.exit(1);
 }
 
 run().catch(err => {
